@@ -1,0 +1,1568 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kaka Pocket Agents App Handoff</title>
+  <style>
+    :root {
+      --canvas: #eef2f1;
+      --canvas-2: #f8faf9;
+      --ink: #101817;
+      --ink-soft: #263431;
+      --muted: #64706d;
+      --faint: #8d9996;
+      --line: rgba(16, 24, 23, 0.11);
+      --line-strong: rgba(16, 24, 23, 0.19);
+      --surface: #ffffff;
+      --surface-soft: #f6f8f7;
+      --surface-tint: #eef8f1;
+      --green: #22b946;
+      --green-dark: #13772e;
+      --green-soft: rgba(34, 185, 70, 0.13);
+      --blue: #2f77cf;
+      --amber: #d89511;
+      --red: #ce3731;
+      --shadow-device: 0 24px 60px rgba(22, 35, 32, 0.22);
+      --shadow-quiet: 0 3px 10px rgba(22, 35, 32, 0.08);
+      --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      --text-xxl: 32px;
+      --text-xl: 24px;
+      --text-lg: 18px;
+      --text-md: 15px;
+      --text-sm: 13px;
+      --text-xs: 12px;
+      --text-micro: 11px;
+      --tap: 44px;
+      --radius-screen: 34px;
+      --radius-card: 16px;
+      --radius-control: 13px;
+      --radius-pill: 999px;
+      --device-w: 390px;
+      --device-h: 844px;
+      --photo: url("./assets/kaka-master-shot-clean-photo.png");
+      color-scheme: light;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--canvas);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0) 34%),
+        var(--canvas);
+      font-family: var(--font-ui);
+      letter-spacing: 0;
+    }
+
+    button,
+    a {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid rgba(34, 185, 70, 0.36);
+      outline-offset: 3px;
+    }
+
+    .handoff {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-columns: 330px minmax(0, 1fr);
+    }
+
+    .control-panel {
+      border-right: 1px solid var(--line);
+      background: rgba(248, 250, 249, 0.9);
+      padding: 22px;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .brand-kicker {
+      width: fit-content;
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 10px;
+      border: 1px solid rgba(34, 185, 70, 0.28);
+      border-radius: var(--radius-pill);
+      color: var(--green-dark);
+      background: var(--green-soft);
+      font-size: var(--text-xs);
+      font-weight: 700;
+    }
+
+    .brand-kicker::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 31px;
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: var(--text-sm);
+      line-height: 1.45;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .control-label {
+      margin: 0 0 2px;
+      color: var(--ink-soft);
+      font-size: var(--text-xs);
+      font-weight: 800;
+    }
+
+    .control-option,
+    .link-option {
+      min-height: var(--tap);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-control);
+      color: var(--ink);
+      background: var(--surface);
+      text-decoration: none;
+      cursor: pointer;
+      font-size: var(--text-sm);
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .control-option:hover,
+    .link-option:hover {
+      border-color: var(--line-strong);
+      background: var(--surface-soft);
+    }
+
+    .control-option[aria-pressed="true"] {
+      border-color: rgba(34, 185, 70, 0.42);
+      color: var(--green-dark);
+      background: var(--green-soft);
+    }
+
+    .control-note {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: var(--text-micro);
+      line-height: 1.45;
+    }
+
+    .stage {
+      min-width: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+
+    .device-wrap {
+      display: grid;
+      gap: 13px;
+      justify-items: center;
+    }
+
+    .device-title {
+      min-height: 30px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-pill);
+      color: var(--ink-soft);
+      background: rgba(255, 255, 255, 0.7);
+      font-size: var(--text-xs);
+      font-weight: 800;
+    }
+
+    .device {
+      position: relative;
+      width: var(--device-w);
+      height: var(--device-h);
+      padding: 10px;
+      border-radius: 48px;
+      background: linear-gradient(145deg, #141a18, #46504d 45%, #070908);
+      box-shadow: var(--shadow-device);
+    }
+
+    .screen {
+      position: relative;
+      height: 100%;
+      overflow: hidden;
+      border-radius: var(--radius-screen);
+      background:
+        radial-gradient(circle at 50% -7%, rgba(255, 255, 255, 0.88), transparent 28%),
+        linear-gradient(180deg, #fbfcfb 0%, #eff4f2 100%);
+    }
+
+    .screen::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 9px;
+      width: 118px;
+      height: 4px;
+      transform: translateX(-50%);
+      border-radius: var(--radius-pill);
+      background: #090d0c;
+    }
+
+    .status-bar {
+      position: absolute;
+      z-index: 30;
+      top: 13px;
+      left: 24px;
+      right: 24px;
+      display: flex;
+      justify-content: space-between;
+      color: #0d1413;
+      font-size: var(--text-xs);
+      font-weight: 800;
+      pointer-events: none;
+    }
+
+    .island {
+      position: absolute;
+      z-index: 31;
+      top: 10px;
+      left: 50%;
+      width: 102px;
+      height: 29px;
+      transform: translateX(-50%);
+      border-radius: var(--radius-pill);
+      background: #050606;
+    }
+
+    .battery {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .battery::before {
+      content: "";
+      width: 17px;
+      height: 10px;
+      border: 1.6px solid currentColor;
+      border-radius: 3px;
+      background: linear-gradient(90deg, currentColor 0 66%, transparent 66%);
+    }
+
+    .app {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 58px 20px 28px;
+    }
+
+    .app-header {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .app-heading {
+      min-width: 0;
+    }
+
+    .app-title {
+      margin: 0;
+      font-size: var(--text-xl);
+      line-height: 1.08;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .app-subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: var(--text-sm);
+      line-height: 1.3;
+    }
+
+    .icon-button {
+      width: var(--tap);
+      height: var(--tap);
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--ink);
+      background: var(--surface);
+      box-shadow: var(--shadow-quiet);
+      cursor: pointer;
+      font-size: var(--text-sm);
+      font-weight: 800;
+    }
+
+    .runtime-pill {
+      min-height: 32px;
+      width: fit-content;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 11px;
+      border-radius: var(--radius-pill);
+      color: var(--green-dark);
+      background: var(--green-soft);
+      font-size: var(--text-xs);
+      font-weight: 800;
+    }
+
+    .runtime-pill::before,
+    .state-dot {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .state-banner {
+      display: none;
+      align-items: start;
+      gap: 10px;
+      margin: 12px 0;
+      padding: 11px 12px;
+      border-radius: var(--radius-card);
+      background: #fff8e8;
+      color: #694d0c;
+      font-size: var(--text-xs);
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .state-banner.is-visible {
+      display: flex;
+    }
+
+    .state-banner.is-error {
+      background: #fff0ef;
+      color: #862522;
+    }
+
+    .state-banner strong {
+      display: block;
+      color: inherit;
+      font-size: var(--text-sm);
+    }
+
+    .screen-view {
+      min-height: 0;
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: none;
+      padding-bottom: 86px;
+    }
+
+    .screen-view::-webkit-scrollbar {
+      display: none;
+    }
+
+    .screen-view.is-active {
+      display: block;
+    }
+
+    .voice-hero {
+      display: grid;
+      gap: 14px;
+      padding-top: 2px;
+    }
+
+    .voice-prompt {
+      margin: 10px 0 0;
+      color: #37423f;
+      text-align: center;
+      font-size: var(--text-lg);
+      line-height: 1.28;
+    }
+
+    .voice-prompt strong {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .voice-card,
+    .task-card,
+    .recall-card,
+    .empty-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      background: rgba(255, 255, 255, 0.86);
+    }
+
+    .voice-card {
+      padding: 13px;
+    }
+
+    .voice-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--green-dark);
+      font-size: var(--text-xs);
+      font-weight: 800;
+    }
+
+    .voice-status.is-warning {
+      color: var(--amber);
+    }
+
+    .voice-status.is-error {
+      color: var(--red);
+    }
+
+    .transcript {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .line {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 9px;
+      color: #293531;
+      font-size: var(--text-sm);
+      line-height: 1.34;
+    }
+
+    .line span {
+      color: var(--faint);
+      font-size: var(--text-xs);
+      font-weight: 800;
+    }
+
+    .line p {
+      margin: 0;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .line.agent p {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .voice-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 13px;
+    }
+
+    .voice-step {
+      min-height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      color: var(--muted);
+      background: var(--surface-soft);
+      font-size: var(--text-micro);
+      font-weight: 800;
+    }
+
+    .voice-step.is-active {
+      color: var(--green-dark);
+      background: var(--green-soft);
+    }
+
+    .voice-step.is-done {
+      color: #385145;
+      background: #e5ebe8;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .quick-tile {
+      min-height: 72px;
+      display: grid;
+      align-content: center;
+      gap: 5px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      color: var(--ink);
+      background: var(--surface);
+      cursor: pointer;
+      text-align: left;
+      font-size: var(--text-sm);
+      font-weight: 800;
+    }
+
+    .quick-tile span {
+      color: var(--muted);
+      font-size: var(--text-micro);
+      font-weight: 700;
+    }
+
+    .quick-tile:hover,
+    .task-card:hover,
+    .recall-choice:hover {
+      border-color: var(--line-strong);
+    }
+
+    .inbox-stack,
+    .context-stack,
+    .recall-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .screen-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: var(--text-xs);
+      font-weight: 800;
+    }
+
+    .screen-meta strong {
+      color: var(--green-dark);
+    }
+
+    .task-card {
+      padding: 11px;
+    }
+
+    .task-top {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr);
+      gap: 11px;
+      align-items: start;
+    }
+
+    .thumb {
+      width: 54px;
+      height: 54px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-soft);
+    }
+
+    .thumb.photo {
+      background-image: var(--photo);
+      background-size: cover;
+      background-position: center;
+    }
+
+    .thumb.lines {
+      display: grid;
+      align-content: start;
+      gap: 5px;
+      padding: 10px 8px;
+      background: #fbfcfb;
+    }
+
+    .thumb.lines i {
+      display: block;
+      height: 5px;
+      border-radius: var(--radius-pill);
+      background: #17211f;
+    }
+
+    .thumb.lines i:nth-child(2) {
+      width: 31px;
+      background: #7c8784;
+    }
+
+    .thumb.lines i:nth-child(3) {
+      width: 24px;
+      background: var(--green);
+    }
+
+    .task-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: var(--text-sm);
+      line-height: 1.25;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .task-meta,
+    .task-summary {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: var(--text-xs);
+      line-height: 1.28;
+    }
+
+    .task-summary {
+      color: #3b4845;
+    }
+
+    .task-status {
+      width: fit-content;
+      min-height: 22px;
+      display: inline-flex;
+      align-items: center;
+      margin-top: 7px;
+      padding: 0 8px;
+      border-radius: var(--radius-pill);
+      color: #51605c;
+      background: var(--surface-soft);
+      font-size: var(--text-micro);
+      font-weight: 800;
+    }
+
+    .task-card.is-remembered {
+      border-color: rgba(34, 185, 70, 0.36);
+      background: #f2fbf4;
+    }
+
+    .task-card.is-remembered .task-status {
+      color: var(--green-dark);
+      background: var(--green-soft);
+    }
+
+    .task-card.is-forgotten {
+      opacity: 0.62;
+    }
+
+    .task-card.is-forgotten .task-status {
+      color: var(--red);
+      background: rgba(206, 55, 49, 0.09);
+    }
+
+    .task-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 9px;
+      border-top: 1px solid var(--line);
+    }
+
+    .small-action {
+      min-height: 36px;
+      border-radius: 10px;
+      color: var(--ink);
+      background: transparent;
+      cursor: pointer;
+      font-size: var(--text-micro);
+      font-weight: 800;
+    }
+
+    .small-action:hover,
+    .small-action.is-active {
+      color: var(--green-dark);
+      background: var(--green-soft);
+    }
+
+    .small-action:disabled {
+      opacity: 0.54;
+      cursor: not-allowed;
+    }
+
+    .empty-card {
+      display: none;
+      padding: 22px 16px;
+      text-align: center;
+    }
+
+    .empty-card.is-visible {
+      display: block;
+    }
+
+    .empty-card strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: var(--text-md);
+    }
+
+    .empty-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: var(--text-sm);
+      line-height: 1.4;
+    }
+
+    .context-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      background: rgba(255, 255, 255, 0.86);
+    }
+
+    .context-row {
+      width: 100%;
+      min-height: 58px;
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink);
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .context-row:last-child {
+      border-bottom: 0;
+    }
+
+    .context-symbol,
+    .choice-symbol {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      color: #ffffff;
+      background: var(--ink-soft);
+      font-size: var(--text-xs);
+      font-weight: 900;
+    }
+
+    .context-symbol.source {
+      background: var(--blue);
+    }
+
+    .context-symbol.place {
+      background: #53625e;
+    }
+
+    .context-symbol.power,
+    .choice-symbol.remember {
+      background: var(--green);
+    }
+
+    .context-label {
+      display: block;
+      font-size: var(--text-sm);
+      font-weight: 800;
+    }
+
+    .context-detail {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: var(--text-micro);
+      line-height: 1.25;
+    }
+
+    .allowed {
+      color: var(--green-dark);
+      font-size: var(--text-micro);
+      font-weight: 900;
+    }
+
+    .context-row.is-off .allowed,
+    .context-row.is-off .context-detail {
+      color: var(--faint);
+    }
+
+    .note-card {
+      padding: 11px 12px;
+      border-radius: var(--radius-card);
+      color: var(--muted);
+      background: var(--surface-soft);
+      font-size: var(--text-xs);
+      line-height: 1.38;
+      font-weight: 700;
+    }
+
+    .recall-choice {
+      width: 100%;
+      min-height: 64px;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      color: var(--ink);
+      background: var(--surface);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .recall-choice[aria-checked="true"] {
+      border-color: rgba(34, 185, 70, 0.42);
+      background: var(--green-soft);
+    }
+
+    .choice-symbol.once {
+      background: var(--amber);
+    }
+
+    .choice-symbol.forget {
+      background: var(--red);
+    }
+
+    .recall-copy strong {
+      display: block;
+      font-size: var(--text-sm);
+      line-height: 1.2;
+    }
+
+    .recall-copy span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: var(--text-xs);
+      line-height: 1.25;
+    }
+
+    .recall-card {
+      padding: 12px;
+      color: #35413e;
+      font-size: var(--text-xs);
+      line-height: 1.38;
+      font-weight: 700;
+    }
+
+    .bottom-bar {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 27px;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: 54px 1fr 54px;
+      align-items: end;
+      pointer-events: none;
+    }
+
+    .bottom-side {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--ink);
+      background: var(--surface);
+      box-shadow: var(--shadow-quiet);
+      pointer-events: auto;
+      cursor: pointer;
+      font-size: var(--text-xs);
+      font-weight: 900;
+    }
+
+    .mic-wrap {
+      display: grid;
+      justify-items: center;
+      pointer-events: none;
+    }
+
+    .mic {
+      width: 76px;
+      height: 76px;
+      display: grid;
+      place-items: center;
+      border: 6px solid rgba(255, 255, 255, 0.72);
+      border-radius: 50%;
+      color: #ffffff;
+      background: var(--green);
+      box-shadow: 0 6px 18px rgba(22, 35, 32, 0.14);
+      pointer-events: auto;
+      cursor: pointer;
+      font-size: var(--text-xs);
+      font-weight: 900;
+    }
+
+    .mic.is-listening {
+      background: #1aae40;
+    }
+
+    .mic.is-disabled {
+      background: #949f9c;
+      box-shadow: none;
+    }
+
+    .mic-caption {
+      min-height: 18px;
+      margin-top: 5px;
+      color: var(--green-dark);
+      font-size: var(--text-xs);
+      font-weight: 800;
+    }
+
+    .mic-caption.is-error {
+      color: var(--red);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      z-index: 100;
+      min-width: 240px;
+      transform: translate(-50%, 14px);
+      border-radius: var(--radius-pill);
+      padding: 12px 16px;
+      color: #ffffff;
+      background: rgba(12, 18, 17, 0.9);
+      box-shadow: 0 6px 18px rgba(12, 18, 17, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      text-align: center;
+      font-size: var(--text-sm);
+      font-weight: 800;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .control-option,
+      .link-option,
+      .quick-tile,
+      .small-action,
+      .context-row,
+      .recall-choice,
+      .mic {
+        transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+      }
+
+      .control-option:active,
+      .quick-tile:active,
+      .small-action:active,
+      .context-row:active,
+      .recall-choice:active,
+      .mic:active,
+      .bottom-side:active {
+        transform: translateY(1px) scale(0.99);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 1ms !important;
+        scroll-behavior: auto !important;
+        transition-duration: 1ms !important;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .handoff {
+        grid-template-columns: 1fr;
+        align-items: start;
+        min-height: auto;
+      }
+
+      .control-panel {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        max-height: 42dvh;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        padding: 14px;
+      }
+
+      .brand {
+        margin-bottom: 12px;
+      }
+
+      .brand h1 {
+        font-size: 26px;
+      }
+
+      .control-group {
+        margin-top: 12px;
+      }
+
+      .control-group.compact {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+
+      .control-group.compact .control-label {
+        display: none;
+      }
+
+      .control-group.compact .control-option {
+        flex: 0 0 auto;
+      }
+
+      .control-group.optional {
+        display: none;
+      }
+
+      .stage {
+        align-self: start;
+        padding: 18px 12px 30px;
+      }
+    }
+
+    @media (max-width: 470px) {
+      .control-panel {
+        max-height: none;
+        padding: 12px 14px;
+      }
+
+      .brand {
+        margin-bottom: 10px;
+      }
+
+      .brand p,
+      .control-note {
+        display: none;
+      }
+
+      .stage {
+        padding: 14px 0 28px;
+      }
+
+      .device-title {
+        display: none;
+      }
+
+      .device {
+        width: min(100vw - 26px, var(--device-w));
+        height: min(690px, calc(100dvh - 190px));
+        min-height: 600px;
+        padding: 8px;
+        border-radius: 42px;
+      }
+
+      .screen {
+        border-radius: 31px;
+      }
+
+      .app {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="handoff">
+    <aside class="control-panel" aria-label="Prototype controls">
+      <div class="brand">
+        <span class="brand-kicker">App handoff prototype</span>
+        <h1>Kaka Pocket Agents</h1>
+        <p>Single-screen interaction model for the voice-first iPhone app surface.</p>
+      </div>
+
+      <div class="control-group compact" aria-label="Screens">
+        <p class="control-label">Screen</p>
+        <button class="control-option" type="button" data-set-screen="voice" aria-pressed="true">Voice</button>
+        <button class="control-option" type="button" data-set-screen="inbox" aria-pressed="false">Inbox</button>
+        <button class="control-option" type="button" data-set-screen="context" aria-pressed="false">Context</button>
+        <button class="control-option" type="button" data-set-screen="recall" aria-pressed="false">Recall</button>
+      </div>
+
+      <div class="control-group optional" aria-label="Voice states">
+        <p class="control-label">Voice state</p>
+        <button class="control-option" type="button" data-set-voice="idle" aria-pressed="true">Ready</button>
+        <button class="control-option" type="button" data-set-voice="listening" aria-pressed="false">Listening</button>
+        <button class="control-option" type="button" data-set-voice="transcribing" aria-pressed="false">Transcribing</button>
+        <button class="control-option" type="button" data-set-voice="sending" aria-pressed="false">Sending</button>
+        <button class="control-option" type="button" data-set-voice="speaking" aria-pressed="false">Speaking</button>
+        <button class="control-option" type="button" data-set-voice="confirm" aria-pressed="false">Needs confirmation</button>
+        <button class="control-option" type="button" data-set-voice="micDenied" aria-pressed="false">Mic denied</button>
+        <button class="control-option" type="button" data-set-voice="offline" aria-pressed="false">Runtime offline</button>
+      </div>
+
+      <div class="control-group optional" aria-label="Data states">
+        <p class="control-label">Data state</p>
+        <button class="control-option" type="button" data-demo-inbox="filled" aria-pressed="true">Inbox with items</button>
+        <button class="control-option" type="button" data-demo-inbox="empty" aria-pressed="false">Empty Inbox</button>
+      </div>
+
+      <div class="control-group optional">
+        <p class="control-label">References</p>
+        <a class="link-option" href="./kaka-pocket-agents-prototype.html">Storyboard prototype</a>
+        <a class="link-option" href="./kaka-master-shot-ui-prototype.html">Master Shot prototype</a>
+      </div>
+
+      <p class="control-note">This file is a UI handoff artifact. The phone surface keeps the product states visible while the side panel lets design and engineering test paths quickly.</p>
+    </aside>
+
+    <section class="stage" aria-label="Kaka app preview">
+      <div class="device-wrap">
+        <div class="device-title" id="deviceTitle">Voice Home</div>
+        <div class="device">
+          <div class="screen">
+            <div class="status-bar"><span>9:41</span><span class="battery">62%</span></div>
+            <div class="island"></div>
+            <div class="app">
+              <header class="app-header">
+                <div class="app-heading">
+                  <h2 class="app-title" id="appTitle">Kaka</h2>
+                  <p class="app-subtitle" id="appSubtitle">Your local Pocket Agent is ready.</p>
+                </div>
+                <button class="icon-button" type="button" data-toast="Controls opened" aria-label="Open controls">Menu</button>
+              </header>
+
+              <div class="runtime-pill" id="runtimePill">Hermes on MacBook</div>
+
+              <div class="state-banner" id="stateBanner" role="status" aria-live="polite"></div>
+
+              <section class="screen-view is-active" data-screen-view="voice" aria-label="Voice home">
+                <div class="voice-hero">
+                  <p class="voice-prompt">What should I <strong>help with?</strong></p>
+                  <div class="voice-card">
+                    <div class="voice-status" id="voiceStatus"><span class="state-dot"></span><strong>Ready for push-to-talk</strong></div>
+                    <div class="transcript" aria-live="polite">
+                      <div class="line"><span>You</span><p id="userLine">Ask about the shared article.</p></div>
+                      <div class="line agent"><span>Kaka</span><p id="agentLine">I can summarize, save, or use it once.</p></div>
+                    </div>
+                    <div class="voice-steps" aria-label="Voice progress">
+                      <div class="voice-step" data-step="listen">Listen</div>
+                      <div class="voice-step" data-step="text">Text</div>
+                      <div class="voice-step" data-step="send">Send</div>
+                      <div class="voice-step" data-step="reply">Reply</div>
+                    </div>
+                  </div>
+                  <div class="quick-grid">
+                    <button class="quick-tile" type="button" data-open-screen="inbox">Share Inbox <span>3 items, use once</span></button>
+                    <button class="quick-tile" type="button" data-toast="Camera intake ready">Camera <span>Capture or choose</span></button>
+                    <button class="quick-tile" type="button" data-open-screen="context">Context <span>Preview before send</span></button>
+                    <button class="quick-tile" type="button" data-open-screen="recall">Recall <span>Remember or forget</span></button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="screen-view" data-screen-view="inbox" aria-label="Share Inbox">
+                <div class="screen-meta"><span id="inboxCount">3 user-shared items</span><strong>Use once by default</strong></div>
+                <div class="empty-card" id="emptyInbox">
+                  <strong>No shared items</strong>
+                  <p>Shared links, screenshots, notes, and photos appear here after you choose Kaka from the iOS share sheet.</p>
+                </div>
+                <div class="inbox-stack" id="inboxStack">
+                  <article class="task-card" data-task-card>
+                    <div class="task-top">
+                      <div class="thumb lines" aria-hidden="true"><i></i><i></i><i></i></div>
+                      <div>
+                        <h3 class="task-title">Kinfolk - The Design Conference</h3>
+                        <p class="task-meta">Article from Safari</p>
+                        <p class="task-summary" data-summary>Quiet design notes ready for summary.</p>
+                        <span class="task-status" data-status>Use once</span>
+                      </div>
+                    </div>
+                    <div class="task-actions">
+                      <button class="small-action" type="button" data-task-action="summary">Summary</button>
+                      <button class="small-action" type="button" data-task-action="ask">Ask</button>
+                      <button class="small-action" type="button" data-task-action="remember">Remember</button>
+                      <button class="small-action" type="button" data-task-action="forget">Forget</button>
+                    </div>
+                  </article>
+
+                  <article class="task-card" data-task-card>
+                    <div class="task-top">
+                      <div class="thumb photo" aria-hidden="true"></div>
+                      <div>
+                        <h3 class="task-title">Screenshot from Finance</h3>
+                        <p class="task-meta">Image, today</p>
+                        <p class="task-summary" data-summary>Chart screenshot ready for OCR and Q&A.</p>
+                        <span class="task-status" data-status>Use once</span>
+                      </div>
+                    </div>
+                    <div class="task-actions">
+                      <button class="small-action" type="button" data-task-action="summary">Summary</button>
+                      <button class="small-action" type="button" data-task-action="ask">Ask</button>
+                      <button class="small-action" type="button" data-task-action="remember">Remember</button>
+                      <button class="small-action" type="button" data-task-action="forget">Forget</button>
+                    </div>
+                  </article>
+
+                  <article class="task-card" data-task-card>
+                    <div class="task-top">
+                      <div class="thumb lines" aria-hidden="true"><i></i><i></i><i></i></div>
+                      <div>
+                        <h3 class="task-title">Meeting Notes</h3>
+                        <p class="task-meta">Clipboard, today</p>
+                        <p class="task-summary" data-summary>Launch decisions and two follow-ups.</p>
+                        <span class="task-status" data-status>Use once</span>
+                      </div>
+                    </div>
+                    <div class="task-actions">
+                      <button class="small-action" type="button" data-task-action="summary">Summary</button>
+                      <button class="small-action" type="button" data-task-action="ask">Ask</button>
+                      <button class="small-action" type="button" data-task-action="remember">Remember</button>
+                      <button class="small-action" type="button" data-task-action="forget">Forget</button>
+                    </div>
+                  </article>
+                </div>
+              </section>
+
+              <section class="screen-view" data-screen-view="context" aria-label="Context Snapshot">
+                <div class="context-stack">
+                  <div class="screen-meta"><span>Context Snapshot</span><strong id="contextCount">4 allowed</strong></div>
+                  <div class="context-card">
+                    <button class="context-row" type="button" data-context-row aria-pressed="true">
+                      <span class="context-symbol">T</span>
+                      <span><span class="context-label">Time</span><span class="context-detail">Today 21:40 CST</span></span>
+                      <span class="allowed">Allowed</span>
+                    </button>
+                    <button class="context-row" type="button" data-context-row aria-pressed="true">
+                      <span class="context-symbol source">S</span>
+                      <span><span class="context-label">Source</span><span class="context-detail">Shared from Safari</span></span>
+                      <span class="allowed">Allowed</span>
+                    </button>
+                    <button class="context-row" type="button" data-context-row aria-pressed="true">
+                      <span class="context-symbol place">L</span>
+                      <span><span class="context-label">Coarse location</span><span class="context-detail">City only</span></span>
+                      <span class="allowed">Allowed</span>
+                    </button>
+                    <button class="context-row" type="button" data-context-row aria-pressed="true">
+                      <span class="context-symbol power">B</span>
+                      <span><span class="context-label">Battery</span><span class="context-detail">62%, not charging</span></span>
+                      <span class="allowed">Allowed</span>
+                    </button>
+                  </div>
+                  <div class="note-card">These values are sent with this task only. Saving to Recall is a separate confirmation.</div>
+                </div>
+              </section>
+
+              <section class="screen-view" data-screen-view="recall" aria-label="Recall retention">
+                <div class="recall-stack">
+                  <div class="screen-meta"><span>Retention</span><strong>Explicit choice</strong></div>
+                  <div role="radiogroup" aria-label="Recall choice" class="recall-stack">
+                    <button class="recall-choice" type="button" role="radio" aria-checked="true" data-recall-choice="remember" data-recall-copy="Will save summary, extracted text, and provenance in Hermes only.">
+                      <span class="choice-symbol remember">R</span>
+                      <span class="recall-copy"><strong>Remember</strong><span>Keep and use across future tasks.</span></span>
+                    </button>
+                    <button class="recall-choice" type="button" role="radio" aria-checked="false" data-recall-choice="once" data-recall-copy="Will process this task, then drop the item from long-term memory.">
+                      <span class="choice-symbol once">1</span>
+                      <span class="recall-copy"><strong>Use once</strong><span>Use for this task only.</span></span>
+                    </button>
+                    <button class="recall-choice" type="button" role="radio" aria-checked="false" data-recall-choice="forget" data-recall-copy="Will delete the artifact, extracted text, summary, and index entries.">
+                      <span class="choice-symbol forget">F</span>
+                      <span class="recall-copy"><strong>Forget</strong><span>Remove from Kaka and local Recall.</span></span>
+                    </button>
+                  </div>
+                  <div class="recall-card" id="recallPreview" aria-live="polite">Will save summary, extracted text, and provenance in Hermes only.</div>
+                </div>
+              </section>
+
+              <div class="bottom-bar">
+                <button class="bottom-side" type="button" data-toast="Keyboard input opened" aria-label="Open keyboard">Text</button>
+                <div class="mic-wrap">
+                  <button class="mic" id="micButton" type="button" aria-label="Push to talk">Mic</button>
+                  <div class="mic-caption" id="micCaption">Ready</div>
+                </div>
+                <button class="bottom-side" type="button" data-toast="More actions opened" aria-label="More actions">More</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const screenTitles = {
+      voice: ["Kaka", "Your local Pocket Agent is ready.", "Voice Home"],
+      inbox: ["Share Inbox", "Review user-shared items.", "Share Inbox"],
+      context: ["Context Snapshot", "Choose what this task can use.", "Context Permission"],
+      recall: ["Recall", "Choose how Kaka keeps this item.", "Recall Retention"]
+    };
+
+    const voiceStates = {
+      idle: {
+        label: "Ready for push-to-talk",
+        user: "Ask about the shared article.",
+        agent: "I can summarize, save, or use it once.",
+        caption: "Ready",
+        steps: [],
+        banner: "",
+        type: "ok"
+      },
+      listening: {
+        label: "Listening",
+        user: "Summarize this and keep it use once.",
+        agent: "Audio is captured locally before sending to Hermes.",
+        caption: "Listening",
+        steps: ["listen"],
+        banner: "",
+        type: "ok"
+      },
+      transcribing: {
+        label: "Transcribing",
+        user: "Summarize this and keep it use once.",
+        agent: "Transcript is being prepared for review.",
+        caption: "Transcribing",
+        steps: ["listen", "text"],
+        banner: "",
+        type: "ok"
+      },
+      sending: {
+        label: "Sending to Hermes",
+        user: "Summarize this and keep it use once.",
+        agent: "The task is scoped to this item and will not be remembered.",
+        caption: "Sending",
+        steps: ["listen", "text", "send"],
+        banner: "",
+        type: "ok"
+      },
+      speaking: {
+        label: "Kaka is speaking",
+        user: "Summarize this and keep it use once.",
+        agent: "The article covers quiet design systems and two useful launch notes.",
+        caption: "Speaking",
+        steps: ["listen", "text", "send", "reply"],
+        banner: "",
+        type: "ok"
+      },
+      confirm: {
+        label: "Confirmation needed",
+        user: "Remember this for the launch review.",
+        agent: "Saving to Recall changes retention. Confirm before I save it.",
+        caption: "Confirm",
+        steps: ["listen", "text"],
+        banner: "<strong>Confirm Recall</strong> This action saves summary, text, and provenance to the local runtime.",
+        type: "warning"
+      },
+      micDenied: {
+        label: "Microphone unavailable",
+        user: "Voice input is blocked.",
+        agent: "Enable microphone access or continue with text.",
+        caption: "Mic blocked",
+        steps: [],
+        banner: "<strong>Microphone permission denied</strong> Text, camera, share, and Recall still work.",
+        type: "error"
+      },
+      offline: {
+        label: "Runtime offline",
+        user: "Ask about the shared article.",
+        agent: "Hermes is unreachable. You can keep the item in Inbox and retry.",
+        caption: "Offline",
+        steps: [],
+        banner: "<strong>Hermes is offline</strong> Check the local bridge, then retry this task.",
+        type: "error"
+      }
+    };
+
+    const toast = document.getElementById("toast");
+    let toastTimer = null;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("is-visible");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 1400);
+    }
+
+    function setPressed(buttons, activeButton) {
+      buttons.forEach((button) => {
+        const active = button === activeButton;
+        button.setAttribute("aria-pressed", String(active));
+      });
+    }
+
+    function setScreen(screenName) {
+      document.querySelectorAll("[data-screen-view]").forEach((view) => {
+        view.classList.toggle("is-active", view.dataset.screenView === screenName);
+      });
+
+      const title = screenTitles[screenName] || screenTitles.voice;
+      document.getElementById("appTitle").textContent = title[0];
+      document.getElementById("appSubtitle").textContent = title[1];
+      document.getElementById("deviceTitle").textContent = title[2];
+
+      const buttons = Array.from(document.querySelectorAll("[data-set-screen]"));
+      const activeButton = buttons.find((button) => button.dataset.setScreen === screenName);
+      if (activeButton) setPressed(buttons, activeButton);
+    }
+
+    function setVoice(stateName) {
+      const state = voiceStates[stateName] || voiceStates.idle;
+      const status = document.getElementById("voiceStatus");
+      const banner = document.getElementById("stateBanner");
+      const caption = document.getElementById("micCaption");
+      const mic = document.getElementById("micButton");
+
+      status.classList.toggle("is-warning", state.type === "warning");
+      status.classList.toggle("is-error", state.type === "error");
+      status.querySelector("strong").textContent = state.label;
+      document.getElementById("userLine").textContent = state.user;
+      document.getElementById("agentLine").textContent = state.agent;
+      caption.textContent = state.caption;
+      caption.classList.toggle("is-error", state.type === "error");
+      mic.classList.toggle("is-listening", stateName === "listening");
+      mic.classList.toggle("is-disabled", state.type === "error");
+
+      banner.innerHTML = state.banner;
+      banner.classList.toggle("is-visible", Boolean(state.banner));
+      banner.classList.toggle("is-error", state.type === "error");
+
+      document.querySelectorAll("[data-step]").forEach((step) => {
+        const active = state.steps[state.steps.length - 1] === step.dataset.step;
+        const done = state.steps.includes(step.dataset.step) && !active;
+        step.classList.toggle("is-active", active);
+        step.classList.toggle("is-done", done);
+      });
+
+      const buttons = Array.from(document.querySelectorAll("[data-set-voice]"));
+      const activeButton = buttons.find((button) => button.dataset.setVoice === stateName);
+      if (activeButton) setPressed(buttons, activeButton);
+    }
+
+    function setInboxState(mode) {
+      const empty = mode === "empty";
+      document.getElementById("emptyInbox").classList.toggle("is-visible", empty);
+      document.getElementById("inboxStack").style.display = empty ? "none" : "grid";
+      document.getElementById("inboxCount").textContent = empty ? "No shared items" : "3 user-shared items";
+
+      const buttons = Array.from(document.querySelectorAll("[data-demo-inbox]"));
+      const activeButton = buttons.find((button) => button.dataset.demoInbox === mode);
+      if (activeButton) setPressed(buttons, activeButton);
+    }
+
+    document.querySelectorAll("[data-set-screen]").forEach((button) => {
+      button.addEventListener("click", () => setScreen(button.dataset.setScreen));
+    });
+
+    document.querySelectorAll("[data-open-screen]").forEach((button) => {
+      button.addEventListener("click", () => {
+        setScreen(button.dataset.openScreen);
+        showToast(`${screenTitles[button.dataset.openScreen][2]} opened`);
+      });
+    });
+
+    document.querySelectorAll("[data-set-voice]").forEach((button) => {
+      button.addEventListener("click", () => setVoice(button.dataset.setVoice));
+    });
+
+    document.querySelectorAll("[data-demo-inbox]").forEach((button) => {
+      button.addEventListener("click", () => {
+        setScreen("inbox");
+        setInboxState(button.dataset.demoInbox);
+      });
+    });
+
+    document.querySelectorAll("[data-toast]").forEach((button) => {
+      button.addEventListener("click", () => showToast(button.dataset.toast));
+    });
+
+    document.getElementById("micButton").addEventListener("click", () => {
+      const disabled = document.getElementById("micButton").classList.contains("is-disabled");
+      if (disabled) {
+        showToast("Voice unavailable");
+        return;
+      }
+      const listening = document.getElementById("micButton").classList.contains("is-listening");
+      setVoice(listening ? "transcribing" : "listening");
+    });
+
+    document.querySelectorAll("[data-task-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const card = button.closest("[data-task-card]");
+        const status = card.querySelector("[data-status]");
+        const summary = card.querySelector("[data-summary]");
+        const action = button.dataset.taskAction;
+
+        card.querySelectorAll("[data-task-action]").forEach((item) => item.classList.remove("is-active"));
+        button.classList.add("is-active");
+        card.classList.remove("is-remembered", "is-forgotten");
+
+        if (action === "summary") {
+          button.disabled = true;
+          button.textContent = "Loading";
+          status.textContent = "Summarizing";
+          setTimeout(() => {
+            summary.textContent = "Summary ready with source and provenance.";
+            status.textContent = "Summarized, use once";
+            button.disabled = false;
+            button.textContent = "Summary";
+            showToast("Summary ready");
+          }, 520);
+        } else if (action === "ask") {
+          setScreen("voice");
+          setVoice("idle");
+          document.getElementById("userLine").textContent = "Ask about this shared item.";
+          document.getElementById("agentLine").textContent = "I can answer with source and provenance.";
+          showToast("Voice follow-up ready");
+        } else if (action === "remember") {
+          card.classList.add("is-remembered");
+          status.textContent = "Remembered in Recall";
+          showToast("Saved to local Recall");
+        } else if (action === "forget") {
+          card.classList.add("is-forgotten");
+          status.textContent = "Forgotten, undo available";
+          showToast("Removed from Kaka");
+        }
+      });
+    });
+
+    function updateContextCount() {
+      const rows = Array.from(document.querySelectorAll("[data-context-row]"));
+      const allowed = rows.filter((row) => !row.classList.contains("is-off")).length;
+      document.getElementById("contextCount").textContent = `${allowed} allowed`;
+    }
+
+    document.querySelectorAll("[data-context-row]").forEach((row) => {
+      row.addEventListener("click", () => {
+        const off = !row.classList.contains("is-off");
+        row.classList.toggle("is-off", off);
+        row.setAttribute("aria-pressed", String(!off));
+        row.querySelector(".allowed").textContent = off ? "Off" : "Allowed";
+        updateContextCount();
+      });
+    });
+
+    document.querySelectorAll("[data-recall-choice]").forEach((choice) => {
+      choice.addEventListener("click", () => {
+        document.querySelectorAll("[data-recall-choice]").forEach((item) => item.setAttribute("aria-checked", "false"));
+        choice.setAttribute("aria-checked", "true");
+        document.getElementById("recallPreview").textContent = choice.dataset.recallCopy;
+      });
+    });
+  </script>
+</body>
+</html>

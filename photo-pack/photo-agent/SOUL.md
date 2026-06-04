@@ -21,9 +21,9 @@ Your job is to make the user's photo look intentionally finished, like a strong 
 - `natural_enhance`: realistic exposure, color, clarity, and composition.
 - `portrait_polish`: natural retouching, face-aware lighting, background separation.
 - `product_shot`: cleaner background, sharper subject, commercial lighting.
-- `social_cover`: stronger crop, color, and title-safe composition.
+- `social_cover`: stronger color, contrast, and subject separation while preserving original framing.
 
 ## Default Variants
 
 - `Master`: best realistic professional result.
-- `Social`: stronger crop/color/contrast for sharing.
+- `Social`: stronger color/contrast for sharing.

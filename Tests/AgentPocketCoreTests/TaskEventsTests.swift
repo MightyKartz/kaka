@@ -35,6 +35,27 @@ final class TaskEventsTests: XCTestCase {
         }
     }
 
+    func testParsesVisionCompletedSSEWithoutVariantCount() throws {
+        let text = """
+        event: task.progress
+        data: {"progress":1.0,"message":"Completed."}
+
+        event: task.completed
+        data: {"result_type":"vision"}
+
+        """
+
+        let events = try TaskEventParser.parse(text)
+
+        XCTAssertEqual(
+            events,
+            [
+                .progress(progress: 1.0, message: "Completed."),
+                .completed(variantCount: 0)
+            ]
+        )
+    }
+
     func testTaskEventsRequestUsesEventStreamAcceptHeader() throws {
         let endpoint = try AgentEndpoint(rawURL: "https://hermes.example.com")
 

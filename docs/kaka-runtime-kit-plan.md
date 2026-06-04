@@ -1,6 +1,6 @@
 # Kaka Runtime Kit Plan
 
-Updated: 2026-06-02
+Updated: 2026-06-04
 
 ## Decision
 
@@ -60,6 +60,9 @@ Status: implemented in this pass.
 - Support `--runtime hermes` and `--runtime openclaw`.
 - Refuse Bonjour for iPhone unless a reachable LAN host is explicit.
 - Add tests for command construction and safety validation.
+- Advertise `/mobile/v1/tasks/vision` for bottom-layer image-conversation skills.
+- Support `fixture_vision` for deterministic UI/protocol tests.
+- Support `runtime_http` so scan, identify, translate, and food can be routed to a runtime-owned local vision endpoint.
 
 ### Milestone 2: Hermes Plugin Packaging
 
@@ -77,6 +80,7 @@ Status: planned.
 - Provide the same `/mobile/v1` contract through OpenClaw native integration or sidecar.
 - Keep OpenClaw model/provider credentials inside OpenClaw.
 - Publish the same `recipe_local` capability shape.
+- Publish a runtime-owned vision endpoint for bottom-layer image-conversation skills instead of relying on `fixture_vision`.
 
 ### Milestone 4: Production Pairing
 
@@ -92,5 +96,6 @@ Status: planned.
 ```bash
 PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit doctor
 PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start --dry-run
+PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start --dry-run --vision-provider runtime_http --vision-endpoint http://127.0.0.1:8787/kaka/vision
 PYTHONPATH=runtime-kit:mock_bridge python3 -m pytest runtime-kit/tests mock_bridge/tests/test_photo_pack_provider.py -q
 ```

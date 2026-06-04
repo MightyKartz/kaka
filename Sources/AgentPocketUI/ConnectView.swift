@@ -9,7 +9,6 @@ import AppKit
 public struct ConnectView: View {
     @ObservedObject private var viewModel: ConnectionViewModel
     @Environment(\.openURL) private var openURL
-    @AppStorage("kaka.interfaceLanguage") private var languageRawValue = AppLanguage.chinese.rawValue
     @State private var showsManualEntry = false
     @State private var showsProjectSettings = false
 
@@ -112,7 +111,7 @@ public struct ConnectView: View {
             .accessibilityLabel(copy.settingsTitle)
         }
         .sheet(isPresented: $showsProjectSettings) {
-            ProjectSettingsSheet(language: languageBinding, copy: copy)
+            ProjectSettingsSheet(copy: copy)
         }
         .navigationTitle("")
         #if os(iOS)
@@ -121,15 +120,7 @@ public struct ConnectView: View {
     }
 
     private var activeLanguage: AppLanguage {
-        AppLanguage(rawValue: languageRawValue) ?? .chinese
-    }
-
-    private var languageBinding: Binding<AppLanguage> {
-        Binding {
-            activeLanguage
-        } set: { newValue in
-            languageRawValue = newValue.rawValue
-        }
+        AppLanguage.resolved(storedValue: nil)
     }
 
     private func fallbackDeviceName(for language: AppLanguage) -> String {
@@ -186,9 +177,9 @@ public struct ConnectView: View {
 
         switch language {
         case .chinese:
-            return "重新搜索"
+            return "连接已发现"
         case .english:
-            return "Search Again"
+            return "Connect Found"
         }
     }
 
@@ -213,9 +204,19 @@ public struct ConnectView: View {
         case .testing, .scanning, .discovering:
             break
         case .idle, .offline:
+            if let runtime = viewModel.discoveredRuntimes.first {
+                Task { @MainActor in
+                    await viewModel.connectDiscoveredRuntime(
+                        runtime,
+                        deviceName: PairingDeviceInfo.name,
+                        devicePublicID: PairingDeviceInfo.publicID
+                    )
+                }
+                return
+            }
             Task {
                 await viewModel.discoverLocalRuntimes(
-                    autoPairSingleRuntime: false,
+                    autoPairSingleRuntime: true,
                     deviceName: PairingDeviceInfo.name,
                     devicePublicID: PairingDeviceInfo.publicID
                 )
@@ -461,33 +462,12 @@ private struct PairingScannerCard: View {
 
 private struct ProjectSettingsSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @Binding var language: AppLanguage
     let copy: ConnectScreenCopy
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    SettingsCard {
-                        VStack(alignment: .leading, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(copy.languageTitle)
-                                    .font(.headline)
-
-                                Text(copy.languageDescription)
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            Picker(copy.languageTitle, selection: $language) {
-                                ForEach(AppLanguage.allCases) { option in
-                                    Text(option.displayTitle).tag(option)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                        }
-                    }
-
                     SettingsCard {
                         VStack(spacing: 0) {
                             SettingsRow(title: copy.runtimeTitle, detail: copy.runtimeDescription, value: copy.runtimeValue)

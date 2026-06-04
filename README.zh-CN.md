@@ -2,9 +2,9 @@
 
 [English](README.md)
 
-Kaka 是一个本地优先的 iPhone 拍照智能体客户端。
+Kaka 是一个本地优先的 iPhone 视觉智能体入口。
 
-它把 iPhone 连接到用户自己的本机智能体运行时，例如 Hermes、OpenClaw，或兼容 Mobile Bridge 的 sidecar。手机负责拍照、上传、预览、保存和分享；本机 Mac 运行时负责读图、生成结构化修图 recipe，并在本地渲染 **Master** 和 **Social** 两个结果。
+它把 iPhone 连接到用户自己的本机智能体运行时，例如 Hermes、OpenClaw，或兼容 Mobile Bridge 的 sidecar。手机负责拍照、上传、预览、保存和分享；本机 Mac 运行时负责图片理解、技能选择、结构化修图 recipe、本地渲染、OCR、翻译、识别或食物估算等能力。
 
 > 当前状态：早期 MVP / 持续开发中。核心 Swift 客户端、mock bridge、本地 recipe 修图路径、UI 原型和 Runtime Kit 脚手架已经存在；面向普通用户的一键 Hermes/OpenClaw 安装体验仍在封装。
 
@@ -14,24 +14,27 @@ Kaka 是一个本地优先的 iPhone 拍照智能体客户端。
 
 Kaka 的第一版更克制：
 
-- iPhone 只负责拍照、连接、展示、保存和分享。
-- 本机运行时决定调用什么多模态模型。
-- 模型读取照片后输出严格的修图 recipe。
-- Mac 本地验证 recipe 并完成渲染。
+- iPhone 只负责拍照、连接、上传、展示、保存和分享。
+- 本机运行时先理解图片并建议可用技能。
+- 用户可以点建议技能，也可以直接输入想做的事。
+- OCR、翻译、识别、食物估算和修图都通过运行时拥有的能力执行。
+- 修图路径使用严格的本地 `PhotoEditRecipe`，Mac 本地验证并渲染结果。
 - Phase 1 做参数化照片优化，不做生成式换图。
 
-目标是一个非常简单的拍照闭环：拍照或选图，一键变成更专业的照片，对比效果，然后保存或分享。
+目标是一个非常简单的相机闭环：拍照或选图，让 Kaka 判断可以帮什么，然后在图片对话里继续处理。
+
+更大的产品方向是 **Pocket Agents**：Kaka 成为本地智能体在手机上的语音优先入口。手机负责拍照、系统分享、截图、粘贴、语音和用户授权的上下文快照；用户自己的本机运行时负责推理、工具调用、记忆和长任务执行。详见 [docs/pocket-agents-direction.md](docs/pocket-agents-direction.md)。
 
 ## 核心流程
 
 1. iPhone 连接到本机运行时。
 2. 拍照或从相册选择照片。
-3. 选择自然、人像、产品、社交等场景。
-4. 把照片发送到本机 Mobile Bridge。
-5. 运行时用自己配置的多模态模型分析照片。
-6. 运行时生成严格的本地修图 recipe。
-7. Mac 渲染 **Master** 和 **Social** 两个版本。
-8. iPhone 展示前后对比、保存和 iOS 系统分享。
+3. 把照片发送给 Kaka。
+4. 运行时执行 `image_intake`，返回图片摘要和建议技能。
+5. 用户点一个建议技能，或输入自己的请求。
+6. 运行时执行修图、OCR、翻译、识别或食物估算等任务。
+7. iPhone 在图片对话中展示结果；修图结果可进入 **Master** / **Social** 对比页。
+8. 用户保存结果或通过 iOS 系统分享。
 
 ## 架构
 
@@ -40,13 +43,16 @@ flowchart LR
   Phone["Kaka iPhone app"] --> Bridge["Mobile Bridge /mobile/v1"]
   Bridge --> Runtime["Hermes、OpenClaw 或兼容 sidecar"]
   Runtime --> Model["运行时选择的多模态模型"]
+  Runtime --> Intake["image_intake 和建议技能"]
   Runtime --> Recipe["严格的 PhotoEditRecipe JSON"]
+  Runtime --> Vision["OCR / 翻译 / 识别 / 食物估算"]
   Recipe --> Renderer["本地渲染器"]
   Renderer --> Bridge
+  Vision --> Bridge
   Bridge --> Phone
 ```
 
-iPhone 只保存运行时 endpoint 和移动端 bearer token。模型密钥、provider 路由、recipe 生成、图像渲染、任务状态和结果资产都留在用户自己的 Mac/运行时侧。
+iPhone 只保存运行时 endpoint 和移动端 bearer token。模型密钥、provider 路由、图片理解、recipe 生成、图像渲染、任务状态和结果资产都留在用户自己的 Mac/运行时侧。
 
 ## 当前模块
 
@@ -59,6 +65,18 @@ iPhone 只保存运行时 endpoint 和移动端 bearer token。模型密钥、pr
 | `photo-pack` | Photo agent profile、skill 和本地 recipe adapter |
 | `runtime-kit` | 显式启动的 bridge launcher，以及 Hermes/OpenClaw 封装脚手架 |
 | `docs` | 架构、API、设置、UI 原型和实施计划 |
+
+## Pocket Agents 方向
+
+Kaka 可以从相机继续扩展，但不应该一开始做不受控的手机遥控器。推荐路线是：
+
+- **Share to Kaka 收件箱**：从任意 App 分享文字、链接、截图、PDF、图片或小文件给 Kaka。
+- **语音 Walkie-talkie**：按住说话、补充指令、听取短回复。
+- **权限化 Context Snapshot**：用户同意后，把时间、来源、粗略位置、运动状态、网络、电量和可选日历空闲状态作为一次性任务上下文发给智能体。
+- **截图问答和界面指导**：分享截图后，让智能体解释界面、报错或下一步操作，而不是直接控制其它 App。
+- **Recall 个人资料库**：只在用户明确选择 `Remember` 时写入长期记忆，并提供 `Use Once` 和 `Forget`。
+
+第一条可执行路线应该是：系统分享进入 Kaka 收件箱，然后用语音继续追问或确认。详见 [docs/pocket-agents-direction.md](docs/pocket-agents-direction.md)。
 
 ## 本地开发
 
@@ -140,6 +158,7 @@ Phase 1 聚焦参数化修图：
 - 完成 Simulator 和真机 iPhone 的本地 recipe 流程 receipt。
 - 把 Runtime Kit 封装成真正的 Hermes plugin 体验。
 - 增加 OpenClaw sidecar 或原生集成。
+- 在图片闭环被证明后，原型化 Share to Kaka 收件箱和语音追问。
 - 完善生产级配对、token 撤销和照片保留策略。
 - 把 HTML UI 方向逐步移植到原生 SwiftUI。
 - 增加 Core Image、ImageMagick、OpenCV、libvips 等本地渲染后端。

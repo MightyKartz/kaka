@@ -169,7 +169,7 @@ STYLE_GOALS = {
     "natural_enhance": "realistic exposure, white balance, shadow/highlight recovery, mild clarity",
     "portrait_polish": "face-safe brightness, skin tone protection, subtle background falloff, no identity changes",
     "product_shot": "brighter subject, sharper edges, cleaner color, restrained vignette",
-    "social_cover": "stronger crop, contrast, color, and subject separation while preserving original content",
+    "social_cover": "stronger contrast, color, and subject separation while preserving original framing",
 }
 
 
@@ -195,19 +195,17 @@ def build_fixture_recipe(style: str, variant_id: str = "variant_clean_pro") -> d
         "global": base["global"],
         "local": base["local"],
         "composition": {
-            "selected_aspect_ratio": "4:5",
-            "crop": {"x": 0.20, "y": 0.0, "width": 0.60, "height": 1.0},
+            "selected_aspect_ratio": "original",
+            "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0},
             "crop_candidates": [
                 {"aspect_ratio": "original", "x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0, "score": 0.72},
-                {"aspect_ratio": "4:5", "x": 0.20, "y": 0.0, "width": 0.60, "height": 1.0, "score": 0.88},
-                {"aspect_ratio": "1:1", "x": 0.125, "y": 0.0, "width": 0.75, "height": 1.0, "score": 0.76},
             ],
             "title_safe_area": {"x": 0.08, "y": 0.08, "width": 0.84, "height": 0.84},
         },
         "upscale": {
-            "policy": "only_if_crop_below_target",
+            "policy": "none",
             "target_long_edge": 2048,
-            "max_scale": 2.0,
+            "max_scale": 1.0,
         },
         "safety": {
             "preserve_identity": True,
@@ -369,7 +367,7 @@ def build_runtime_vision_recipe(
         "source_mime_type": _guess_mime_type(input_path),
         "source_size_bytes": len(source_bytes),
         "source_image_base64": base64.b64encode(source_bytes).decode("ascii"),
-        "supported_crop_aspects": ["original", "4:5", "1:1", "16:9"],
+        "supported_crop_aspects": ["original"],
         "return_recipe_schema": SCHEMA_VERSION,
         "scene_profile": build_scene_profile(style),
         "safety_contract": {key: True for key in REQUIRED_SAFETY_FLAGS},
@@ -393,6 +391,11 @@ def build_scene_profile(style: str) -> dict[str, Any]:
         "scene": STYLE_SCENES[style],
         "goal": STYLE_GOALS[style],
         "default_recipe": deepcopy(STYLE_DEFAULTS[style]),
+        "composition_policy": {
+            "preserve_original_framing": True,
+            "supported_crop_aspects": ["original"],
+            "default_aspect_ratio": "original",
+        },
         "supported_variants": [
             {"id": variant_id, "label": label}
             for variant_id, label in VARIANT_LABELS.items()
@@ -498,12 +501,12 @@ def difference_score(source: Image.Image, rendered: Image.Image) -> float:
 
 def recipe_summary(style: str, variant_id: str) -> str:
     if variant_id == "variant_social_pop":
-        return "Stronger crop, color, contrast, and subject separation for sharing."
+        return "Stronger color, contrast, and subject separation for sharing."
     summaries = {
         "natural_enhance": "Balanced exposure, warmer color, cleaner contrast, and subtle subject separation.",
         "portrait_polish": "Face-safe lighting, warmer skin tone, restrained smoothing, and identity preservation.",
         "product_shot": "Cleaner whites, sharper edges, and restrained commercial lighting.",
-        "social_cover": "Platform-ready crop with stronger color and subject separation.",
+        "social_cover": "Social-ready color, contrast, and subject separation while preserving the original frame.",
     }
     return summaries.get(style, "Local recipe rendered a professional photo variant.")
 
@@ -513,7 +516,7 @@ def share_caption(style: str) -> str:
         "natural_enhance": "Made into a Master Shot by my local photo agent.",
         "portrait_polish": "Polished locally with identity-safe edits.",
         "product_shot": "Clean product shot, rendered by my local agent.",
-        "social_cover": "Share-ready crop and color, rendered locally.",
+        "social_cover": "Share-ready color and contrast, rendered locally.",
     }
     return captions.get(style, "Polished by my local photo agent.")
 
@@ -552,7 +555,7 @@ def _validate_composition(value: Any) -> dict[str, Any]:
     if not isinstance(value, Mapping):
         raise RecipeValidationError("composition must be an object.")
     selected = str(value.get("selected_aspect_ratio", ""))
-    if selected not in {"original", "4:5", "1:1", "16:9"}:
+    if selected != "original":
         raise RecipeValidationError(f"Unsupported selected_aspect_ratio: {selected}")
     crop = _validate_crop(value.get("crop"), "composition.crop")
     candidates = value.get("crop_candidates", [])
@@ -568,7 +571,7 @@ def _validate_composition(value: Any) -> dict[str, Any]:
             **_validate_crop(candidate, f"composition.crop_candidates[{index}]"),
             "score": _clamp_number(candidate.get("score", 0.0), 0.0, 1.0, f"composition.crop_candidates[{index}].score"),
         }
-        if aspect not in {"original", "4:5", "1:1", "16:9"}:
+        if aspect != "original":
             raise RecipeValidationError(f"Unsupported crop candidate aspect_ratio: {aspect}")
         validated_candidates.append(validated_candidate)
 

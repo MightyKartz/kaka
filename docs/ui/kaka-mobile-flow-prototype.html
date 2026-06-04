@@ -778,22 +778,6 @@
       padding: 14px 13px 16px;
     }
 
-    .recipe-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      margin: 13px 0;
-    }
-
-    .recipe-row span {
-      padding: 8px 10px;
-      border-radius: 999px;
-      color: rgba(255, 255, 255, 0.86);
-      background: rgba(255, 255, 255, 0.08);
-      font-size: 12px;
-      font-weight: 760;
-    }
-
     .action-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -818,24 +802,6 @@
     .share-action {
       color: #06201d;
       background: var(--mint);
-    }
-
-    .share-strip {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 7px;
-      margin-top: 10px;
-    }
-
-    .share-strip button {
-      min-height: 34px;
-      border: 0;
-      border-radius: 12px;
-      color: rgba(255, 255, 255, 0.72);
-      background: rgba(255, 255, 255, 0.07);
-      font-size: 12px;
-      font-weight: 760;
-      cursor: pointer;
     }
 
     .settings {
@@ -1157,21 +1123,9 @@
             <span class="photo-label right" data-i18n="masterLabel"></span>
             <div class="result-tray">
               <div class="variant-tabs"><button class="active" type="button" data-i18n="masterVariant"></button><button type="button" data-i18n="socialVariant"></button></div>
-              <div class="recipe-row">
-                <span data-i18n="recipeCrop"></span>
-                <span data-i18n="recipeLight"></span>
-                <span data-i18n="recipeColor"></span>
-                <span data-i18n="recipeSubject"></span>
-              </div>
               <div class="action-row">
                 <button class="secondary-action" type="button" data-i18n="save"></button>
                 <button class="share-action" type="button" data-go="share" data-i18n="share"></button>
-              </div>
-              <div class="share-strip">
-                <button type="button" data-go="share" data-i18n="shareOne"></button>
-                <button type="button" data-go="share" data-i18n="shareTwo"></button>
-                <button type="button" data-go="share" data-i18n="shareThree"></button>
-                <button type="button" data-go="share" data-i18n="shareFour"></button>
               </div>
             </div>
           </section>
@@ -1262,7 +1216,7 @@
         connectedPill: "已连接 · 本机",
         captureTitle: "大师成片",
         agentTipTitle: "智能体建议",
-        agentTipBody: "主体偏低，适合 4:5 裁切并提亮暗部。",
+        agentTipBody: "主体偏低，适合保留原始比例并提亮暗部。",
         applyTip: "应用",
         sceneNatural: "自然",
         scenePortrait: "人像",
@@ -1282,10 +1236,6 @@
         masterLabel: "大师版",
         masterVariant: "大师版",
         socialVariant: "分享版",
-        recipeCrop: "4:5 裁切",
-        recipeLight: "提亮暗部",
-        recipeColor: "校正色温",
-        recipeSubject: "增强主体",
         save: "保存",
         share: "分享",
         shareOne: "微信",
@@ -1293,7 +1243,7 @@
         shareThree: "小红书",
         shareFour: "更多",
         shareSheetTitle: "分享到",
-        shareSheetBody: "输出分享版图片，保留原图和 recipe。",
+        shareSheetBody: "打开系统分享面板，输出当前成片。",
         done: "完成",
         settingsTitle: "项目设置",
         languageTitle: "界面语言",
@@ -1328,7 +1278,7 @@
         connectedPill: "Connected · Local Mac",
         captureTitle: "Master Shot",
         agentTipTitle: "Agent Suggestion",
-        agentTipBody: "Subject is low. Use a 4:5 crop and lift shadows.",
+        agentTipBody: "Subject is low. Preserve the original frame and lift shadows.",
         applyTip: "Apply",
         sceneNatural: "Natural",
         scenePortrait: "Portrait",
@@ -1348,10 +1298,6 @@
         masterLabel: "Master",
         masterVariant: "Master",
         socialVariant: "Social",
-        recipeCrop: "4:5 Crop",
-        recipeLight: "Lift Shadows",
-        recipeColor: "Tune Color",
-        recipeSubject: "Boost Subject",
         save: "Save",
         share: "Share",
         shareOne: "WeChat",
@@ -1359,7 +1305,7 @@
         shareThree: "RED",
         shareFour: "More",
         shareSheetTitle: "Share To",
-        shareSheetBody: "Export the social version while keeping the original and recipe.",
+        shareSheetBody: "Open the system share sheet for the current result.",
         done: "Done",
         settingsTitle: "Project Settings",
         languageTitle: "Interface Language",

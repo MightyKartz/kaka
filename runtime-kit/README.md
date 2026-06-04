@@ -44,6 +44,41 @@ PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
   --hermes-profile dev-lead
 ```
 
+Start with image-conversation vision skills routed to the local runtime:
+
+```bash
+PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
+  --lan \
+  --bonjour \
+  --bonjour-host "$(ipconfig getifaddr en0)" \
+  --runtime hermes \
+  --hermes-profile dev-lead \
+  --vision-provider runtime_http \
+  --vision-endpoint http://127.0.0.1:<agent-port>/kaka/vision
+```
+
+For development, this repository also includes a lightweight local `/kaka/vision` endpoint so the `runtime_http` path can be tested before Hermes/OpenClaw owns the full model call. On macOS it uses Apple Vision for local OCR-backed skills (`ocr` -> `scan`, `translate_text` -> `translate`) and local image classification/text clues for conservative `identify_subject` and `nutrition_estimate` results. When it cannot find reliable local clues, it returns low-confidence model-not-configured guidance instead of fabricated objects or calorie estimates.
+
+```bash
+PYTHONPATH=runtime-kit python3 -m kaka_mobile_runtime_kit.vision_server \
+  --host 127.0.0.1 \
+  --port 8787
+```
+
+Then start the bridge with `--vision-endpoint http://127.0.0.1:8787/kaka/vision`. In this configuration, Kaka's image conversation can execute OCR from a suggestion or typed request and show extracted text from the uploaded photo rather than placeholder endpoint status.
+
+The default `fixture_vision` provider is intentionally limited: it proves UI flow and response shape, but it does not read the uploaded image. A production Hermes/OpenClaw integration should expose a local endpoint that accepts:
+
+- `task`: `vision`
+- `mode`: `scan`, `identify`, `translate`, or `food`
+- `instruction`
+- `locale`
+- `image_base64`
+
+and returns either a root `vision` object or `{ "vision": { ... } }` using the schema in `docs/mobile-bridge-api.md`.
+
+The iPhone no longer asks the user to choose scan/identify/translate/food before shooting. The bridge first returns an `image_intake` task result with suggested skills, then Kaka routes suggestion taps or typed requests to these bottom-layer vision modes.
+
 For OpenClaw, the same bridge contract should use `--runtime openclaw` and an OpenClaw-owned recipe endpoint or sidecar configuration once that adapter exists.
 
 ## Security Contract

@@ -20,21 +20,15 @@ public struct ResultScreenPresentation: Equatable, Sendable {
     public let afterDetail: String
     public let comparisonAccessibilityLabel: String
     public let variantTabs: [VariantTab]
-    public let recipeTitle: String
-    public let recipeChips: [String]
-    public let recipeNote: String?
     public let downloadAction: Action
     public let saveAction: Action
     public let shareAction: Action
-    public let sharePlatformTitles: [String]
     public let statusMessage: String?
 
     public init(
         comparison: ResultGalleryViewModel.ComparisonPresentation,
         variants: [TaskStatusResponse.Variant],
         selectedVariantID: String?,
-        recipe: ResultGalleryViewModel.RecipePresentation?,
-        explanation: String?,
         state: ResultGalleryViewModel.State,
         saveState: PhotoSaveFlow.State,
         language: AppLanguage,
@@ -42,15 +36,16 @@ public struct ResultScreenPresentation: Equatable, Sendable {
     ) {
         title = language == .chinese ? "成片结果" : "Master Result"
         beforeLabel = language == .chinese ? "原图" : comparison.beforeLabel
-        afterLabel = comparison.afterLabel
+        afterLabel = Self.localizedVariantTitle(comparison.afterLabel, language: language)
         afterDetail = Self.localizedAfterDetail(comparison.afterDetail, language: language)
         comparisonAccessibilityLabel = language == .chinese ? "原图与成片前后对比" : "Before and after comparison"
         variantTabs = variants.map { variant in
-            VariantTab(id: variant.id, title: variant.label, isSelected: variant.id == selectedVariantID)
+            VariantTab(
+                id: variant.id,
+                title: Self.localizedVariantTitle(variant.label, language: language),
+                isSelected: variant.id == selectedVariantID
+            )
         }
-        recipeTitle = language == .chinese ? "修图配方" : "Recipe"
-        recipeChips = Self.localizedRecipeChips(recipe?.chips ?? [], language: language)
-        recipeNote = Self.localizedRecipeNote(recipe?.note ?? explanation, language: language)
         downloadAction = Self.downloadAction(state: state, comparison: comparison, language: language)
         saveAction = Self.saveAction(saveState: saveState, isDownloaded: comparison.isDownloaded, language: language)
         shareAction = Action(
@@ -58,7 +53,6 @@ public struct ResultScreenPresentation: Equatable, Sendable {
             systemImage: "square.and.arrow.up",
             isEnabled: canShare && comparison.isDownloaded
         )
-        sharePlatformTitles = language == .chinese ? ["微信", "朋友圈", "小红书", "X"] : ["WeChat", "Moments", "RED", "X"]
         statusMessage = Self.statusMessage(resultState: state, saveState: saveState, language: language)
     }
 
@@ -110,49 +104,34 @@ public struct ResultScreenPresentation: Equatable, Sendable {
         guard language == .chinese else {
             return detail
         }
+        let localizedDetail = detail
+            .replacingOccurrences(of: "Master", with: "大师")
+            .replacingOccurrences(of: "Social", with: "社交")
         if detail.hasPrefix("Save-ready ") {
-            return detail.replacingOccurrences(of: "Save-ready ", with: "保存版 ")
+            return localizedDetail.replacingOccurrences(of: "Save-ready ", with: "保存版 ")
         }
         if detail.hasPrefix("Share-ready ") {
-            return detail.replacingOccurrences(of: "Share-ready ", with: "分享版 ")
+            return localizedDetail.replacingOccurrences(of: "Share-ready ", with: "分享版 ")
         }
         if detail.hasSuffix(" result") {
-            return detail.replacingOccurrences(of: " result", with: " 成片")
+            return localizedDetail.replacingOccurrences(of: " result", with: " 成片")
         }
-        return detail
+        return localizedDetail
     }
 
-    private static func localizedRecipeChips(_ chips: [String], language: AppLanguage) -> [String] {
+    private static func localizedVariantTitle(_ title: String, language: AppLanguage) -> String {
         guard language == .chinese else {
-            return chips
+            return title
         }
-        return chips.map { chip in
-            switch chip {
-            case "4:5 Crop":
-                return "4:5 裁切"
-            case "Lift Shadows":
-                return "提亮暗部"
-            case "Tune Color":
-                return "校正色温"
-            case "Boost Subject":
-                return "增强主体"
-            default:
-                return chip
-            }
-        }
-    }
 
-    private static func localizedRecipeNote(_ note: String?, language: AppLanguage) -> String? {
-        guard let note, note.isEmpty == false else {
-            return nil
+        switch title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "master":
+            return "大师"
+        case "social":
+            return "社交"
+        default:
+            return title
         }
-        guard language == .chinese else {
-            return note
-        }
-        if note == "Keeps real detail while tuning crop, light, and subject depth." {
-            return "保留真实细节，只调整裁切、光线和主体层次。"
-        }
-        return note
     }
 
     private static func statusMessage(

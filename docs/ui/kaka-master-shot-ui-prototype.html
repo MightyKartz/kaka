@@ -431,21 +431,6 @@
         linear-gradient(to bottom, transparent 32.8%, rgba(255, 255, 255, 0.26) 33.1%, transparent 33.4%, transparent 66.2%, rgba(255, 255, 255, 0.26) 66.5%, transparent 66.8%);
     }
 
-    .crop-mode-badge {
-      position: absolute;
-      top: 96px;
-      right: 28px;
-      z-index: 8;
-      padding: 7px 10px;
-      border-radius: 999px;
-      color: rgba(255, 255, 255, 0.86);
-      background: rgba(7, 10, 10, 0.38);
-      font-size: 12px;
-      font-weight: 760;
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-    }
-
     .focus-reticle {
       position: absolute;
       left: 50%;
@@ -753,22 +738,6 @@
       background: rgba(143, 238, 227, 0.88);
     }
 
-    .recipe-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin: 8px 0 9px;
-    }
-
-    .recipe-chips span {
-      padding: 6px 8px;
-      border-radius: 999px;
-      color: rgba(255, 255, 255, 0.86);
-      background: rgba(255, 255, 255, 0.08);
-      font-size: 11px;
-      font-weight: 700;
-    }
-
     .result-note {
       margin: -1px 0 9px;
       color: rgba(255, 255, 255, 0.58);
@@ -795,24 +764,6 @@
       background: rgba(255, 255, 255, 0.13);
       font-weight: 760;
       cursor: pointer;
-    }
-
-    .share-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    .share-row span {
-      display: grid;
-      place-items: center;
-      min-height: 30px;
-      border-radius: 12px;
-      color: rgba(255, 255, 255, 0.7);
-      background: rgba(255, 255, 255, 0.07);
-      font-size: 12px;
-      font-weight: 650;
     }
 
     .settings-screen {
@@ -1074,7 +1025,6 @@
             <div class="island"></div>
             <div class="top-pill"><span class="dot"></span><span data-i18n="connectedPill"></span></div>
             <div class="screen-title" data-i18n="captureTitle"></div>
-            <div class="crop-mode-badge" data-i18n="cropMode"></div>
             <div class="camera-grid"></div>
             <div class="focus-reticle" aria-hidden="true"></div>
             <div class="lens-strip"><span>0.5</span><span class="active-lens">1x</span><span>2</span><span>5</span></div>
@@ -1112,18 +1062,11 @@
             <span class="photo-label right" data-i18n="masterLabel"></span>
             <div class="result-tray">
               <div class="variant-switch"><span class="is-on" data-i18n="masterVariant"></span><span data-i18n="socialVariant"></span></div>
-              <div class="recipe-chips">
-                <span data-i18n="recipeCrop"></span>
-                <span data-i18n="recipeLight"></span>
-                <span data-i18n="recipeColor"></span>
-                <span data-i18n="recipeSubject"></span>
-              </div>
               <div class="result-note" data-i18n="resultNote"></div>
               <div class="result-actions">
                 <button class="save-action" type="button" data-i18n="save"></button>
                 <button class="share-action" type="button" data-i18n="share"></button>
               </div>
-              <div class="share-row"><span data-i18n="shareOne"></span><span data-i18n="shareTwo"></span><span data-i18n="shareThree"></span><span data-i18n="shareFour"></span></div>
             </div>
           </div>
         </div>
@@ -1190,7 +1133,6 @@
         captionConnectSub: "轻量配对，减少设置感",
         connectedPill: "已连接 · 本机",
         captureTitle: "大师成片",
-        cropMode: "4:5 构图",
         sceneNatural: "自然",
         scenePortrait: "人像",
         sceneProduct: "产品",
@@ -1199,23 +1141,15 @@
         makeShot: "一键成片",
         album: "相册",
         captionCapture: "拍摄",
-        captionCaptureSub: "相机优先，裁切和场景包前置",
+        captionCaptureSub: "相机优先，场景包驱动成片",
         resultTitle: "成片结果",
         originalLabel: "原图",
         masterLabel: "大师版",
         masterVariant: "大师版",
         socialVariant: "分享版",
-        recipeCrop: "4:5 裁切",
-        recipeLight: "提亮暗部",
-        recipeColor: "校正色温",
-        recipeSubject: "增强主体",
-        resultNote: "保留真实细节，只优化裁切、光线和主体层次。",
+        resultNote: "保留真实细节和原始比例，只强化光线、色彩和主体层次。",
         save: "保存",
         share: "分享",
-        shareOne: "微信",
-        shareTwo: "朋友圈",
-        shareThree: "小红书",
-        shareFour: "X",
         captionResult: "成片",
         captionResultSub: "对比明显，保存和分享优先",
         settingsTitle: "项目设置",
@@ -1251,7 +1185,6 @@
         captionConnectSub: "Fast local trust without setup friction",
         connectedPill: "Connected · Local Mac",
         captureTitle: "Master Shot",
-        cropMode: "4:5 Frame",
         sceneNatural: "Natural",
         scenePortrait: "Portrait",
         sceneProduct: "Product",
@@ -1260,23 +1193,15 @@
         makeShot: "Make Shot",
         album: "Library",
         captionCapture: "Capture",
-        captionCaptureSub: "Camera-first flow with crop and scene packs",
+        captionCaptureSub: "Camera-first flow with scene-pack edits",
         resultTitle: "Final Shot",
         originalLabel: "Original",
         masterLabel: "Master",
         masterVariant: "Master",
         socialVariant: "Social",
-        recipeCrop: "4:5 Crop",
-        recipeLight: "Lift Shadows",
-        recipeColor: "Tune Color",
-        recipeSubject: "Boost Subject",
-        resultNote: "Keeps real detail while tuning crop, light, and subject depth.",
+        resultNote: "Keeps real detail and original framing while improving light, color, and subject depth.",
         save: "Save",
         share: "Share",
-        shareOne: "WeChat",
-        shareTwo: "Moments",
-        shareThree: "RedNote",
-        shareFour: "X",
         captionResult: "Result",
         captionResultSub: "Obvious comparison with save and share first",
         settingsTitle: "Project Settings",

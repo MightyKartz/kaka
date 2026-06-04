@@ -93,7 +93,7 @@ Phase 1 should be realistic, but the edit must be obvious at a glance. If before
 - Increase bounded defaults for each style before model-specific tuning.
 - Always return two variants: `Master` and `Social`.
 - Make `Master` visibly more professional through crop/reframe, exposure, white balance, local clarity, subject separation, and conservative sharpen/denoise.
-- Make `Social` more visibly different through 4:5 or 1:1 crop, contrast, vibrance, local clarity, and subject/background separation.
+- Make `Social` more visibly different through bounded contrast, vibrance, local clarity, and subject/background separation while preserving the original frame. Optional 4:5 or 1:1 exports belong after the Phase 1 master result is proven.
 - Use optional upscale only when the selected crop would make the output too small.
 - Add renderer QA that measures basic image difference so a no-op output cannot pass.
 

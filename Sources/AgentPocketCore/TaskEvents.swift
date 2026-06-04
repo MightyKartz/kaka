@@ -69,6 +69,11 @@ private struct CompletedPayload: Decodable {
     private enum CodingKeys: String, CodingKey {
         case variantCount = "variant_count"
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        variantCount = try container.decodeIfPresent(Int.self, forKey: .variantCount) ?? 0
+    }
 }
 
 public enum TaskProgressTransport: Equatable, Sendable {

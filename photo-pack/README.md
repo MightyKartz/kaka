@@ -39,7 +39,8 @@ Installing a skill/plugin must not automatically start a bridge or advertise Bon
          "variant_labels": ["Master", "Social"],
          "variant_ids": ["variant_clean_pro", "variant_social_pop"],
          "styles": ["natural_enhance", "portrait_polish", "product_shot", "social_cover"],
-         "crop_aspects": ["original", "4:5", "1:1"],
+         "crop_aspects": ["original"],
+         "supports_crop_candidates": false,
          "supports_upscale_policy": true
        }
      }
@@ -98,21 +99,21 @@ Expected manifest shape:
     }
   ],
   "composition": {
-    "selected_aspect_ratio": "4:5",
-    "crop": {"x": 0.08, "y": 0.04, "width": 0.84, "height": 0.92}
+    "selected_aspect_ratio": "original",
+    "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0}
   },
   "qa": {
     "master_difference_score": 0.18,
     "social_difference_score": 0.26
   },
   "upscale": {
-    "policy": "only_if_crop_below_target",
+    "policy": "none",
     "target_long_edge": 2048,
-    "max_scale": 2.0,
-    "upscaled": true,
-    "scale": 2.0,
-    "input_size": [960, 1200],
-    "output_size": [1920, 2400]
+    "max_scale": 1.0,
+    "upscaled": false,
+    "scale": 1.0,
+    "input_size": [1600, 1200],
+    "output_size": [1600, 1200]
   },
   "recipe_summary": "Balanced exposure, warmer skin tone, added subject separation, protected facial identity.",
   "share_caption": "Polished with my local photo agent."
@@ -143,22 +144,21 @@ Minimum recipe fields:
     "denoise": 0.08
   },
   "composition": {
-    "selected_aspect_ratio": "4:5",
+    "selected_aspect_ratio": "original",
     "crop": {
-      "x": 0.08,
-      "y": 0.04,
-      "width": 0.84,
-      "height": 0.92
+      "x": 0.0,
+      "y": 0.0,
+      "width": 1.0,
+      "height": 1.0
     },
     "crop_candidates": [
-      {"aspect_ratio": "original", "x": 0, "y": 0, "width": 1, "height": 1, "score": 0.72},
-      {"aspect_ratio": "4:5", "x": 0.08, "y": 0.04, "width": 0.84, "height": 0.92, "score": 0.88}
+      {"aspect_ratio": "original", "x": 0, "y": 0, "width": 1, "height": 1, "score": 0.72}
     ]
   },
   "upscale": {
-    "policy": "only_if_crop_below_target",
+    "policy": "none",
     "target_long_edge": 2048,
-    "max_scale": 2.0
+    "max_scale": 1.0
   },
   "safety": {
     "preserve_identity": true,
@@ -174,15 +174,15 @@ The adapter must reject or clamp out-of-range values, unknown operations, arbitr
 
 ## Style Targets
 
-- `natural_enhance`: balanced exposure, white balance, contrast, shadows, highlights, vibrance, mild clarity, and subtle crop.
+- `natural_enhance`: balanced exposure, white balance, contrast, shadows, highlights, vibrance, mild clarity, and subtle subject separation.
 - `portrait_polish`: face-safe lighting, low skin smoothing, eye/face clarity, background separation, and identity preservation.
 - `product_shot`: cleaner whites, product edge sharpness, controlled shadows, neutral color, and text/logo preservation.
-- `social_cover`: stronger crop, color pop, contrast, subject separation, and title-safe composition.
+- `social_cover`: stronger color pop, contrast, and subject separation for sharing while preserving original framing.
 
 Always return:
 
 - `Master`: realistic professional result for saving.
-- `Social`: stronger crop/contrast/color/subject separation for sharing.
+- `Social`: stronger contrast/color/subject separation for sharing.
 
 The renderer should reject a no-op result. A first QA threshold can be simple: edited output must differ from source bytes, have valid dimensions, include crop metadata, and pass a basic image-difference score while preserving subject/text/identity.
 

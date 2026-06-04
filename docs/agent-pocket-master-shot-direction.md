@@ -37,10 +37,10 @@ General visual assistants already exist in system products and chat apps. Generi
 1. Pair to a compatible runtime with QR or local discovery.
 2. Capture or choose a photo.
 3. Tap one primary action: **Make Master Shot**.
-4. Runtime analyzes the image and chooses crop plus edit recipe.
+4. Runtime analyzes the image and chooses an original-frame edit recipe.
 5. Mac renders:
    - `Master`: the best realistic, professional version.
-   - `Social`: stronger crop/color/contrast for social platforms.
+   - `Social`: stronger color/contrast/subject separation for sharing.
 6. iPhone compares Original / Master / Social.
 7. User saves or shares through the iOS system share sheet.
 
@@ -53,7 +53,7 @@ Keep four Kaka scene packs for Phase 1:
 - `natural_enhance`: everyday photos that should look intentionally edited but still natural.
 - `portrait_polish`: people photos with face-safe lighting, skin tone correction, and identity preservation.
 - `product_shot`: product or object photos with cleaner whites, sharper edges, and logo/text preservation.
-- `social_cover`: platform-ready crop, stronger color, and title-safe composition.
+- `social_cover`: stronger color, contrast, and subject separation for sharing while preserving original framing.
 
 The user does not need to see technical sliders. Advanced controls can stay inside the runtime recipe and QA receipts.
 
@@ -65,10 +65,10 @@ The recipe should support:
 
 - global tone: exposure, contrast, highlights, shadows, white balance, vibrance, saturation;
 - local polish: subject boost, background falloff, clarity, sharpen, denoise, skin-safe smoothing;
-- composition: crop candidates, selected crop, aspect ratio, title-safe area, subject bounding hint;
-- optional upscale: only when crop output would be too small for the target;
+- composition: selected aspect ratio, original-frame crop metadata, subject bounding hint;
+- optional upscale: off by default in Phase 1 so the first result keeps source dimensions;
 - preservation flags: identity, text, logo, product color, object count;
-- platform targets: original, 4:5, 1:1, 16:9, or runtime-advertised presets;
+- platform targets: original in Phase 1; optional 4:5/1:1/16:9 exports can be added after the master result is generated;
 - aesthetic score and short explanation for ranking variants.
 
 ## Renderer Requirements

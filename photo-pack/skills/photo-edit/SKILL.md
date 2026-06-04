@@ -9,18 +9,18 @@ Use this skill when Agent Pocket starts `/mobile/v1/tasks/photo-edit` for the Ma
 - `style`: one of the Kaka scene packs: `natural_enhance`, `portrait_polish`, `product_shot`, `social_cover`.
 - `instruction`: user/default editing instruction.
 - `return_variants`: Phase 1 default is `2`.
-- `crop_aspects`: optional target aspects such as `original`, `4:5`, and `1:1`.
+- `crop_aspects`: Phase 1 target aspect is `original`; keep source dimensions and framing by default.
 
 ## Phase 1 Workflow
 
 1. Load the source asset from Mobile Bridge asset storage.
 2. Validate style, media type, size, and requested variant count.
-3. Ask the runtime-configured multimodal vision model to analyze the photo and return a strict `PhotoEditRecipe` JSON object with composition, edit, optional upscale, and safety sections.
+3. Ask the runtime-configured multimodal vision model to analyze the photo and return a strict `PhotoEditRecipe` JSON object with original-frame composition, edit, optional upscale, and safety sections.
 4. Validate and clamp the recipe against the local schema.
-5. Generate or validate crop candidates for master-shot composition.
+5. Validate that Phase 1 composition preserves the original frame.
 6. Render variants locally with deterministic image-processing operations.
 7. Store returned variants as bridge assets.
-8. Return task status with variant labels, download URLs, crop metadata, recipe summary, renderer metadata, QA metrics, and a share caption.
+8. Return task status with variant labels, download URLs, composition metadata, recipe summary, renderer metadata, QA metrics, and a share caption.
 
 The model should choose bounded edit parameters only. It must not request arbitrary code, provider URLs, generative pixels, face replacement, text replacement, product redesign, or background replacement in Phase 1.
 
@@ -35,7 +35,7 @@ Adapters accept:
   "style": "natural_enhance",
   "instruction": "Keep it realistic but make the professional edit obvious.",
   "return_variants": 2,
-  "crop_aspects": ["original", "4:5", "1:1"],
+  "crop_aspects": ["original"],
   "recipe_mode": "fixture | runtime_vision",
   "runtime_recipe_endpoint": "http://127.0.0.1:8791/mobile/v1/recipes/photo-edit"
 }
@@ -53,6 +53,11 @@ The runtime-vision request includes `scene_profile`:
   "default_recipe": {
     "global": {"exposure": 0.14, "contrast": 0.16},
     "local": {"subject_boost": 0.16, "sharpen": 0.16}
+  },
+  "composition_policy": {
+    "preserve_original_framing": true,
+    "supported_crop_aspects": ["original"],
+    "default_aspect_ratio": "original"
   },
   "supported_variants": [
     {"id": "variant_clean_pro", "label": "Master"},
@@ -90,21 +95,21 @@ Adapters return:
     }
   ],
   "composition": {
-    "selected_aspect_ratio": "4:5",
-    "crop": {"x": 0.08, "y": 0.04, "width": 0.84, "height": 0.92}
+    "selected_aspect_ratio": "original",
+    "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0}
   },
   "qa": {
     "master_difference_score": 0.18,
     "social_difference_score": 0.26
   },
   "upscale": {
-    "policy": "only_if_crop_below_target",
+    "policy": "none",
     "target_long_edge": 2048,
-    "max_scale": 2.0,
-    "upscaled": true,
-    "scale": 2.0,
-    "input_size": [960, 1200],
-    "output_size": [1920, 2400]
+    "max_scale": 1.0,
+    "upscaled": false,
+    "scale": 1.0,
+    "input_size": [1600, 1200],
+    "output_size": [1600, 1200]
   },
   "recipe_summary": "Balanced exposure, warmer skin tone, added subject separation, protected identity.",
   "share_caption": "Polished with my local photo agent."
@@ -137,22 +142,21 @@ Minimum recipe shape:
     "denoise": 0.08
   },
   "composition": {
-    "selected_aspect_ratio": "4:5",
+    "selected_aspect_ratio": "original",
     "crop": {
-      "x": 0.08,
-      "y": 0.04,
-      "width": 0.84,
-      "height": 0.92
+      "x": 0.0,
+      "y": 0.0,
+      "width": 1.0,
+      "height": 1.0
     },
     "crop_candidates": [
-      {"aspect_ratio": "original", "x": 0, "y": 0, "width": 1, "height": 1, "score": 0.72},
-      {"aspect_ratio": "4:5", "x": 0.08, "y": 0.04, "width": 0.84, "height": 0.92, "score": 0.88}
+      {"aspect_ratio": "original", "x": 0, "y": 0, "width": 1, "height": 1, "score": 0.72}
     ]
   },
   "upscale": {
-    "policy": "only_if_crop_below_target",
+    "policy": "none",
     "target_long_edge": 2048,
-    "max_scale": 2.0
+    "max_scale": 1.0
   },
   "safety": {
     "preserve_identity": true,
@@ -169,7 +173,7 @@ Minimum recipe shape:
 - `natural_enhance`: realistic exposure, color, clarity, and subtle composition improvement.
 - `portrait_polish`: skin-safe retouching, face-aware lighting, identity preservation, and background separation.
 - `product_shot`: cleaner whites, sharper subject, product detail preservation, and commercial lighting.
-- `social_cover`: stronger crop, color pop, contrast, subject separation, and platform-ready look.
+- `social_cover`: stronger color pop, contrast, and subject separation for sharing while preserving original framing.
 
 Always return `Master` and `Social` display labels. Internal IDs may stay `variant_clean_pro` and `variant_social_pop` so older clients can remain compatible.
 

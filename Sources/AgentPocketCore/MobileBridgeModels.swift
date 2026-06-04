@@ -47,9 +47,11 @@ public struct CapabilitiesResponse: Decodable, Equatable, Sendable {
 
     public struct Tasks: Decodable, Equatable, Sendable {
         public let photoEdit: PhotoEditCapability
+        public let vision: VisionCapability?
 
         private enum CodingKeys: String, CodingKey {
             case photoEdit = "photo_edit"
+            case vision
         }
     }
 
@@ -96,6 +98,22 @@ public struct CapabilitiesResponse: Decodable, Equatable, Sendable {
             supportsUpscalePolicy = try container.decodeIfPresent(Bool.self, forKey: .supportsUpscalePolicy) ?? false
             supportsSSE = try container.decode(Bool.self, forKey: .supportsSSE)
             returnVariantsMax = try container.decode(Int.self, forKey: .returnVariantsMax)
+        }
+    }
+
+    public struct VisionCapability: Decodable, Equatable, Sendable {
+        public let maxUploadMB: Int
+        public let acceptedMimeTypes: [String]
+        public let modes: [String]
+        public let provider: String?
+        public let supportsSSE: Bool
+
+        private enum CodingKeys: String, CodingKey {
+            case maxUploadMB = "max_upload_mb"
+            case acceptedMimeTypes = "accepted_mime_types"
+            case modes
+            case provider
+            case supportsSSE = "supports_sse"
         }
     }
 
@@ -228,6 +246,90 @@ public struct PhotoEditTaskRequest: Encodable, Equatable, Sendable {
     }
 }
 
+public enum VisionTaskKind: String, Codable, CaseIterable, Identifiable, Sendable {
+    case scan
+    case identify
+    case translate
+    case food
+
+    public var id: String { rawValue }
+}
+
+public struct VisionTaskRequest: Encodable, Equatable, Sendable {
+    public let profileID: String
+    public let assetID: String
+    public let mode: VisionTaskKind
+    public let instruction: String
+    public let locale: String?
+
+    public init(
+        profileID: String,
+        assetID: String,
+        mode: VisionTaskKind,
+        instruction: String? = nil,
+        locale: String? = nil
+    ) {
+        self.profileID = profileID
+        self.assetID = assetID
+        self.mode = mode
+        self.instruction = instruction ?? mode.defaultInstruction
+        self.locale = locale
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case profileID = "profile_id"
+        case assetID = "asset_id"
+        case mode
+        case instruction
+        case locale
+    }
+}
+
+public struct ImageIntakeTaskRequest: Encodable, Equatable, Sendable {
+    public let profileID: String
+    public let assetID: String
+    public let locale: String?
+
+    public init(profileID: String, assetID: String, locale: String? = nil) {
+        self.profileID = profileID
+        self.assetID = assetID
+        self.locale = locale
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case profileID = "profile_id"
+        case assetID = "asset_id"
+        case locale
+    }
+}
+
+public extension VisionTaskKind {
+    var defaultInstruction: String {
+        switch self {
+        case .scan:
+            return "Extract useful text, codes, and document details from the image. Keep the answer concise."
+        case .identify:
+            return "Identify the main visible objects, plants, animals, products, or landmarks. Include confidence when useful."
+        case .translate:
+            return "Read visible text and translate it into the user's locale. Preserve important names and numbers."
+        case .food:
+            return "Identify visible food and estimate a reasonable calorie range. Mention uncertainty and visible assumptions."
+        }
+    }
+}
+
+public struct VisionTaskCreateResponse: Decodable, Equatable, Sendable {
+    public let taskID: String
+    public let status: String
+    public let eventsURL: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case taskID = "task_id"
+        case status
+        case eventsURL = "events_url"
+    }
+}
+
 public struct PhotoEditTaskCreateResponse: Decodable, Equatable, Sendable {
     public let taskID: String
     public let status: String
@@ -253,6 +355,9 @@ public struct TaskStatusResponse: Decodable, Equatable, Sendable {
     public let qa: QualityAssessment?
     public let recipeSummary: String?
     public let shareCaption: String?
+    public let resultType: String?
+    public let vision: VisionResult?
+    public let imageIntake: ImageIntakeResult?
 
     private enum CodingKeys: String, CodingKey {
         case taskID = "task_id"
@@ -267,6 +372,9 @@ public struct TaskStatusResponse: Decodable, Equatable, Sendable {
         case qa
         case recipeSummary = "recipe_summary"
         case shareCaption = "share_caption"
+        case resultType = "result_type"
+        case vision
+        case imageIntake = "image_intake"
     }
 
     public struct Variant: Decodable, Equatable, Sendable {
@@ -309,6 +417,73 @@ public struct TaskStatusResponse: Decodable, Equatable, Sendable {
         private enum CodingKeys: String, CodingKey {
             case masterDifferenceScore = "master_difference_score"
             case socialDifferenceScore = "social_difference_score"
+        }
+    }
+
+    public struct VisionResult: Decodable, Equatable, Sendable {
+        public let mode: String
+        public let title: String
+        public let summary: String
+        public let text: String?
+        public let language: String?
+        public let confidence: Double?
+        public let sections: [VisionSection]
+        public let items: [VisionItem]
+
+        private enum CodingKeys: String, CodingKey {
+            case mode
+            case title
+            case summary
+            case text
+            case language
+            case confidence
+            case sections
+            case items
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            mode = try container.decode(String.self, forKey: .mode)
+            title = try container.decode(String.self, forKey: .title)
+            summary = try container.decode(String.self, forKey: .summary)
+            text = try container.decodeIfPresent(String.self, forKey: .text)
+            language = try container.decodeIfPresent(String.self, forKey: .language)
+            confidence = try container.decodeIfPresent(Double.self, forKey: .confidence)
+            sections = try container.decodeIfPresent([VisionSection].self, forKey: .sections) ?? []
+            items = try container.decodeIfPresent([VisionItem].self, forKey: .items) ?? []
+        }
+    }
+
+    public struct VisionSection: Decodable, Equatable, Sendable {
+        public let title: String
+        public let kind: String?
+        public let items: [VisionItem]
+
+        private enum CodingKeys: String, CodingKey {
+            case title
+            case kind
+            case items
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            title = try container.decode(String.self, forKey: .title)
+            kind = try container.decodeIfPresent(String.self, forKey: .kind)
+            items = try container.decodeIfPresent([VisionItem].self, forKey: .items) ?? []
+        }
+    }
+
+    public struct VisionItem: Decodable, Equatable, Sendable {
+        public let title: String
+        public let value: String?
+        public let subtitle: String?
+        public let confidence: Double?
+
+        private enum CodingKeys: String, CodingKey {
+            case title
+            case value
+            case subtitle
+            case confidence
         }
     }
 }

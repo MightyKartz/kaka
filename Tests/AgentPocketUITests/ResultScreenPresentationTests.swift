@@ -11,8 +11,6 @@ final class ResultScreenPresentationTests: XCTestCase {
             comparison: viewModel.comparisonPresentation,
             variants: viewModel.variants,
             selectedVariantID: viewModel.selectedVariantID,
-            recipe: viewModel.recipePresentation,
-            explanation: viewModel.explanation,
             state: viewModel.state,
             saveState: .idle,
             language: .chinese,
@@ -21,15 +19,12 @@ final class ResultScreenPresentationTests: XCTestCase {
 
         XCTAssertEqual(presentation.title, "成片结果")
         XCTAssertEqual(presentation.beforeLabel, "原图")
-        XCTAssertEqual(presentation.afterLabel, "Master")
-        XCTAssertEqual(presentation.variantTabs.map(\.title), ["Master", "Social"])
-        XCTAssertEqual(presentation.recipeTitle, "修图配方")
-        XCTAssertEqual(presentation.recipeChips, ["4:5 裁切", "提亮暗部", "校正色温", "增强主体"])
+        XCTAssertEqual(presentation.afterLabel, "大师")
+        XCTAssertEqual(presentation.variantTabs.map(\.title), ["大师", "社交"])
         XCTAssertEqual(presentation.downloadAction.title, "下载成片")
         XCTAssertTrue(presentation.downloadAction.isEnabled)
         XCTAssertFalse(presentation.saveAction.isEnabled)
         XCTAssertFalse(presentation.shareAction.isEnabled)
-        XCTAssertEqual(presentation.sharePlatformTitles, ["微信", "朋友圈", "小红书", "X"])
     }
 
     func testEnglishDownloadedPresentationEnablesSaveAndShare() throws {
@@ -43,8 +38,6 @@ final class ResultScreenPresentationTests: XCTestCase {
             comparison: viewModel.comparisonPresentation,
             variants: viewModel.variants,
             selectedVariantID: viewModel.selectedVariantID,
-            recipe: viewModel.recipePresentation,
-            explanation: viewModel.explanation,
             state: viewModel.state,
             saveState: .idle,
             language: .english,
@@ -60,7 +53,6 @@ final class ResultScreenPresentationTests: XCTestCase {
         XCTAssertTrue(presentation.saveAction.isEnabled)
         XCTAssertEqual(presentation.shareAction.title, "Share")
         XCTAssertTrue(presentation.shareAction.isEnabled)
-        XCTAssertEqual(presentation.sharePlatformTitles, ["WeChat", "Moments", "RED", "X"])
     }
 
     private func completedLocalRecipeStatus() throws -> TaskStatusResponse {
@@ -76,14 +68,14 @@ final class ResultScreenPresentationTests: XCTestCase {
           ],
           "renderer": "local_parametric",
           "composition": {
-            "selected_aspect_ratio": "4:5",
-            "crop": {"x": 0.2, "y": 0.0, "width": 0.6, "height": 1.0}
+            "selected_aspect_ratio": "original",
+            "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0}
           },
           "qa": {
             "master_difference_score": 0.18,
             "social_difference_score": 0.31
           },
-          "recipe_summary": "Balanced exposure and reframed to 4:5.",
+          "recipe_summary": "Balanced exposure while preserving the original frame.",
           "share_caption": "Shot polished locally with Kaka."
         }
         """.data(using: .utf8)!

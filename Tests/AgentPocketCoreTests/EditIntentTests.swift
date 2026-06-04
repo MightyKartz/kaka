@@ -23,14 +23,14 @@ final class EditIntentTests: XCTestCase {
         )
     }
 
-    func testMasterShotCompositionBadgePromotesSocialSafeFrame() {
-        XCTAssertEqual(EditIntent.masterShotCompositionBadge, "4:5 Frame")
+    func testMasterShotCompositionBadgePreservesOriginalFrame() {
+        XCTAssertEqual(EditIntent.masterShotCompositionBadge, "Original")
     }
 
     func testDefaultInstructionsPreservePhotoSafetyBoundaries() {
         XCTAssertTrue(EditIntent.naturalEnhance.defaultInstruction.contains("Keep it realistic"))
         XCTAssertTrue(EditIntent.portraitPolish.defaultInstruction.contains("Do not change identity"))
         XCTAssertTrue(EditIntent.productShot.defaultInstruction.contains("Keep the product accurate"))
-        XCTAssertTrue(EditIntent.socialCover.defaultInstruction.contains("title-safe"))
+        XCTAssertTrue(EditIntent.socialCover.defaultInstruction.contains("original framing"))
     }
 }

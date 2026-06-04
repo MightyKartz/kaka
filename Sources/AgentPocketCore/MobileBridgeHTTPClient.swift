@@ -88,6 +88,28 @@ public struct MobileBridgeHTTPClient {
         return try JSONDecoder.mobileBridge.decode(PhotoEditTaskCreateResponse.self, from: data)
     }
 
+    public func startVisionTask(_ task: VisionTaskRequest) async throws -> VisionTaskCreateResponse {
+        let request = try MobileBridgeClient.makeVisionTaskRequest(
+            endpoint: endpoint,
+            token: token,
+            task: task
+        )
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
+        return try JSONDecoder.mobileBridge.decode(VisionTaskCreateResponse.self, from: data)
+    }
+
+    public func startImageIntakeTask(_ task: ImageIntakeTaskRequest) async throws -> VisionTaskCreateResponse {
+        let request = try MobileBridgeClient.makeImageIntakeTaskRequest(
+            endpoint: endpoint,
+            token: token,
+            task: task
+        )
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
+        return try JSONDecoder.mobileBridge.decode(VisionTaskCreateResponse.self, from: data)
+    }
+
     public func fetchTaskStatus(taskID: String) async throws -> TaskStatusResponse {
         let request = MobileBridgeClient.makeTaskStatusRequest(
             endpoint: endpoint,

@@ -75,8 +75,8 @@ def run_edit(input_path, output_dir, style, instruction, return_variants=2):
             {"id": "variant_social_pop", "label": "Social", "path": str(second), "mime_type": "image/jpeg"},
         ],
         "composition": {
-            "selected_aspect_ratio": "4:5",
-            "crop": {"x": 0.2, "y": 0.0, "width": 0.6, "height": 1.0}
+            "selected_aspect_ratio": "original",
+            "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0}
         },
         "qa": {
             "master_difference_score": 0.18,
@@ -101,7 +101,7 @@ def run_edit(input_path, output_dir, style, instruction, return_variants=2):
 
     assert variants[0]["recipe_metadata"]["provider"] == "recipe_local"
     assert variants[0]["recipe_metadata"]["renderer"] == "local_parametric"
-    assert variants[0]["recipe_metadata"]["composition"]["selected_aspect_ratio"] == "4:5"
+    assert variants[0]["recipe_metadata"]["composition"]["selected_aspect_ratio"] == "original"
     assert variants[0]["recipe_metadata"]["qa"]["master_difference_score"] == 0.18
     assert variants[0]["recipe_metadata"]["share_caption"] == "Polished locally."
     assert variants[1]["recipe_metadata"] == variants[0]["recipe_metadata"]

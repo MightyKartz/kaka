@@ -153,6 +153,13 @@
 				TargetAttributes = {
 					100000000000000000000501 = {
 						CreatedOnToolsVersion = 26.5;
+						DevelopmentTeam = J6P96F432P;
+						ProvisioningStyle = Automatic;
+					};
+					200000000000000000000501 = {
+						CreatedOnToolsVersion = 26.5;
+						DevelopmentTeam = J6P96F432P;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -334,12 +341,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = J6P96F432P;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = AgentPocket/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Agent Pocket";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photo-video";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Agent Pocket scans the local agent pairing QR code to connect this iPhone.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Kaka uses the camera to take photos for local agent editing and to scan pairing QR codes.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Agent Pocket connects to your local agent runtime on your local network.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Agent Pocket saves edited photos only when you tap Save.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Agent Pocket lets you choose photos to edit through your local agent runtime.";
@@ -347,7 +354,7 @@
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.kaka.AgentPocket;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kartz.agentpocket.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -364,12 +371,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = J6P96F432P;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = AgentPocket/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Agent Pocket";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photo-video";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Agent Pocket scans the local agent pairing QR code to connect this iPhone.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Kaka uses the camera to take photos for local agent editing and to scan pairing QR codes.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Agent Pocket connects to your local agent runtime on your local network.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Agent Pocket saves edited photos only when you tap Save.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Agent Pocket lets you choose photos to edit through your local agent runtime.";
@@ -377,7 +384,7 @@
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.kaka.AgentPocket;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kartz.agentpocket.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -393,11 +400,11 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = J6P96F432P;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.kaka.AgentPocketPickerUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kartz.agentpocket.dev.AgentPocketPickerUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 6.0;
@@ -411,11 +418,11 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = J6P96F432P;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.kaka.AgentPocketPickerUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kartz.agentpocket.dev.AgentPocketPickerUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 6.0;
