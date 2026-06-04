@@ -1521,7 +1521,7 @@ def build_physical_qa_commands(
             f"--base-url {base_url}"
         ),
         "",
-        "# 4. On iPhone: choose/take a photo, Send to Local Agent, Review Results, Download Selected",
+        "# 4. On iPhone: choose/take a photo, Send to Kaka, Review Results, Download Selected",
         (
             "PYTHONPATH=mock_bridge python3 -m agent_pocket_mock_bridge.qa wait-photo-flow "
             f"--base-url {base_url} --timeout 180"
@@ -4098,6 +4098,23 @@ def run_lan_qa_session(
         print("--device-id is required unless --no-launch is used.", file=err_stream)
         return 2
 
+    if connection_only and not launch_app:
+        base_url = f"http://{host}:{port}"
+        print("Using an already running Kaka Mobile Bridge.", file=out_stream, flush=True)
+        print(f"iPhone endpoint: {base_url}", file=out_stream, flush=True)
+        return _wait_for_status(
+            base_url=base_url,
+            token=token,
+            timeout_seconds=connection_timeout,
+            interval_seconds=interval,
+            evaluator=evaluate_connection_restore,
+            status_fetcher=status_fetcher,
+            phase="connection",
+            receipt_file=receipt_file,
+            out=out_stream,
+            err=err_stream,
+        )
+
     app = None
     if photo_provider != "fixture":
         app = create_app(photo_provider=build_photo_provider(photo_provider, photo_pack_root=photo_pack_root))
@@ -4154,7 +4171,7 @@ def run_lan_qa_session(
             return connection_result
 
         print(
-            "On iPhone: choose/take a photo, Send to Local Agent, Review Results, Download Selected.",
+            "On iPhone: choose/take a photo, Send to Kaka, Review Results, Download Selected.",
             file=out_stream,
             flush=True,
         )
@@ -4612,7 +4629,7 @@ def _capture_ready_receipt_is_ready(receipt: Mapping[str, Any]) -> bool:
         and _capture_ready_send_enabled(receipt) is True
         and receipt.get("selection_source") == "library_fixture"
         and receipt.get("preprocessing_path") == "CaptureFlowViewModel.prepareSelectedImage"
-        and receipt.get("primary_action") in {"Send to Local Agent", "Send to Hermes"}
+        and receipt.get("primary_action") in {"Send to Kaka", "Send to Local Agent", "Send to Hermes"}
     )
 
 
@@ -6490,12 +6507,12 @@ def build_parser() -> argparse.ArgumentParser:
     gate_audit.add_argument(
         "--capture-ready-screenshot-file",
         default="/tmp/agent-pocket-simulator-capture-ready.png",
-        help="Simulator screenshot evidence that selected-photo ready state shows Send to Local Agent.",
+        help="Simulator screenshot evidence that selected-photo ready state shows Send to Kaka.",
     )
     gate_audit.add_argument(
         "--capture-ready-receipt-file",
         default=DEFAULT_SIMULATOR_CAPTURE_READY_RECEIPT,
-        help="App-authored receipt proving selected-photo ready state enables Send to Local Agent.",
+        help="App-authored receipt proving selected-photo ready state enables Send to Kaka.",
     )
     gate_audit.add_argument(
         "--capture-completed-screenshot-file",
@@ -6829,12 +6846,12 @@ def build_parser() -> argparse.ArgumentParser:
     readiness_report.add_argument(
         "--capture-ready-screenshot-file",
         default="/tmp/agent-pocket-simulator-capture-ready.png",
-        help="Simulator screenshot evidence that selected-photo ready state shows Send to Local Agent.",
+        help="Simulator screenshot evidence that selected-photo ready state shows Send to Kaka.",
     )
     readiness_report.add_argument(
         "--capture-ready-receipt-file",
         default=DEFAULT_SIMULATOR_CAPTURE_READY_RECEIPT,
-        help="App-authored receipt proving selected-photo ready state enables Send to Local Agent.",
+        help="App-authored receipt proving selected-photo ready state enables Send to Kaka.",
     )
     readiness_report.add_argument(
         "--capture-completed-screenshot-file",
@@ -7708,7 +7725,7 @@ def _audit_capture_ready_receipt(root: str, path: str) -> dict[str, Any]:
         missing.append("prepared upload")
     send_enabled = _capture_ready_send_enabled(receipt)
     if send_enabled is not True:
-        missing.append("Send to Local Agent enabled")
+        missing.append("Send to Kaka enabled")
     if not str(receipt.get("file_name", "")):
         missing.append("selected file name")
     if not str(receipt.get("intent_title", "")):
@@ -7717,12 +7734,12 @@ def _audit_capture_ready_receipt(root: str, path: str) -> dict[str, Any]:
         missing.append("library selection source")
     if receipt.get("preprocessing_path") != "CaptureFlowViewModel.prepareSelectedImage":
         missing.append("prepareSelectedImage preprocessing path")
-    if receipt.get("primary_action") not in {"Send to Local Agent", "Send to Hermes"}:
-        missing.append("Send to Local Agent primary action")
+    if receipt.get("primary_action") not in {"Send to Kaka", "Send to Local Agent", "Send to Hermes"}:
+        missing.append("Send to Kaka primary action")
     if receipt.get("ready_status_accessibility_identifier") != "selectedPhotoReadyStatus":
         missing.append("selected photo ready accessibility identifier")
-    if receipt.get("send_button_accessibility_identifier") not in {"sendToLocalAgentButton", "sendToHermesButton"}:
-        missing.append("Send to Local Agent accessibility identifier")
+    if receipt.get("send_button_accessibility_identifier") not in {"sendToKakaButton", "sendToLocalAgentButton", "sendToHermesButton"}:
+        missing.append("Send to Kaka accessibility identifier")
 
     return {
         "path": path,
@@ -7917,7 +7934,7 @@ def _capture_completed_receipt_missing(receipt: Mapping[str, Any]) -> list[str]:
     if send_enabled is None:
         send_enabled = receipt.get("send_to_hermes_enabled")
     if send_enabled is not False:
-        missing.append("Send to Local Agent no longer primary")
+        missing.append("Send to Kaka no longer primary")
     return missing
 
 

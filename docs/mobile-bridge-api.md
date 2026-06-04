@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Mobile Bridge is the stable HTTPS boundary between Agent Pocket and a user-owned compatible agent runtime, such as Hermes, OpenClaw, or a sidecar that exposes the same contract. The iPhone app is a thin client: it pairs with a runtime, uploads photos, starts Master Shot tasks, watches progress, downloads results, and hands the edited image to the iOS share sheet. The runtime owns model credentials, workflow selection, vision analysis, crop planning, local image rendering, memory, approvals, and tool execution.
+The Mobile Bridge is the stable HTTPS boundary between Agent Pocket and a user-owned compatible agent runtime, such as Hermes, OpenClaw, or a sidecar that exposes the same contract. The iPhone app is a thin visual client: it pairs with a runtime, uploads photos, starts `image_intake`, shows suggested skills in an image conversation, starts photo-edit or vision tasks for the user's instruction, watches progress, and downloads edited images when needed. The runtime owns model credentials, workflow selection, vision analysis, crop planning, local image rendering, memory, approvals, and tool execution.
+
+The broader Pocket Agents direction keeps the same boundary for future input types: share-sheet items, screenshots, pasted text, links, voice notes, and permissioned context snapshots should flow through Mobile Bridge as explicit user-initiated intake tasks. These future endpoints are directional until implemented and tested; the current Phase 1 contract is still `image_intake`, `vision`, and `photo_edit`.
 
 Base path: `/mobile/v1`
 
@@ -46,6 +48,7 @@ Common codes:
 - `pairing_expired`
 - `pairing_already_used`
 - `photo_edit_unavailable`
+- `vision_unavailable`
 - `unsupported_media_type`
 - `upload_too_large`
 - `task_failed`
@@ -105,7 +108,7 @@ Response:
     {
       "id": "photo-agent",
       "display_name": "Photo Agent",
-      "capabilities": ["photo_edit"]
+      "capabilities": ["photo_edit", "vision", "image_intake"]
     }
   ],
   "tasks": {
@@ -117,11 +120,24 @@ Response:
       "renderer": "local_parametric",
       "variant_labels": ["Master", "Social"],
       "variant_ids": ["variant_clean_pro", "variant_social_pop"],
-      "crop_aspects": ["original", "4:5", "1:1"],
-      "supports_crop_candidates": true,
+      "crop_aspects": ["original"],
+      "supports_crop_candidates": false,
       "supports_upscale_policy": true,
       "supports_sse": true,
       "return_variants_max": 3
+    },
+    "vision": {
+      "max_upload_mb": 30,
+      "accepted_mime_types": ["image/jpeg", "image/heic", "image/png"],
+      "modes": ["scan", "identify", "translate", "food"],
+      "provider": "runtime_configured_multimodal",
+      "supports_sse": true
+    },
+    "image_intake": {
+      "max_upload_mb": 30,
+      "accepted_mime_types": ["image/jpeg", "image/heic", "image/png"],
+      "provider": "heuristic_image_intake",
+      "supports_sse": true
     }
   },
   "retention": {
@@ -131,6 +147,98 @@ Response:
   }
 }
 ```
+
+## Future Universal Intake Direction
+
+The current implementation specializes intake around images:
+
+- upload asset
+- start `POST /mobile/v1/tasks/image-intake`
+- receive summary plus suggested image skills
+- route the user's next action to photo-edit or vision tasks
+
+Pocket Agents should generalize this into a future universal intake family without breaking Phase 1 clients.
+
+Recommended future capability shape:
+
+```json
+{
+  "tasks": {
+    "intake": {
+      "accepted_kinds": ["image", "screenshot", "text", "url", "pdf", "audio"],
+      "supports_context_snapshot": true,
+      "supports_voice_followup": true,
+      "supports_recall_actions": true,
+      "supports_sse": true
+    }
+  }
+}
+```
+
+Recommended future request shape:
+
+```json
+{
+  "kind": "url",
+  "asset_id": "asset_optional",
+  "text": "optional user-visible text",
+  "url": "https://example.com/article",
+  "source": {
+    "surface": "share_extension",
+    "host_app": "Safari"
+  },
+  "context_snapshot": {
+    "timestamp": "2026-06-04T11:00:00Z",
+    "timezone": "Asia/Shanghai",
+    "motion": "stationary",
+    "network": "wifi",
+    "battery": "normal"
+  },
+  "user_instruction": "Summarize this and remember it if useful."
+}
+```
+
+Recommended future result shape:
+
+```json
+{
+  "task_id": "task_intake_01",
+  "status": "completed",
+  "result_type": "intake",
+  "intake": {
+    "kind": "url",
+    "title": "Article summary",
+    "summary": "A concise runtime-generated summary.",
+    "suggestions": [
+      {
+        "id": "summarize",
+        "label": "Summarize",
+        "is_available": true
+      },
+      {
+        "id": "remember",
+        "label": "Remember",
+        "requires_confirmation": true,
+        "is_available": true
+      },
+      {
+        "id": "forget",
+        "label": "Forget",
+        "requires_confirmation": true,
+        "is_available": true
+      }
+    ]
+  }
+}
+```
+
+Design rules for this future API:
+
+- `image_intake` remains valid for existing clients.
+- Universal intake must be user-initiated from camera, share sheet, paste, file picker, or visible voice UI.
+- Context snapshots are optional and task-scoped unless the user chooses a Recall action.
+- Recall actions must be explicit and reversible where the runtime controls storage.
+- Clients must tolerate unknown `kind`, `suggestions`, and context fields.
 
 ## Pairing QR Payload
 
@@ -217,9 +325,7 @@ Request:
   "style": "natural_enhance",
   "instruction": "Keep it realistic. Do not over-smooth skin or change identity.",
   "return_variants": 2,
-  "output_intent": "master_shot",
-  "crop_aspects": ["original", "4:5", "1:1"],
-  "share_targets": ["wechat", "wechat_moments", "xiaohongshu", "x"]
+  "output_intent": "master_shot"
 }
 ```
 
@@ -232,6 +338,97 @@ Response:
   "events_url": "/mobile/v1/tasks/task_01JPHOTOA1YJ7TE4KZ5S4/events"
 }
 ```
+
+## Image Intake Task
+
+`POST /mobile/v1/tasks/image-intake`
+
+This is the first task Kaka starts after capture or gallery selection. It classifies the uploaded image enough to open an image conversation and suggest useful skills. It must not fabricate final OCR, object, nutrition, or edit results; it only recommends what Kaka can do next.
+
+Request:
+
+```json
+{
+  "profile_id": "photo-agent",
+  "asset_id": "asset_123",
+  "locale": "zh-Hans"
+}
+```
+
+Response:
+
+```json
+{
+  "task_id": "task_intake_1",
+  "status": "queued",
+  "events_url": "/mobile/v1/tasks/task_intake_1/events"
+}
+```
+
+Completed status:
+
+```json
+{
+  "task_id": "task_intake_1",
+  "status": "completed",
+  "progress": 1.0,
+  "result_type": "image_intake",
+  "image_intake": {
+    "image_type": "text",
+    "title": "检测到文字",
+    "summary": "我看到这张图片里有多行可读文字。",
+    "confidence": 0.82,
+    "suggestions": [
+      {
+        "skill": "ocr",
+        "title": "提取文字",
+        "reason": "画面中有多行可读文字。",
+        "confidence": 0.84,
+        "is_available": true
+      }
+    ]
+  }
+}
+```
+
+Known `skill` values are `photo_enhance`, `ocr`, `translate_text`, `identify_subject`, and `nutrition_estimate`. Servers should include unavailable but relevant skills with `"is_available": false` so the client can explain missing runtime capabilities instead of hiding the possibility.
+
+## Vision Task
+
+`POST /mobile/v1/tasks/vision`
+
+This endpoint is the bottom-layer execution path for image-conversation skills that return information rather than edited image variants: `scan`, `identify`, `translate`, and `food`. The iPhone still uploads the image asset first. The runtime may call whichever multimodal model the user's agent is configured to use; provider keys and model routing stay runtime-side.
+
+Request:
+
+```json
+{
+  "profile_id": "photo-agent",
+  "asset_id": "asset_01JPHOTO9N0QWQNS9YW4Y3",
+  "mode": "identify",
+  "instruction": "Identify the main visible objects, plants, animals, products, or landmarks.",
+  "locale": "zh-Hans"
+}
+```
+
+Allowed `mode` values:
+
+- `scan`: extract visible text, codes, and document details.
+- `identify`: identify visible objects, plants, animals, products, or landmarks.
+- `translate`: read visible text and translate into the user's current locale.
+- `food`: identify visible food and estimate a calorie range with uncertainty.
+
+Response:
+
+```json
+{
+  "task_id": "task_01JVISIONA1YJ7TE4KZ5S4",
+  "status": "queued",
+  "events_url": "/mobile/v1/tasks/task_01JVISIONA1YJ7TE4KZ5S4/events"
+}
+```
+
+Servers should return `vision_unavailable` when a requested mode is not advertised in `GET /mobile/v1/capabilities`.
 
 ## Task Status
 
@@ -274,22 +471,22 @@ Completed response:
       "recommended_for": "share"
     }
   ],
-  "explanation": "Reframed the subject, balanced exposure, reduced color cast, protected important details, and generated local recipe variants without changing identity or adding objects.",
+  "explanation": "Balanced exposure, reduced color cast, protected important details, and generated local recipe variants without changing identity, adding objects, or changing the original frame.",
   "renderer": "local_parametric",
   "composition": {
-    "selected_aspect_ratio": "4:5",
+    "selected_aspect_ratio": "original",
     "crop": {
-      "x": 0.08,
-      "y": 0.04,
-      "width": 0.84,
-      "height": 0.92
+      "x": 0.0,
+      "y": 0.0,
+      "width": 1.0,
+      "height": 1.0
     }
   },
   "qa": {
     "master_difference_score": 0.18,
     "social_difference_score": 0.31
   },
-  "recipe_summary": "Balanced exposure and reframed to 4:5 without changing identity.",
+  "recipe_summary": "Balanced exposure while preserving the original frame.",
   "share_caption": "用本机智能体做了一版大师感成片。",
   "provider": {
     "name": "recipe_local",
@@ -299,15 +496,87 @@ Completed response:
 }
 ```
 
+Completed vision response:
+
+```json
+{
+  "task_id": "task_01JVISIONA1YJ7TE4KZ5S4",
+  "status": "completed",
+  "progress": 1.0,
+  "message": "Completed.",
+  "result_type": "vision",
+  "vision": {
+    "mode": "food",
+    "title": "食物估算",
+    "summary": "画面中像是一份轻食，热量约 320-460 千卡。",
+    "text": "可见食材：鸡蛋、蔬菜、面包。实际热量会受分量和调味影响。",
+    "language": "zh-Hans",
+    "confidence": 0.72,
+    "sections": [
+      {
+        "title": "热量和营养",
+        "kind": "nutrition",
+        "items": [
+          {
+            "title": "热量范围",
+            "value": "320-460 kcal",
+            "subtitle": "基于可见分量估算",
+            "confidence": 0.62
+          },
+          {
+            "title": "蛋白质",
+            "value": "18-25 g",
+            "subtitle": "基于可见鸡蛋和肉类估算",
+            "confidence": 0.58
+          }
+        ]
+      },
+      {
+        "title": "估算依据",
+        "kind": "assumptions",
+        "items": [
+          {
+            "title": "不确定性",
+            "value": "实际热量受分量、油脂和酱料影响",
+            "confidence": 0.75
+          }
+        ]
+      }
+    ],
+    "items": [
+      {
+        "title": "热量范围",
+        "value": "320-460 kcal",
+        "subtitle": "基于可见分量估算",
+        "confidence": 0.62
+      }
+    ]
+  },
+  "provider": {
+    "name": "runtime_configured_multimodal"
+  }
+}
+```
+
+`vision.sections` is optional and recommended for mode-specific result screens. If omitted, clients should fall back to the top-level `vision.items` array. Recommended section `kind` values:
+
+- `ocr`: visible text or translated text blocks for scan/translate.
+- `codes`: QR codes, barcodes, or document metadata.
+- `candidates`: object, product, plant, animal, or landmark candidates for identify.
+- `nutrition`: calories, protein, carbs, fat, and portion estimates for food.
+- `assumptions`: uncertainty, capture quality, or visible evidence used by the runtime.
+
+For development, `fixture_vision` returns deterministic structured placeholders only. It does not read the real image. A production-quality Hermes/OpenClaw bridge should use a runtime-owned provider such as `runtime_http`, where the bridge posts image bytes and mode context to a local agent endpoint and receives the same `vision` object shape. Provider keys and model routing remain inside the runtime process.
+
 ## Local Recipe Schema
 
-Phase 1 uses model-assisted parameter editing instead of generated image editing. The runtime may expose a recipe summary for debugging, but the iPhone should treat the rendered image asset as the source of truth.
+Phase 1 uses model-assisted parameter editing instead of generated image editing. The runtime may expose a recipe summary for debugging, but the iPhone should treat the rendered image asset as the source of truth and should not show recipe controls or recipe chips to users.
 
 The runtime must validate and clamp recipe values before rendering. The model may suggest parameters, but it must not write executable code or arbitrary filter graphs.
 
 Compatible runtimes should expose the local recipe path through `GET /mobile/v1/capabilities`, not through client-side provider configuration. In Phase 1, the iPhone treats `provider`, `renderer`, `variant_labels`, `variant_ids`, `crop_aspects`, `supports_crop_candidates`, and `supports_upscale_policy` as runtime capabilities. The mock bridge advertises these fields for `recipe_local`; Hermes, OpenClaw, or another sidecar should serve the same shape when they implement the contract.
 
-Inside the runtime, `recipe_local` can run in `fixture` mode for deterministic QA or `runtime_vision` mode for model-assisted recipes. In `runtime_vision` mode the adapter posts the source image as base64 plus style, scene, variant, instruction, supported crop aspects, Kaka `scene_profile` defaults, and safety requirements to a local runtime recipe endpoint. That endpoint may call whichever multimodal model the runtime is configured to use, then must return strict `PhotoEditRecipe` JSON. The adapter validates the JSON before rendering. This endpoint is runtime-side only; it is not called by the iPhone and it must not require provider keys from the iPhone client.
+Inside the runtime, `recipe_local` can run in `fixture` mode for deterministic QA or `runtime_vision` mode for model-assisted recipes. In `runtime_vision` mode the adapter posts the source image as base64 plus style, scene, variant, instruction, supported crop aspects, Kaka `scene_profile` defaults, and safety requirements to a local runtime recipe endpoint. Phase 1 advertises only the `original` aspect so the rendered result keeps the source dimensions and framing by default. That endpoint may call whichever multimodal model the runtime is configured to use, then must return strict `PhotoEditRecipe` JSON. The adapter validates the JSON before rendering. This endpoint is runtime-side only; it is not called by the iPhone and it must not require provider keys from the iPhone client.
 
 Example:
 
@@ -322,12 +591,12 @@ Example:
     "main_subject": "product on desk"
   },
   "composition": {
-    "selected_aspect_ratio": "4:5",
+    "selected_aspect_ratio": "original",
     "crop": {
-      "x": 0.08,
-      "y": 0.04,
-      "width": 0.84,
-      "height": 0.92
+      "x": 0.0,
+      "y": 0.0,
+      "width": 1.0,
+      "height": 1.0
     },
     "crop_candidates": [
       {
@@ -337,22 +606,14 @@ Example:
         "width": 1.0,
         "height": 1.0,
         "score": 0.72
-      },
-      {
-        "aspect_ratio": "4:5",
-        "x": 0.08,
-        "y": 0.04,
-        "width": 0.84,
-        "height": 0.92,
-        "score": 0.88
       }
     ],
-    "title_safe": true
+    "title_safe": false
   },
   "upscale": {
-    "policy": "only_if_crop_below_target",
+    "policy": "none",
     "target_long_edge": 2048,
-    "max_scale": 2.0
+    "max_scale": 1.0
   },
   "edits": {
     "exposure": 0.28,
@@ -380,7 +641,7 @@ Example:
   },
   "aesthetic": {
     "score": 0.84,
-    "reason": "The 4:5 crop strengthens the product subject while keeping label text readable."
+    "reason": "The edit strengthens product contrast and subject separation while preserving the original frame."
   }
 }
 ```
@@ -444,6 +705,13 @@ data: {"progress":0.60,"message":"Rendering local variants."}
 
 event: task.completed
 data: {"variant_count":2}
+```
+
+For vision tasks, the completion event may omit `variant_count` and use `result_type` instead:
+
+```text
+event: task.completed
+data: {"result_type":"vision"}
 ```
 
 Clients must fall back to polling when SSE is unavailable or disconnected.

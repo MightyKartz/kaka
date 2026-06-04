@@ -16,6 +16,7 @@ DEFAULT_PORT = 8765
 DEFAULT_PHOTO_PROVIDER = "recipe_local"
 DEFAULT_BONJOUR_NAME = "Kaka Mobile Bridge"
 PROVIDER_CHOICES = ("fixture", "script", "recipe_local", "openai")
+VISION_PROVIDER_CHOICES = ("fixture", "runtime_http")
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,8 @@ class BridgeConfig:
     runtime: str = "hermes"
     photo_provider: str = DEFAULT_PHOTO_PROVIDER
     photo_pack_root: str = "photo-pack"
+    vision_provider: str = "fixture"
+    vision_endpoint: str = ""
     hermes_home: str = ""
     hermes_profile: str = ""
     env_file: str = ""
@@ -63,7 +66,11 @@ def build_server_command(config: BridgeConfig) -> list[str]:
         config.photo_provider,
         "--photo-pack-root",
         config.photo_pack_root,
+        "--vision-provider",
+        config.vision_provider,
     ]
+    if config.vision_endpoint:
+        command.extend(["--vision-endpoint", config.vision_endpoint])
     if config.bonjour:
         command.append("--bonjour")
         command.extend(["--bonjour-name", config.bonjour_name])
@@ -101,6 +108,10 @@ def validate_start_config(config: BridgeConfig) -> list[str]:
     errors: list[str] = []
     if config.photo_provider not in PROVIDER_CHOICES:
         errors.append(f"Unsupported photo provider: {config.photo_provider}")
+    if config.vision_provider not in VISION_PROVIDER_CHOICES:
+        errors.append(f"Unsupported vision provider: {config.vision_provider}")
+    if config.vision_provider == "runtime_http" and not config.vision_endpoint:
+        errors.append("--vision-endpoint is required when --vision-provider runtime_http.")
     if config.bonjour and not config.lan and not config.bonjour_host:
         errors.append("Bonjour discovery for iPhone requires --lan or --bonjour-host.")
     if config.lan and config.host not in ("127.0.0.1", "localhost"):
@@ -176,6 +187,8 @@ def run_start(args: argparse.Namespace) -> int:
         runtime=args.runtime,
         photo_provider=args.photo_provider,
         photo_pack_root=args.photo_pack_root,
+        vision_provider=args.vision_provider,
+        vision_endpoint=args.vision_endpoint,
         hermes_home=args.hermes_home,
         hermes_profile=args.hermes_profile,
         env_file=args.env_file,
@@ -196,6 +209,7 @@ def run_start(args: argparse.Namespace) -> int:
         "bonjour": config.bonjour,
         "pairing_page": pairing_url(config.advertised_host, config.port),
         "photo_provider": config.photo_provider,
+        "vision_provider": config.vision_provider,
         "command": command,
     }
     print(json.dumps(summary, ensure_ascii=False, indent=2), flush=True)
@@ -229,6 +243,8 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("--runtime", default="hermes", help="Runtime id, for example hermes, openclaw, or sidecar.")
     start.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     start.add_argument("--photo-pack-root", default="photo-pack")
+    start.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
+    start.add_argument("--vision-endpoint", default="")
     start.add_argument("--hermes-home", default="")
     start.add_argument("--hermes-profile", default="")
     start.add_argument("--env-file", default="")

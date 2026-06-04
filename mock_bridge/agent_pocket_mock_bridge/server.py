@@ -13,7 +13,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Callable, Dict, List, Mapping, Optional, Protocol
 from urllib.parse import urlparse
 
-from agent_pocket_mock_bridge.app import MockBridgeApp, MockResponse, create_app
+from agent_pocket_mock_bridge.app import MockBridgeApp, MockResponse, build_vision_provider, create_app
 from agent_pocket_mock_bridge.photo_providers import build_photo_provider
 
 HERMES_PROVIDER_ENV_FORCE_PREFIX = "_HERMES_FORCE_"
@@ -142,8 +142,13 @@ def create_http_server(
 def build_app_for_provider(
     photo_provider: str = "fixture",
     photo_pack_root: str = "photo-pack",
+    vision_provider: str = "fixture",
+    vision_endpoint: str = "",
 ) -> MockBridgeApp:
-    return create_app(photo_provider=build_photo_provider(photo_provider, photo_pack_root=photo_pack_root))
+    return create_app(
+        photo_provider=build_photo_provider(photo_provider, photo_pack_root=photo_pack_root),
+        vision_provider=build_vision_provider(vision_provider, endpoint=vision_endpoint),
+    )
 
 
 def _default_hermes_home() -> str:
@@ -269,6 +274,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to the Photo Pack root containing provider adapters.",
     )
     parser.add_argument(
+        "--vision-provider",
+        default="fixture",
+        choices=["fixture", "runtime_http"],
+        help="Vision provider used by /mobile/v1/tasks/vision.",
+    )
+    parser.add_argument(
+        "--vision-endpoint",
+        default="",
+        help="Runtime-local HTTP endpoint for --vision-provider runtime_http.",
+    )
+    parser.add_argument(
         "--env-file",
         default="",
         help="Optional server-side env file to load before creating the photo provider; secret values are never printed.",
@@ -293,9 +309,12 @@ def main(argv=None) -> int:
         hermes_home=args.hermes_home,
         hermes_profile=args.hermes_profile,
     )):
-        app = build_app_for_provider(args.photo_provider, photo_pack_root=args.photo_pack_root)
+        app = _build_app_with_optional_vision(args)
         server = create_http_server(host=args.host, port=args.port, app=app)
         actual_port = int(server.server_address[1])
+        advertised_endpoint = resolve_pairing_advertised_endpoint(args, actual_port)
+        if advertised_endpoint and hasattr(app, "advertised_endpoint"):
+            app.advertised_endpoint = advertised_endpoint
         bonjour: Optional[BonjourAdvertisement] = None
         if args.bonjour:
             advertised_host = args.bonjour_host or resolve_advertised_host(args.host)
@@ -324,6 +343,25 @@ def main(argv=None) -> int:
                 bonjour.stop()
             server.server_close()
     return 0
+
+
+def resolve_pairing_advertised_endpoint(args: argparse.Namespace, actual_port: int) -> str:
+    should_publish_lan_endpoint = args.bonjour or args.host in {"0.0.0.0", "::"}
+    if not should_publish_lan_endpoint:
+        return ""
+    advertised_host = args.bonjour_host or resolve_advertised_host(args.host)
+    return f"http://{advertised_host}:{actual_port}"
+
+
+def _build_app_with_optional_vision(args: argparse.Namespace) -> MockBridgeApp:
+    if args.vision_provider == "fixture" and not args.vision_endpoint:
+        return build_app_for_provider(args.photo_provider, photo_pack_root=args.photo_pack_root)
+    return build_app_for_provider(
+        args.photo_provider,
+        photo_pack_root=args.photo_pack_root,
+        vision_provider=args.vision_provider,
+        vision_endpoint=args.vision_endpoint,
+    )
 
 
 def _parse_env_file(path: str) -> Dict[str, str]:

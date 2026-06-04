@@ -26,3 +26,5 @@ Use this skill when the user asks Hermes to connect Kaka, show a Kaka pairing QR
 ## Runtime Contract
 
 The bridge must implement `/mobile/v1` from `docs/mobile-bridge-api.md` and advertise `recipe_local` with local rendering for Phase 1.
+
+For image-conversation vision skills, prefer a runtime-owned `runtime_http` vision endpoint over `fixture_vision`. `scan`, `identify`, `translate`, and `food` are bottom-layer skill mappings, not pre-capture modes. `fixture_vision` only proves the Kaka UI flow and must not be presented as real OCR, identification, translation, or food understanding.

@@ -1,5 +1,6 @@
 .build/
 build/
+.derived-data/
 ios/build/
 ios/build-device/
 .pytest_cache/

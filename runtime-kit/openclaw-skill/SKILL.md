@@ -25,3 +25,5 @@ Use this skill when the user asks OpenClaw to connect Kaka, show a pairing QR, o
 ## Runtime Contract
 
 The bridge must implement `/mobile/v1` from `docs/mobile-bridge-api.md`. For Phase 1, the photo task should return `Master` and `Social` variants produced by a strict local edit recipe, not by client-side provider calls.
+
+For image-conversation vision skills, OpenClaw or its sidecar should provide a runtime-owned vision endpoint and start the bridge with `--vision-provider runtime_http --vision-endpoint <local-url>`. `scan`, `identify`, `translate`, and `food` are bottom-layer mappings used after Kaka suggests a skill or routes typed text; the default `fixture_vision` provider is only for UI/protocol tests and does not inspect real images.

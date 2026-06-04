@@ -490,7 +490,7 @@ def _write_result_gallery_downloaded_receipt(path, ok=True):
         "selected_asset_id": "asset_1" if ok else "",
         "downloaded_asset_bytes": 68 if ok else 0,
         "downloaded_mime_type": "image/png" if ok else "",
-        "recipe_summary": "Balanced exposure and reframed to 4:5." if ok else "",
+        "recipe_summary": "Balanced exposure while preserving the original frame." if ok else "",
         "share_caption": "Shot polished locally with Kaka." if ok else "",
         "download_selected_enabled": False,
         "save_enabled": ok,
@@ -670,8 +670,8 @@ def test_evaluate_local_recipe_photo_flow_requires_recipe_metadata():
                 "provider": "recipe_local",
                 "variant_count": 2,
                 "composition": {
-                    "selected_aspect_ratio": "4:5",
-                    "crop": {"x": 0.2, "y": 0.0, "width": 0.6, "height": 1.0},
+                    "selected_aspect_ratio": "original",
+                    "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0},
                 },
                 "qa": {
                     "master_difference_score": 0.18,
@@ -1767,8 +1767,8 @@ def test_run_local_recipe_simulator_session_launches_smoke_and_writes_receipt(tm
                     "variant_count": 2,
                     "renderer": "local_parametric",
                     "composition": {
-                        "selected_aspect_ratio": "4:5",
-                        "crop": {"x": 0.2, "y": 0.0, "width": 0.6, "height": 1.0},
+                        "selected_aspect_ratio": "original",
+                        "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0},
                     },
                     "qa": {
                         "master_difference_score": 0.18,
@@ -2041,7 +2041,7 @@ def test_run_simulator_result_gallery_downloaded_session_launches_debug_download
         "selected_asset_id": "asset_1",
         "downloaded_asset_bytes": 68,
         "downloaded_mime_type": "image/png",
-        "recipe_summary": "Balanced exposure and reframed to 4:5.",
+        "recipe_summary": "Balanced exposure while preserving the original frame.",
         "share_caption": "Shot polished locally with Kaka.",
         "download_selected_enabled": False,
         "save_enabled": True,
@@ -4016,7 +4016,7 @@ def test_audit_capture_ready_receipt_requires_library_selection_preprocessing_pa
     assert report["ok"] is False
     assert "library selection source" in report["missing"]
     assert "prepareSelectedImage preprocessing path" in report["missing"]
-    assert "Send to Local Agent primary action" in report["missing"]
+    assert "Send to Kaka primary action" in report["missing"]
 
 
 def test_audit_capture_ready_receipt_reports_selection_source_and_action(tmp_path):

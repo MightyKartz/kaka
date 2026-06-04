@@ -68,6 +68,30 @@ public enum MobileBridgeClient {
         return request
     }
 
+    public static func makeVisionTaskRequest(
+        endpoint: AgentEndpoint,
+        token: String,
+        task: VisionTaskRequest
+    ) throws -> URLRequest {
+        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/tasks/vision", token: token)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder.mobileBridge.encode(task)
+        return request
+    }
+
+    public static func makeImageIntakeTaskRequest(
+        endpoint: AgentEndpoint,
+        token: String,
+        task: ImageIntakeTaskRequest
+    ) throws -> URLRequest {
+        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/tasks/image-intake", token: token)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder.mobileBridge.encode(task)
+        return request
+    }
+
     public static func makeTaskStatusRequest(
         endpoint: AgentEndpoint,
         token: String,

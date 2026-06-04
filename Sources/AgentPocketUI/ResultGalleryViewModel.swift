@@ -20,11 +20,6 @@ public final class ResultGalleryViewModel: ObservableObject {
         public let hasEditedPreview: Bool
     }
 
-    public struct RecipePresentation: Equatable, Sendable {
-        public let chips: [String]
-        public let note: String
-    }
-
     public let status: TaskStatusResponse
     public let variants: [TaskStatusResponse.Variant]
     public let explanation: String?
@@ -165,27 +160,6 @@ public final class ResultGalleryViewModel: ObservableObject {
             isDownloaded: downloadedAssetForSelectedVariant != nil,
             hasOriginalPreview: originalPreviewAsset != nil,
             hasEditedPreview: downloadedAssetForSelectedVariant != nil
-        )
-    }
-
-    public var recipePresentation: RecipePresentation? {
-        var chips: [String] = []
-        if let aspectRatio = status.composition?.selectedAspectRatio,
-           aspectRatio.isEmpty == false,
-           aspectRatio != "original" {
-            chips.append("\(aspectRatio) Crop")
-        }
-
-        if status.renderer == "local_parametric" {
-            chips.append(contentsOf: ["Lift Shadows", "Tune Color", "Boost Subject"])
-        }
-
-        guard chips.isEmpty == false else {
-            return nil
-        }
-        return RecipePresentation(
-            chips: chips,
-            note: "Keeps real detail while tuning crop, light, and subject depth."
         )
     }
 

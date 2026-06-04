@@ -36,7 +36,7 @@ final class MobileBridgeHTTPClientTests: XCTestCase {
             XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer abc123")
 
             let data = """
-            {"profiles":[{"id":"photo-agent","display_name":"Photo Agent","capabilities":["photo_edit"]}],"tasks":{"photo_edit":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance"],"provider":"recipe_local","renderer":"local_parametric","variant_labels":["Master","Social"],"variant_ids":["variant_clean_pro","variant_social_pop"],"crop_aspects":["original","4:5","1:1"],"supports_crop_candidates":true,"supports_upscale_policy":true,"supports_sse":true,"return_variants_max":3}},"retention":{"input_assets_days":7,"output_assets_days":30,"task_history_days":30}}
+            {"profiles":[{"id":"photo-agent","display_name":"Photo Agent","capabilities":["photo_edit"]}],"tasks":{"photo_edit":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance"],"provider":"recipe_local","renderer":"local_parametric","variant_labels":["Master","Social"],"variant_ids":["variant_clean_pro","variant_social_pop"],"crop_aspects":["original"],"supports_crop_candidates":false,"supports_upscale_policy":true,"supports_sse":true,"return_variants_max":3}},"retention":{"input_assets_days":7,"output_assets_days":30,"task_history_days":30}}
             """.data(using: .utf8)!
             return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
         }
@@ -48,7 +48,7 @@ final class MobileBridgeHTTPClientTests: XCTestCase {
         XCTAssertEqual(response.tasks.photoEdit.provider, "recipe_local")
         XCTAssertEqual(response.tasks.photoEdit.renderer, "local_parametric")
         XCTAssertEqual(response.tasks.photoEdit.variantLabels, ["Master", "Social"])
-        XCTAssertEqual(response.tasks.photoEdit.cropAspects, ["original", "4:5", "1:1"])
+        XCTAssertEqual(response.tasks.photoEdit.cropAspects, ["original"])
     }
 
     func testExchangePairingCodeSendsDevicePayloadAndDecodesMobileToken() async throws {
@@ -156,6 +156,66 @@ final class MobileBridgeHTTPClientTests: XCTestCase {
 
         XCTAssertEqual(response.taskID, "task_123")
         XCTAssertEqual(response.eventsURL, "/mobile/v1/tasks/task_123/events")
+    }
+
+    func testStartVisionTaskSendsJSONAndDecodesResponse() async throws {
+        let client = try makeClient()
+        let task = VisionTaskRequest(
+            profileID: "photo-agent",
+            assetID: "asset_123",
+            mode: .translate,
+            locale: "zh-Hans"
+        )
+
+        MockURLProtocol.requestHandler = { request in
+            let body = String(data: request.httpBodyStreamData(), encoding: .utf8) ?? ""
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.url?.path, "/mobile/v1/tasks/vision")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer abc123")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            XCTAssertTrue(body.contains("\"asset_id\":\"asset_123\""))
+            XCTAssertTrue(body.contains("\"mode\":\"translate\""))
+            XCTAssertTrue(body.contains("\"locale\":\"zh-Hans\""))
+
+            let data = """
+            {"task_id":"task_vision_123","status":"queued","events_url":"/mobile/v1/tasks/task_vision_123/events"}
+            """.data(using: .utf8)!
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
+        }
+
+        let response = try await client.startVisionTask(task)
+
+        XCTAssertEqual(response.taskID, "task_vision_123")
+        XCTAssertEqual(response.eventsURL, "/mobile/v1/tasks/task_vision_123/events")
+    }
+
+    func testStartImageIntakeTaskSendsJSONAndDecodesResponse() async throws {
+        let client = try makeClient()
+        let task = ImageIntakeTaskRequest(
+            profileID: "photo-agent",
+            assetID: "asset_123",
+            locale: "zh-Hans"
+        )
+
+        MockURLProtocol.requestHandler = { request in
+            let body = String(data: request.httpBodyStreamData(), encoding: .utf8) ?? ""
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.url?.path, "/mobile/v1/tasks/image-intake")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer abc123")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            XCTAssertTrue(body.contains("\"asset_id\":\"asset_123\""))
+            XCTAssertTrue(body.contains("\"locale\":\"zh-Hans\""))
+
+            let data = """
+            {"task_id":"task_intake_123","status":"queued","events_url":"/mobile/v1/tasks/task_intake_123/events"}
+            """.data(using: .utf8)!
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
+        }
+
+        let response = try await client.startImageIntakeTask(task)
+
+        XCTAssertEqual(response.taskID, "task_intake_123")
+        XCTAssertEqual(response.eventsURL, "/mobile/v1/tasks/task_intake_123/events")
     }
 
     private func makeClient() throws -> MobileBridgeHTTPClient {

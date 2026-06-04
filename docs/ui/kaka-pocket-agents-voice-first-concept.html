@@ -1,0 +1,1609 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kaka Pocket Agents - Voice First UI Concept</title>
+  <style>
+    :root {
+      --ink: #101715;
+      --ink-soft: #3c4744;
+      --muted: #78827f;
+      --canvas: #f4f6f6;
+      --glass: rgba(255, 255, 255, 0.88);
+      --surface: rgba(255, 255, 255, 0.92);
+      --surface-soft: rgba(246, 248, 247, 0.86);
+      --line: rgba(13, 19, 17, 0.1);
+      --line-soft: rgba(13, 19, 17, 0.065);
+      --green: #079642;
+      --green-strong: #02833a;
+      --green-dark: #05632e;
+      --green-soft: rgba(7, 150, 66, 0.12);
+      --blue: #2f78d6;
+      --shadow-phone: 0 28px 52px rgba(13, 19, 17, 0.28);
+      --shadow-card: 0 8px 24px rgba(16, 24, 22, 0.08);
+      --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: var(--font-ui);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 50% 100%, rgba(20, 28, 26, 0.18), transparent 34%),
+        linear-gradient(180deg, #eef0f1 0%, #f9fafb 52%, #edf0f0 100%);
+    }
+
+    body {
+      min-height: 100dvh;
+    }
+
+    .stage {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .poster {
+      position: relative;
+      width: min(100vw, 1672px);
+      aspect-ratio: 1672 / 941;
+      min-height: 560px;
+      isolation: isolate;
+    }
+
+    .poster::before {
+      content: "";
+      position: absolute;
+      left: 4%;
+      right: 4%;
+      bottom: 3.2%;
+      height: 12%;
+      z-index: -1;
+      border-radius: 50%;
+      background: rgba(17, 24, 22, 0.16);
+      filter: blur(28px);
+      transform: scaleY(0.36);
+    }
+
+    .phone {
+      position: absolute;
+      width: auto;
+      aspect-ratio: 294 / 638;
+      padding: clamp(5px, 0.48vw, 8px);
+      border-radius: 13% / 6.1%;
+      background:
+        linear-gradient(90deg, #050606 0%, #68706e 3%, #1b211f 7%, #050606 100%);
+      box-shadow:
+        var(--shadow-phone),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    }
+
+    .phone::before,
+    .phone::after {
+      content: "";
+      position: absolute;
+      width: 1.4%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #151a19, #606866, #111614);
+      opacity: 0.9;
+    }
+
+    .phone::before {
+      left: -1.2%;
+      top: 32%;
+      height: 8.5%;
+    }
+
+    .phone::after {
+      right: -1.2%;
+      top: 37%;
+      height: 13.8%;
+    }
+
+    .phone.connect {
+      left: 3.3%;
+      bottom: 14.5%;
+      height: 68.5%;
+      transform: rotate(-1.2deg);
+      z-index: 1;
+    }
+
+    .phone.home {
+      left: 19%;
+      bottom: 8.8%;
+      height: 78.6%;
+      transform: rotate(0.6deg);
+      z-index: 3;
+    }
+
+    .phone.inbox {
+      left: 38%;
+      bottom: 2.2%;
+      height: 94.2%;
+      z-index: 5;
+    }
+
+    .phone.context {
+      left: 63.4%;
+      bottom: 8.7%;
+      height: 78.2%;
+      transform: rotate(1.4deg);
+      z-index: 3;
+    }
+
+    .phone.image {
+      left: 82.4%;
+      bottom: 14.3%;
+      height: 67.2%;
+      transform: rotate(-1.2deg);
+      z-index: 2;
+    }
+
+    .glass {
+      position: relative;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 11.7% / 5.4%;
+      background:
+        radial-gradient(circle at 50% -8%, rgba(255, 255, 255, 0.98), transparent 30%),
+        linear-gradient(180deg, #ffffff 0%, #fafbfb 55%, #eff4f2 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.7),
+        inset 0 0 26px rgba(6, 40, 24, 0.035);
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      padding: 13.2% 7.2% 6.6%;
+    }
+
+    .phone.inbox .screen {
+      padding: 10.7% 7% 5.8%;
+    }
+
+    .status {
+      position: absolute;
+      top: 3.55%;
+      left: 9%;
+      right: 8.5%;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: clamp(8px, 0.74vw, 13px);
+      font-weight: 800;
+      letter-spacing: 0;
+      pointer-events: none;
+    }
+
+    .status-icons {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .bars {
+      width: 16px;
+      height: 11px;
+      background:
+        linear-gradient(var(--ink), var(--ink)) 0 70% / 3px 30% no-repeat,
+        linear-gradient(var(--ink), var(--ink)) 5px 55% / 3px 45% no-repeat,
+        linear-gradient(var(--ink), var(--ink)) 10px 35% / 3px 65% no-repeat;
+    }
+
+    .wifi {
+      width: 13px;
+      height: 10px;
+      border-top: 3px solid var(--ink);
+      border-radius: 50% 50% 0 0;
+      transform: translateY(2px);
+    }
+
+    .battery {
+      position: relative;
+      width: 18px;
+      height: 9px;
+      border: 1.7px solid var(--ink);
+      border-radius: 3px;
+    }
+
+    .battery::before {
+      content: "";
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      bottom: 2px;
+      width: 11px;
+      border-radius: 1px;
+      background: var(--ink);
+    }
+
+    .battery::after {
+      content: "";
+      position: absolute;
+      right: -4px;
+      top: 2px;
+      width: 2px;
+      height: 3px;
+      border-radius: 0 2px 2px 0;
+      background: var(--ink);
+    }
+
+    .island {
+      position: absolute;
+      left: 50%;
+      top: 2.3%;
+      z-index: 18;
+      width: 30%;
+      height: 4.2%;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: #050607;
+      box-shadow: inset -12px 0 18px rgba(22, 54, 88, 0.45);
+    }
+
+    .island::after {
+      content: "";
+      position: absolute;
+      right: 12%;
+      top: 50%;
+      width: 9%;
+      aspect-ratio: 1;
+      transform: translateY(-50%);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #285f9f, #071018 70%);
+    }
+
+    .home-indicator {
+      position: absolute;
+      left: 50%;
+      bottom: 2.35%;
+      width: 36%;
+      height: 0.62%;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: #050807;
+      opacity: 0.95;
+      z-index: 30;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    .top-nav,
+    .center-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 6%;
+      margin-bottom: 4%;
+    }
+
+    .center-nav {
+      justify-content: center;
+      position: relative;
+      margin-bottom: 5.4%;
+    }
+
+    .nav-button {
+      width: clamp(24px, 2.22vw, 38px);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: 0 4px 14px rgba(12, 18, 16, 0.09);
+      font-size: clamp(12px, 1vw, 17px);
+      font-weight: 800;
+    }
+
+    .center-nav .nav-button:first-child {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    .center-nav .nav-button:last-child {
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+
+    .menu-lines {
+      width: 15px;
+      height: 12px;
+      background:
+        linear-gradient(var(--ink), var(--ink)) 0 0 / 12px 2px no-repeat,
+        linear-gradient(var(--ink), var(--ink)) 0 5px / 8px 2px no-repeat,
+        linear-gradient(var(--ink), var(--ink)) 0 10px / 11px 2px no-repeat;
+    }
+
+    .gear {
+      width: 17px;
+      aspect-ratio: 1;
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+      box-shadow:
+        0 -5px 0 -3px var(--ink),
+        0 5px 0 -3px var(--ink),
+        5px 0 0 -3px var(--ink),
+        -5px 0 0 -3px var(--ink);
+    }
+
+    .title {
+      font-size: clamp(17px, 1.62vw, 28px);
+      line-height: 1.1;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 2%;
+      color: var(--muted);
+      font-size: clamp(7px, 0.78vw, 13px);
+      line-height: 1.32;
+      font-weight: 520;
+    }
+
+    .center-title {
+      text-align: center;
+    }
+
+    .phone.inbox .title {
+      font-size: clamp(20px, 1.78vw, 31px);
+    }
+
+    .phone.context .title {
+      font-size: clamp(15px, 1.25vw, 22px);
+    }
+
+    .phone.image .title {
+      font-size: clamp(12px, 0.95vw, 16px);
+      text-align: center;
+    }
+
+    .card {
+      border: 1px solid var(--line-soft);
+      border-radius: clamp(12px, 1vw, 18px);
+      background: var(--surface);
+      box-shadow: var(--shadow-card);
+    }
+
+    .primary-button {
+      min-height: clamp(34px, 3.25vw, 55px);
+      display: grid;
+      place-items: center;
+      border-radius: clamp(10px, 0.95vw, 16px);
+      color: white;
+      background: linear-gradient(180deg, #0ca24d 0%, #06893d 100%);
+      box-shadow: 0 9px 20px rgba(6, 137, 61, 0.22);
+      font-size: clamp(8px, 0.82vw, 14px);
+      font-weight: 880;
+    }
+
+    .secondary-pill {
+      min-height: clamp(23px, 2vw, 34px);
+      display: inline-grid;
+      place-items: center;
+      padding: 0 14px;
+      border: 1px solid rgba(7, 150, 66, 0.42);
+      border-radius: 999px;
+      color: var(--green-dark);
+      background: rgba(255, 255, 255, 0.8);
+      font-size: clamp(7px, 0.7vw, 12px);
+      font-weight: 800;
+    }
+
+    .connect .title {
+      margin-top: 10%;
+      text-align: center;
+      font-size: clamp(13px, 1.16vw, 20px);
+    }
+
+    .connect .subtitle {
+      max-width: 74%;
+      margin: 2.2% auto 0;
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .qr-card {
+      width: 52%;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      margin: 7.5% auto 0;
+      border-radius: 10%;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 16px 30px rgba(16, 24, 22, 0.1);
+    }
+
+    .qr {
+      position: relative;
+      width: 76%;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 5%;
+      background:
+        linear-gradient(90deg, #0d1110 12px, transparent 12px) 0 0 / 22px 22px,
+        linear-gradient(#0d1110 12px, transparent 12px) 0 0 / 22px 22px,
+        linear-gradient(90deg, transparent 5px, #0d1110 5px 9px, transparent 9px 14px, #0d1110 14px 18px, transparent 18px) 0 0 / 24px 24px,
+        #ffffff;
+    }
+
+    .qr::before,
+    .qr::after {
+      content: "";
+      position: absolute;
+      width: 28%;
+      aspect-ratio: 1;
+      border: 8px solid #0d1110;
+      background: #ffffff;
+    }
+
+    .qr::before {
+      left: 4%;
+      top: 4%;
+      box-shadow: 168% 0 0 -8px #ffffff, 168% 0 0 0 #0d1110, 0 168% 0 -8px #ffffff, 0 168% 0 0 #0d1110;
+    }
+
+    .qr::after {
+      left: 13%;
+      top: 13%;
+      width: 8%;
+      background: #0d1110;
+      border: 0;
+      box-shadow: 465% 0 #0d1110, 0 465% #0d1110;
+    }
+
+    .k-badge {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 4;
+      width: 29%;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      transform: translate(-50%, -50%);
+      border: 3px solid #ffffff;
+      border-radius: 22%;
+      color: #ffffff;
+      background: var(--green);
+      font-size: clamp(14px, 1.36vw, 24px);
+      font-weight: 900;
+    }
+
+    .runtime-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 9px;
+      align-items: center;
+      min-height: clamp(34px, 3.05vw, 52px);
+      margin-top: 5.4%;
+      padding: 0 5%;
+    }
+
+    .runtime-dot {
+      width: 10px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(7, 150, 66, 0.11);
+    }
+
+    .runtime-card strong,
+    .step strong,
+    .recent-title,
+    .inbox-title,
+    .context-row strong,
+    .choice strong {
+      display: block;
+      font-size: clamp(7px, 0.72vw, 12px);
+      line-height: 1.18;
+      font-weight: 850;
+    }
+
+    .runtime-card span,
+    .step span,
+    .recent-meta,
+    .inbox-meta,
+    .context-row span,
+    .choice span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: clamp(6px, 0.6vw, 10px);
+      line-height: 1.22;
+      font-weight: 540;
+    }
+
+    .mini-device {
+      width: 26px;
+      height: 19px;
+      border: 2px solid var(--ink);
+      border-radius: 3px;
+      position: relative;
+    }
+
+    .mini-device::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -5px;
+      width: 12px;
+      height: 2px;
+      transform: translateX(-50%);
+      background: var(--ink);
+      border-radius: 999px;
+    }
+
+    .steps {
+      display: grid;
+      gap: clamp(6px, 0.56vw, 10px);
+      margin-top: 5%;
+      padding: 4.2% 5%;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .step-index {
+      width: 22px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #ffffff;
+      background: var(--green);
+      font-size: 11px;
+      font-weight: 880;
+    }
+
+    .connect .primary-button {
+      position: absolute;
+      left: 7.2%;
+      right: 7.2%;
+      bottom: 6.2%;
+      margin-top: 0;
+    }
+
+    .brand-title {
+      color: var(--green);
+      font-size: clamp(20px, 1.84vw, 31px);
+      font-weight: 900;
+    }
+
+    .trusted-runtime {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 9px;
+      align-items: center;
+      width: 64%;
+      min-height: clamp(34px, 3.35vw, 56px);
+      margin: 5.4% auto 0;
+      padding: 0 5%;
+      border-radius: clamp(10px, 0.86vw, 15px);
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--line-soft);
+      box-shadow: 0 5px 16px rgba(16, 24, 22, 0.055);
+    }
+
+    .trusted-runtime .runtime-dot {
+      width: 8px;
+    }
+
+    .trusted-runtime strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: clamp(7px, 0.68vw, 12px);
+      line-height: 1.15;
+      font-weight: 830;
+    }
+
+    .trusted-runtime span span {
+      display: block;
+      margin-top: 2px;
+      color: var(--green-dark);
+      font-size: clamp(6px, 0.58vw, 10px);
+      line-height: 1.1;
+      font-weight: 680;
+    }
+
+    .mic-orbit {
+      width: 40%;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      margin: 6.8% auto 3.8%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(7, 150, 66, 0.18) 0 34%, rgba(7, 150, 66, 0.07) 35% 50%, transparent 51%),
+        rgba(7, 150, 66, 0.035);
+      box-shadow:
+        inset 0 0 0 1px rgba(7, 150, 66, 0.08),
+        0 20px 38px rgba(7, 150, 66, 0.08);
+    }
+
+    .mic-core {
+      width: 48%;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #20bc63, #078d40);
+      box-shadow: 0 10px 24px rgba(7, 150, 66, 0.32);
+    }
+
+    .mic-symbol {
+      position: relative;
+      width: 28%;
+      height: 42%;
+      border: 3px solid #ffffff;
+      border-radius: 999px;
+      border-bottom-width: 5px;
+    }
+
+    .mic-symbol::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -10px;
+      width: 3px;
+      height: 9px;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: #ffffff;
+    }
+
+    .mic-symbol::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -14px;
+      width: 20px;
+      height: 3px;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: #ffffff;
+    }
+
+    .listening {
+      display: grid;
+      place-items: center;
+      gap: 4px;
+      color: var(--green-dark);
+      font-size: clamp(7px, 0.68vw, 11px);
+      font-weight: 720;
+    }
+
+    .wave {
+      width: 34px;
+      height: 12px;
+      background:
+        linear-gradient(var(--green), var(--green)) 10% 50% / 3px 36% no-repeat,
+        linear-gradient(var(--green), var(--green)) 30% 50% / 3px 62% no-repeat,
+        linear-gradient(var(--green), var(--green)) 50% 50% / 3px 100% no-repeat,
+        linear-gradient(var(--green), var(--green)) 70% 50% / 3px 58% no-repeat,
+        linear-gradient(var(--green), var(--green)) 90% 50% / 3px 34% no-repeat;
+      opacity: 0.9;
+    }
+
+    .transcript {
+      display: grid;
+      gap: 5%;
+      min-height: clamp(60px, 5.35vw, 90px);
+      margin-top: 4.2%;
+      padding: 4.2% 5%;
+    }
+
+    .message {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px;
+      align-items: center;
+      font-size: clamp(6px, 0.58vw, 10px);
+    }
+
+    .avatar {
+      width: 21px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #ffffff;
+      background: var(--green);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .message .who {
+      display: block;
+      color: var(--muted);
+      font-size: clamp(5px, 0.5vw, 8px);
+      font-weight: 700;
+    }
+
+    .message strong {
+      display: block;
+      margin-top: 1px;
+      font-size: clamp(6px, 0.58vw, 10px);
+      line-height: 1.16;
+      font-weight: 780;
+    }
+
+    .message .time {
+      color: var(--muted);
+      font-size: clamp(5px, 0.48vw, 8px);
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3.1%;
+      margin-top: 5%;
+    }
+
+    .quick-tile {
+      min-height: clamp(36px, 3.55vw, 60px);
+      display: grid;
+      place-items: center;
+      gap: 5px;
+      border-radius: clamp(10px, 0.9vw, 16px);
+      border: 1px solid var(--line-soft);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 5px 14px rgba(16, 24, 22, 0.06);
+      font-size: clamp(6px, 0.62vw, 10px);
+      font-weight: 780;
+    }
+
+    .ui-icon {
+      position: relative;
+      width: 20px;
+      height: 20px;
+    }
+
+    .ui-icon.camera::before {
+      content: "";
+      position: absolute;
+      inset: 5px 2px 3px;
+      border: 2px solid var(--ink);
+      border-radius: 5px;
+    }
+
+    .ui-icon.camera::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 5px;
+      aspect-ratio: 1;
+      transform: translate(-50%, -32%);
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+    }
+
+    .ui-icon.share::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 3px;
+      width: 8px;
+      height: 8px;
+      border-left: 2px solid var(--ink);
+      border-top: 2px solid var(--ink);
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .ui-icon.share::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 5px;
+      width: 2px;
+      height: 12px;
+      transform: translateX(-50%);
+      background: var(--ink);
+      box-shadow: -6px 8px 0 -1px var(--ink), 6px 8px 0 -1px var(--ink);
+    }
+
+    .ui-icon.clock::before {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+    }
+
+    .ui-icon.clock::after {
+      content: "";
+      position: absolute;
+      left: 10px;
+      top: 5px;
+      width: 2px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--ink);
+      box-shadow: 3px 6px 0 -1px var(--ink);
+    }
+
+    .ui-icon.context::before,
+    .ui-icon.context::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      height: 5px;
+      border: 2px solid var(--ink);
+      border-radius: 4px;
+    }
+
+    .ui-icon.context::before {
+      top: 4px;
+    }
+
+    .ui-icon.context::after {
+      bottom: 4px;
+    }
+
+    .recent-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 5% 1.2% 2.4%;
+      font-size: clamp(7px, 0.7vw, 12px);
+      font-weight: 880;
+    }
+
+    .recent-head a {
+      color: var(--green-dark);
+      text-decoration: none;
+      font-weight: 780;
+    }
+
+    .recent-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .recent-item {
+      display: grid;
+      grid-template-columns: 30px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      min-height: clamp(30px, 2.78vw, 47px);
+      padding: 2.6% 3.4%;
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: 0 3px 10px rgba(16, 24, 22, 0.055);
+    }
+
+    .thumb {
+      width: 30px;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 8px;
+      background: var(--surface-soft);
+    }
+
+    .thumb.note {
+      background:
+        linear-gradient(90deg, #d4a838 0 40%, transparent 40%) 50% 42% / 42% 4px no-repeat,
+        linear-gradient(90deg, #ad7d1c 0 60%, transparent 60%) 50% 60% / 50% 4px no-repeat,
+        #fff6d9;
+    }
+
+    .thumb.lake,
+    .photo-thumb {
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.22), transparent 44%),
+        linear-gradient(145deg, #d9edf7 0 28%, #6fa0c0 28% 42%, #244f3a 42% 55%, #93bd55 55% 100%);
+    }
+
+    .thumb.doc,
+    .thumb.link,
+    .thumb.voice {
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      background: #f1f2f0;
+      font-weight: 900;
+    }
+
+    .thumb.doc::before {
+      content: "";
+      width: 13px;
+      height: 16px;
+      border: 2px solid var(--ink);
+      border-radius: 3px;
+    }
+
+    .thumb.link::before {
+      content: "";
+      width: 15px;
+      height: 8px;
+      border: 2px solid var(--ink);
+      border-radius: 999px;
+      transform: rotate(-35deg);
+    }
+
+    .thumb.voice::before {
+      content: "";
+      width: 17px;
+      height: 18px;
+      background:
+        linear-gradient(var(--ink), var(--ink)) 0 50% / 3px 42% no-repeat,
+        linear-gradient(var(--ink), var(--ink)) 7px 50% / 3px 100% no-repeat,
+        linear-gradient(var(--ink), var(--ink)) 14px 50% / 3px 60% no-repeat;
+    }
+
+    .chev {
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      margin: 7% 0 5%;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .chip {
+      flex: 0 0 auto;
+      min-height: clamp(24px, 2.16vw, 36px);
+      display: inline-grid;
+      place-items: center;
+      padding: 0 13px;
+      border: 1px solid var(--line-soft);
+      border-radius: 999px;
+      color: var(--ink-soft);
+      background: rgba(245, 247, 246, 0.9);
+      font-size: clamp(7px, 0.68vw, 12px);
+      font-weight: 720;
+    }
+
+    .chip.active {
+      color: #ffffff;
+      border-color: var(--green);
+      background: var(--green);
+    }
+
+    .inbox-list {
+      display: grid;
+      gap: 2.6%;
+    }
+
+    .inbox-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 16.5% 1fr auto;
+      gap: 4%;
+      align-items: center;
+      min-height: clamp(70px, 6.45vw, 108px);
+      padding: 3.6% 4%;
+      border-radius: clamp(14px, 1.18vw, 21px);
+      border: 1px solid var(--line-soft);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 7px 20px rgba(16, 24, 22, 0.075);
+    }
+
+    .inbox-copy {
+      min-width: 0;
+    }
+
+    .inbox-title {
+      font-size: clamp(9px, 0.92vw, 16px);
+      line-height: 1.15;
+    }
+
+    .inbox-meta {
+      margin-top: 3%;
+      font-size: clamp(7px, 0.66vw, 11px);
+    }
+
+    .inbox-action {
+      align-self: end;
+      min-width: clamp(70px, 5.4vw, 94px);
+      min-height: clamp(26px, 2.24vw, 38px);
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--green);
+      border-radius: 999px;
+      color: var(--green-dark);
+      background: rgba(255, 255, 255, 0.88);
+      font-size: clamp(7px, 0.7vw, 12px);
+      font-weight: 850;
+    }
+
+    .overflow-dot {
+      position: absolute;
+      right: 6%;
+      top: 22%;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--ink);
+      box-shadow: 0 7px 0 var(--ink), 0 14px 0 var(--ink);
+    }
+
+    .inbox .primary-button {
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      bottom: 9.1%;
+      margin-top: 0;
+    }
+
+    .context .screen {
+      padding-top: 12.5%;
+    }
+
+    .context .center-nav {
+      justify-content: flex-start;
+      margin-bottom: 6%;
+    }
+
+    .context .center-nav .nav-button:first-child {
+      position: static;
+      margin-right: 6%;
+    }
+
+    .context .subtitle {
+      margin-top: 2.5%;
+    }
+
+    .context-panel {
+      display: grid;
+      gap: 0;
+      overflow: hidden;
+      margin-top: 7%;
+      border-radius: clamp(12px, 1vw, 18px);
+      border: 1px solid var(--line-soft);
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: var(--shadow-card);
+    }
+
+    .context-row {
+      display: grid;
+      grid-template-columns: 14% 1fr;
+      gap: 4%;
+      align-items: center;
+      min-height: clamp(38px, 3.5vw, 58px);
+      padding: 0 5%;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .context-row:last-child {
+      border-bottom: 0;
+    }
+
+    .circle-icon {
+      width: 26px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--ink);
+      background: rgba(13, 19, 17, 0.04);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .retention-label {
+      margin: 8% 0 3%;
+      font-size: clamp(9px, 0.8vw, 14px);
+      font-weight: 880;
+    }
+
+    .choice-list {
+      display: grid;
+      gap: clamp(8px, 0.72vw, 12px);
+    }
+
+    .choice {
+      display: grid;
+      grid-template-columns: 13% 1fr auto;
+      gap: 4%;
+      align-items: center;
+      min-height: clamp(46px, 4.2vw, 70px);
+      padding: 0 5%;
+      border: 1px solid var(--line-soft);
+      border-radius: clamp(12px, 0.96vw, 17px);
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: 0 4px 13px rgba(16, 24, 22, 0.055);
+    }
+
+    .choice.active {
+      border-color: rgba(7, 150, 66, 0.58);
+      background: rgba(7, 150, 66, 0.055);
+    }
+
+    .radio {
+      width: 20px;
+      aspect-ratio: 1;
+      border: 2px solid rgba(13, 19, 17, 0.22);
+      border-radius: 50%;
+    }
+
+    .choice.active .radio {
+      display: grid;
+      place-items: center;
+      border-color: var(--green);
+      background: var(--green);
+    }
+
+    .choice.active .radio::before {
+      content: "";
+      width: 8px;
+      height: 5px;
+      border-left: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      transform: rotate(-45deg) translateY(-1px);
+    }
+
+    .context .primary-button {
+      margin-top: 7%;
+    }
+
+    .privacy-note {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4%;
+      color: var(--muted);
+      font-size: clamp(6px, 0.6vw, 10px);
+      font-weight: 680;
+    }
+
+    .lock {
+      width: 11px;
+      height: 9px;
+      border: 1.8px solid var(--muted);
+      border-radius: 2px;
+      position: relative;
+    }
+
+    .lock::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 6px;
+      width: 7px;
+      height: 7px;
+      transform: translateX(-50%);
+      border: 1.8px solid var(--muted);
+      border-bottom: 0;
+      border-radius: 999px 999px 0 0;
+    }
+
+    .image .screen {
+      padding-top: 13.8%;
+    }
+
+    .image .center-nav {
+      justify-content: center;
+      margin-bottom: 4%;
+    }
+
+    .image .center-nav .nav-button:first-child,
+    .image .center-nav .nav-button:last-child {
+      top: -2%;
+    }
+
+    .preview {
+      position: relative;
+      height: 45%;
+      margin-top: 6%;
+      overflow: hidden;
+      border-radius: clamp(12px, 1vw, 18px);
+      background:
+        linear-gradient(180deg, rgba(13, 19, 17, 0.64), rgba(13, 19, 17, 0.42)),
+        #26302d;
+      box-shadow: 0 9px 24px rgba(16, 24, 22, 0.16);
+    }
+
+    .chart-phone {
+      position: absolute;
+      left: 11%;
+      right: 11%;
+      top: 7%;
+      bottom: 7%;
+      overflow: hidden;
+      border: 6px solid #121817;
+      border-radius: 12% / 7%;
+      background: #fbfcfb;
+      transform: rotate(-1deg);
+      box-shadow: 0 14px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    .chart-phone::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 2%;
+      width: 30%;
+      height: 4%;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: #0b0e0d;
+    }
+
+    .chart-ui {
+      position: absolute;
+      inset: 13% 9% 8%;
+    }
+
+    .chart-ui h3 {
+      font-size: clamp(6px, 0.58vw, 10px);
+      line-height: 1.1;
+    }
+
+    .chart-number {
+      margin-top: 6%;
+      font-size: clamp(12px, 1.05vw, 18px);
+      font-weight: 900;
+    }
+
+    .chart-number span {
+      color: var(--green);
+      font-size: 0.52em;
+      font-weight: 850;
+    }
+
+    .line-chart {
+      position: relative;
+      height: 40%;
+      margin-top: 7%;
+      background:
+        linear-gradient(rgba(13,19,17,0.08), rgba(13,19,17,0.08)) 0 18% / 100% 1px no-repeat,
+        linear-gradient(rgba(13,19,17,0.08), rgba(13,19,17,0.08)) 0 50% / 100% 1px no-repeat,
+        linear-gradient(rgba(13,19,17,0.08), rgba(13,19,17,0.08)) 0 82% / 100% 1px no-repeat;
+    }
+
+    .line-chart::before {
+      content: "";
+      position: absolute;
+      left: 3%;
+      right: 3%;
+      top: 12%;
+      bottom: 8%;
+      background:
+        linear-gradient(135deg, transparent 0 16%, var(--green) 17% 20%, transparent 21% 31%, var(--green) 32% 35%, transparent 36% 52%, var(--green) 53% 56%, transparent 57% 69%, var(--green) 70% 73%, transparent 74%);
+      clip-path: polygon(0 76%, 18% 54%, 33% 70%, 50% 36%, 65% 48%, 78% 26%, 100% 10%, 100% 18%, 78% 34%, 65% 56%, 50% 44%, 33% 78%, 18% 62%, 0 84%);
+    }
+
+    .answer-card {
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      bottom: 19%;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 9px;
+      align-items: start;
+      min-height: 21%;
+      padding: 4.5%;
+      border-radius: clamp(10px, 0.86vw, 15px);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 8px 20px rgba(16, 24, 22, 0.16);
+    }
+
+    .answer-card .avatar {
+      width: 20px;
+    }
+
+    .answer-card strong {
+      display: block;
+      font-size: clamp(7px, 0.68vw, 11px);
+      line-height: 1.18;
+    }
+
+    .answer-card span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: clamp(6px, 0.55vw, 9px);
+      line-height: 1.25;
+    }
+
+    .suggestion-title {
+      margin: 7% 0 3%;
+      font-size: clamp(7px, 0.66vw, 11px);
+      font-weight: 850;
+    }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .suggestion-chip {
+      min-height: clamp(20px, 1.65vw, 28px);
+      display: grid;
+      place-items: center;
+      padding: 0 10px;
+      border: 1px solid var(--line-soft);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--ink-soft);
+      font-size: clamp(6px, 0.55vw, 9px);
+      font-weight: 700;
+    }
+
+    .ask-bar {
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      bottom: 6.8%;
+      min-height: clamp(34px, 3.2vw, 52px);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 0 4% 0 6%;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 6px 18px rgba(16, 24, 22, 0.08);
+      color: #9ca5a2;
+      font-size: clamp(7px, 0.66vw, 11px);
+    }
+
+    .send {
+      width: clamp(25px, 2.28vw, 38px);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #ffffff;
+      background: var(--green);
+      font-size: clamp(12px, 1vw, 17px);
+      font-weight: 900;
+    }
+
+    @media (max-width: 860px) {
+      .stage {
+        display: block;
+        min-height: 100dvh;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 24px 20px;
+        scroll-snap-type: x mandatory;
+      }
+
+      .poster {
+        width: max-content;
+        min-height: 0;
+        aspect-ratio: auto;
+        display: flex;
+        gap: 18px;
+        align-items: center;
+        padding: 14px 40px 24px;
+      }
+
+      .poster::before {
+        display: none;
+      }
+
+      .phone,
+      .phone.connect,
+      .phone.home,
+      .phone.inbox,
+      .phone.context,
+      .phone.image {
+        position: relative;
+        left: auto;
+        bottom: auto;
+        height: min(78dvh, 700px);
+        width: auto;
+        flex: 0 0 auto;
+        transform: none;
+        scroll-snap-align: center;
+      }
+
+      .phone.inbox {
+        height: min(82dvh, 740px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="poster" aria-label="Kaka Pocket Agents voice-first UI concept">
+      <article class="phone connect" aria-label="Connect to Runtime screen">
+        <div class="glass">
+          <div class="status"><span>9:41</span><span class="status-icons"><span class="bars"></span><span class="wifi"></span><span class="battery"></span></span></div>
+          <div class="island"></div>
+          <div class="screen">
+            <div class="top-nav"><span class="nav-button">&lt;</span><span></span></div>
+            <h2 class="title">Connect to Runtime</h2>
+            <p class="subtitle">Pair your iPhone with a trusted runtime on your devices.</p>
+            <div class="qr-card"><div class="qr" aria-hidden="true"><b class="k-badge">K</b></div></div>
+            <div class="runtime-card card">
+              <span class="runtime-dot"></span>
+              <span><strong>Hermes on MacBook</strong><span>Ready to pair</span></span>
+              <span class="mini-device" aria-hidden="true"></span>
+            </div>
+            <div class="steps card">
+              <div class="step"><span class="step-index">1</span><span><strong>Open Kaka on your Mac</strong></span></div>
+              <div class="step"><span class="step-index">2</span><span><strong>Go to Settings &gt; Runtime</strong></span></div>
+              <div class="step"><span class="step-index">3</span><span><strong>Scan the code to pair</strong></span></div>
+            </div>
+            <div class="primary-button">Pair with code</div>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </article>
+
+      <article class="phone home" aria-label="Kaka voice home screen">
+        <div class="glass">
+          <div class="status"><span>9:41</span><span class="status-icons"><span class="bars"></span><span class="wifi"></span><span class="battery"></span></span></div>
+          <div class="island"></div>
+          <div class="screen">
+            <div class="top-nav"><span class="menu-lines" aria-hidden="true"></span><h2 class="brand-title">Kaka</h2><span class="gear" aria-hidden="true"></span></div>
+            <div class="trusted-runtime">
+              <span class="runtime-dot"></span>
+              <span><strong>Hermes on MacBook</strong><span>Trusted runtime</span></span>
+              <span class="chev">&gt;</span>
+            </div>
+            <div class="mic-orbit"><div class="mic-core"><span class="mic-symbol" aria-hidden="true"></span></div></div>
+            <div class="listening"><span>Listening...</span><span class="wave" aria-hidden="true"></span></div>
+            <div class="transcript card">
+              <div class="message">
+                <span></span>
+                <span><span class="who">You</span><strong>Remember this for my trip</strong></span>
+                <span class="time">9:41 AM</span>
+              </div>
+              <div class="message">
+                <span class="avatar">K</span>
+                <span><span class="who">Kaka</span><strong>Saved to Recall</strong></span>
+                <span class="time">9:41 AM</span>
+              </div>
+            </div>
+            <div class="quick-grid" aria-label="Quick actions">
+              <div class="quick-tile"><span class="ui-icon camera" aria-hidden="true"></span><span>Camera</span></div>
+              <div class="quick-tile"><span class="ui-icon share" aria-hidden="true"></span><span>Share</span></div>
+              <div class="quick-tile"><span class="ui-icon clock" aria-hidden="true"></span><span>Recall</span></div>
+              <div class="quick-tile"><span class="ui-icon context" aria-hidden="true"></span><span>Context</span></div>
+            </div>
+            <div class="recent-head"><span>Recent</span><a href="#">View all</a></div>
+            <div class="recent-list">
+              <div class="recent-item"><span class="thumb note"></span><span><strong class="recent-title">Product strategy sync</strong><span class="recent-meta">Notes - 9:30 AM</span></span><span class="chev">&gt;</span></div>
+              <div class="recent-item"><span class="thumb lake"></span><span><strong class="recent-title">Lake view.jpg</strong><span class="recent-meta">Image - 9:12 AM</span></span><span class="chev">&gt;</span></div>
+            </div>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </article>
+
+      <article class="phone inbox" aria-label="Share to Kaka Inbox screen">
+        <div class="glass">
+          <div class="status"><span>9:41</span><span class="status-icons"><span class="bars"></span><span class="wifi"></span><span class="battery"></span></span></div>
+          <div class="island"></div>
+          <div class="screen">
+            <div class="top-nav"><span class="nav-button">&lt;</span><span class="nav-button">✓</span></div>
+            <h1 class="title">Share to Kaka Inbox</h1>
+            <p class="subtitle">Local-first. Private by default.</p>
+            <div class="filter-row">
+              <span class="chip active">All 12</span>
+              <span class="chip">Notes 5</span>
+              <span class="chip">Images 3</span>
+              <span class="chip">Links 2</span>
+              <span class="chip">Voice 2</span>
+            </div>
+            <div class="inbox-list">
+              <article class="inbox-item">
+                <span class="thumb doc"></span>
+                <span class="inbox-copy"><strong class="inbox-title">The case for local-first AI</strong><span class="inbox-meta">Note - 9:41 AM<br>Key points on privacy, ownership, and offline intelligence.</span></span>
+                <span class="inbox-action">Summarize</span>
+                <span class="overflow-dot" aria-hidden="true"></span>
+              </article>
+              <article class="inbox-item">
+                <span class="thumb photo-thumb"></span>
+                <span class="inbox-copy"><strong class="inbox-title">Lake view.jpg</strong><span class="inbox-meta">Image - 9:32 AM<br>Captured at Mirror Lake.</span></span>
+                <span class="inbox-action">Ask</span>
+                <span class="overflow-dot" aria-hidden="true"></span>
+              </article>
+              <article class="inbox-item">
+                <span class="thumb link"></span>
+                <span class="inbox-copy"><strong class="inbox-title">Blue Bottle Coffee</strong><span class="inbox-meta">Link - 9:15 AM<br>bluebottlecoffee.com/menu</span></span>
+                <span class="inbox-action">Ask</span>
+                <span class="overflow-dot" aria-hidden="true"></span>
+              </article>
+              <article class="inbox-item">
+                <span class="thumb voice"></span>
+                <span class="inbox-copy"><strong class="inbox-title">Product strategy sync</strong><span class="inbox-meta">Voice - 8:47 AM<br>42:18 - Transcribed</span></span>
+                <span class="inbox-action">Summarize</span>
+                <span class="overflow-dot" aria-hidden="true"></span>
+              </article>
+            </div>
+            <div class="primary-button">Open Inbox (12)</div>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </article>
+
+      <article class="phone context" aria-label="Context Snapshot screen">
+        <div class="glass">
+          <div class="status"><span>9:41</span><span class="status-icons"><span class="bars"></span><span class="wifi"></span><span class="battery"></span></span></div>
+          <div class="island"></div>
+          <div class="screen">
+            <div class="center-nav"><span class="nav-button">&lt;</span><div><h2 class="title">Context Snapshot</h2><p class="subtitle">Only for the active agent.</p></div></div>
+            <div class="context-panel">
+              <div class="context-row"><span class="circle-icon">T</span><span><strong>Time</strong><span>9:41 AM - May 20, 2025</span></span></div>
+              <div class="context-row"><span class="circle-icon">S</span><span><strong>Source</strong><span>Kaka iPhone App</span></span></div>
+              <div class="context-row"><span class="circle-icon">L</span><span><strong>Approx location</strong><span>San Francisco, CA</span></span></div>
+              <div class="context-row"><span class="circle-icon">B</span><span><strong>Battery</strong><span>72% - Charging</span></span></div>
+            </div>
+            <h3 class="retention-label">Retention</h3>
+            <div class="choice-list">
+              <div class="choice active"><span class="circle-icon">1</span><span><strong>Use Once</strong><span>Use this context for this reply only. Not stored.</span></span><span class="radio"></span></div>
+              <div class="choice"><span class="circle-icon">2</span><span><strong>Keep for task</strong><span>Keep this context while we work on this task.</span></span><span class="radio"></span></div>
+              <div class="choice"><span class="circle-icon">3</span><span><strong>Do not store</strong><span>Do not retain any of this context.</span></span><span class="radio"></span></div>
+            </div>
+            <div class="primary-button">Apply context</div>
+            <p class="privacy-note"><span class="lock" aria-hidden="true"></span><span>You stay in control.</span></p>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </article>
+
+      <article class="phone image" aria-label="Image Q and A screen">
+        <div class="glass">
+          <div class="status"><span>9:41</span><span class="status-icons"><span class="bars"></span><span class="wifi"></span><span class="battery"></span></span></div>
+          <div class="island"></div>
+          <div class="screen">
+            <div class="center-nav"><span class="nav-button">&lt;</span><h2 class="title">Image Q&amp;A</h2><span class="nav-button">...</span></div>
+            <div class="preview">
+              <div class="chart-phone">
+                <div class="chart-ui">
+                  <h3>Monthly Revenue</h3>
+                  <div class="chart-number">$124,563 <span>+18%</span></div>
+                  <div class="line-chart"></div>
+                </div>
+              </div>
+            </div>
+            <div class="answer-card">
+              <span class="avatar">K</span>
+              <span><strong>I found the total and trend.</strong><span>Total revenue in May is $124,563, up 18% compared to April.</span></span>
+            </div>
+            <h3 class="suggestion-title">Suggestions</h3>
+            <div class="suggestions">
+              <span class="suggestion-chip">Extract text</span>
+              <span class="suggestion-chip">Explain chart</span>
+              <span class="suggestion-chip">Translate</span>
+              <span class="suggestion-chip">Guide me</span>
+            </div>
+            <div class="ask-bar"><span>Ask anything...</span><span class="send">↑</span></div>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

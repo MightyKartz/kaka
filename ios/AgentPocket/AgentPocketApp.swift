@@ -376,9 +376,9 @@ private struct SimulatorCaptureReadySmokeView: View {
             "send_to_hermes_enabled": isSendToHermesEnabled,
             "selection_source": "library_fixture",
             "preprocessing_path": "CaptureFlowViewModel.prepareSelectedImage",
-            "primary_action": "Send to Local Agent",
+            "primary_action": "Send to Kaka",
             "ready_status_accessibility_identifier": "selectedPhotoReadyStatus",
-            "send_button_accessibility_identifier": "sendToLocalAgentButton"
+            "send_button_accessibility_identifier": "sendToKakaButton"
         ]
         let receiptURL = documentsURL.appendingPathComponent("agent-pocket-capture-ready-smoke.json")
         if let data = try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]) {
@@ -755,7 +755,7 @@ private struct SimulatorShareSheetPresenter: View {
 private enum SimulatorResultGallerySmokeFixtures {
     static let completedStatus: TaskStatusResponse = {
         let data = """
-        {"task_id":"task_simulator_result","status":"completed","progress":1.0,"message":"Done.","variants":[{"id":"variant_clean_pro","label":"Master","asset_id":"asset_1","download_url":"/mobile/v1/assets/asset_1/download"},{"id":"variant_social_pop","label":"Social","asset_id":"asset_2","download_url":"/mobile/v1/assets/asset_2/download"}],"explanation":"Balanced exposure and warmer highlights while preserving skin tone.","renderer":"local_parametric","composition":{"selected_aspect_ratio":"4:5","crop":{"x":0.2,"y":0.0,"width":0.6,"height":1.0}},"qa":{"master_difference_score":0.18,"social_difference_score":0.31},"recipe_summary":"Balanced exposure and reframed to 4:5.","share_caption":"Shot polished locally with Kaka."}
+        {"task_id":"task_simulator_result","status":"completed","progress":1.0,"message":"Done.","variants":[{"id":"variant_clean_pro","label":"Master","asset_id":"asset_1","download_url":"/mobile/v1/assets/asset_1/download"},{"id":"variant_social_pop","label":"Social","asset_id":"asset_2","download_url":"/mobile/v1/assets/asset_2/download"}],"explanation":"Balanced exposure and warmer highlights while preserving skin tone.","renderer":"local_parametric","composition":{"selected_aspect_ratio":"original","crop":{"x":0.0,"y":0.0,"width":1.0,"height":1.0}},"qa":{"master_difference_score":0.18,"social_difference_score":0.31},"recipe_summary":"Balanced exposure while preserving the original frame.","share_caption":"Shot polished locally with Kaka."}
         """.data(using: .utf8)!
         return try! JSONDecoder.mobileBridge.decode(TaskStatusResponse.self, from: data)
     }()

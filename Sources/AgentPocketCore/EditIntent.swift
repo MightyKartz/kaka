@@ -35,7 +35,7 @@ public enum EditIntent: String, CaseIterable, Identifiable, Codable, Equatable, 
     }
 
     public static var masterShotCompositionBadge: String {
-        "4:5 Frame"
+        "Original"
     }
 
     public var summary: String {
@@ -47,7 +47,7 @@ public enum EditIntent: String, CaseIterable, Identifiable, Codable, Equatable, 
         case .productShot:
             return "Cleaner background, sharper subject, commercial lighting."
         case .socialCover:
-            return "Dramatic crop, color, and title-safe composition."
+            return "Dramatic color, contrast, and subject separation for sharing."
         }
     }
 
@@ -60,7 +60,7 @@ public enum EditIntent: String, CaseIterable, Identifiable, Codable, Equatable, 
         case .productShot:
             return "Keep the product accurate. Clean the background, sharpen the subject, and improve commercial lighting without changing product details."
         case .socialCover:
-            return "Create a stronger social cover crop with richer color and title-safe composition while preserving the original subject."
+            return "Create a stronger social-ready edit with richer color, contrast, and subject separation while preserving the original framing."
         }
     }
 }

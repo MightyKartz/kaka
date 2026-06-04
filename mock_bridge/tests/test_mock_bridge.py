@@ -1,7 +1,10 @@
 import io
 import html as html_lib
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
-from agent_pocket_mock_bridge.app import create_app
+from agent_pocket_mock_bridge import app as app_module
+from agent_pocket_mock_bridge.app import RuntimeHTTPVisionProvider, create_app
 
 
 def test_health_reports_hermes_runtime():
@@ -33,8 +36,26 @@ def test_capabilities_advertise_photo_edit_and_sse():
     body = response.get_json()
     assert response.status_code == 200
     assert "photo_edit" in body["tasks"]
+    assert "image_intake" in body["tasks"]
     assert body["tasks"]["photo_edit"]["supports_sse"] is True
+    assert body["tasks"]["vision"]["supports_sse"] is True
+    assert body["tasks"]["image_intake"]["supports_sse"] is True
     assert body["retention"]["input_assets_days"] == 7
+
+
+def test_capabilities_advertise_vision_modes():
+    client = create_app().test_client()
+
+    response = client.get(
+        "/mobile/v1/capabilities",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+    )
+
+    body = response.get_json()
+    assert response.status_code == 200
+    assert body["profiles"][0]["capabilities"] == ["photo_edit", "vision", "image_intake"]
+    assert body["tasks"]["vision"]["modes"] == ["scan", "identify", "translate", "food"]
+    assert body["tasks"]["vision"]["provider"] == "fixture_vision"
 
 
 def test_capabilities_advertise_runtime_neutral_local_recipe_contract():
@@ -51,8 +72,8 @@ def test_capabilities_advertise_runtime_neutral_local_recipe_contract():
     assert photo_edit["renderer"] == "local_parametric"
     assert photo_edit["variant_labels"] == ["Master", "Social"]
     assert photo_edit["variant_ids"] == ["variant_clean_pro", "variant_social_pop"]
-    assert photo_edit["crop_aspects"] == ["original", "4:5", "1:1"]
-    assert photo_edit["supports_crop_candidates"] is True
+    assert photo_edit["crop_aspects"] == ["original"]
+    assert photo_edit["supports_crop_candidates"] is False
     assert photo_edit["supports_upscale_policy"] is True
 
 
@@ -118,6 +139,19 @@ def test_development_pairing_payload_uses_request_host():
         "pairing_code": "pair_dev",
         "expires_at": "2099-01-01T00:00:00Z",
     }
+
+
+def test_development_pairing_payload_prefers_advertised_endpoint_for_real_device():
+    client = create_app(advertised_endpoint="http://192.168.1.104:8765").test_client()
+
+    response = client.get(
+        "/mobile/v1/pairing/dev",
+        headers={"Host": "127.0.0.1:8765"},
+    )
+
+    body = response.get_json()
+    assert response.status_code == 200
+    assert body["endpoint"] == "http://192.168.1.104:8765"
 
 
 def test_development_pairing_payload_refreshes_after_default_code_is_used():
@@ -271,6 +305,320 @@ def test_photo_edit_lifecycle_returns_downloadable_variant():
     assert download.data.startswith(b"\x89PNG")
 
 
+def test_vision_task_lifecycle_returns_structured_result():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={
+            "file": (io.BytesIO(b"fake-image-bytes"), "photo.jpg", "image/jpeg"),
+            "metadata": '{"width":100,"height":100}',
+        },
+    )
+    created = client.post(
+        "/mobile/v1/tasks/vision",
+        headers=headers,
+        json={
+            "profile_id": "photo-agent",
+            "asset_id": upload.get_json()["asset_id"],
+            "mode": "identify",
+            "instruction": "Identify the main object.",
+            "locale": "zh-Hans",
+        },
+    )
+    task_id = created.get_json()["task_id"]
+    events = client.get(f"/mobile/v1/tasks/{task_id}/events", headers=headers)
+    status = client.get(f"/mobile/v1/tasks/{task_id}", headers=headers)
+
+    body = status.get_json()
+    assert upload.status_code == 200
+    assert created.status_code == 200
+    assert created.get_json()["status"] == "queued"
+    assert events.status_code == 200
+    assert events.content_type == "text/event-stream"
+    assert '"result_type":"vision"' in events.data.decode("utf-8")
+    assert body["status"] == "completed"
+    assert body["result_type"] == "vision"
+    assert body["vision"]["mode"] == "identify"
+    assert body["vision"]["title"] == "识别结果"
+    assert body["vision"]["sections"][0]["kind"] == "candidates"
+    assert body["vision"]["sections"][0]["items"][0]["title"] == "候选主体"
+
+
+def test_image_intake_lifecycle_returns_skill_suggestions():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={
+            "file": (io.BytesIO(b"fake-image-bytes"), "photo.jpg", "image/jpeg"),
+            "metadata": '{"width":100,"height":100}',
+        },
+    )
+    created = client.post(
+        "/mobile/v1/tasks/image-intake",
+        headers=headers,
+        json={
+            "profile_id": "photo-agent",
+            "asset_id": upload.get_json()["asset_id"],
+            "locale": "zh-Hans",
+        },
+    )
+    task_id = created.get_json()["task_id"]
+    status = client.get(f"/mobile/v1/tasks/{task_id}", headers=headers)
+
+    body = status.get_json()
+    assert created.status_code == 200
+    assert body["status"] == "completed"
+    assert body["result_type"] == "image_intake"
+    assert body["image_intake"]["suggestions"][0]["skill"] in ["photo_enhance", "ocr"]
+
+
+def test_image_intake_marks_unavailable_multimodal_skills():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={
+            "file": (io.BytesIO(b"fake-image-bytes"), "photo.jpg", "image/jpeg"),
+            "metadata": '{"width":100,"height":100}',
+        },
+    )
+    created = client.post(
+        "/mobile/v1/tasks/image-intake",
+        headers=headers,
+        json={
+            "profile_id": "photo-agent",
+            "asset_id": upload.get_json()["asset_id"],
+            "locale": "zh-Hans",
+        },
+    )
+    status = client.get(f"/mobile/v1/tasks/{created.get_json()['task_id']}", headers=headers)
+
+    suggestions = {
+        item["skill"]: item
+        for item in status.get_json()["image_intake"]["suggestions"]
+    }
+    assert suggestions["photo_enhance"]["is_available"] is True
+    assert suggestions["identify_subject"]["is_available"] is False
+
+
+def test_image_intake_marks_identify_available_for_runtime_http_vision_provider():
+    class RuntimeHTTPLikeVisionProvider:
+        provider_name = "runtime_http_vision"
+
+        def analyze(self, source_bytes, mode, instruction, locale):
+            return {"mode": mode, "title": "ok", "summary": "ok"}
+
+    client = create_app(vision_provider=RuntimeHTTPLikeVisionProvider()).test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={
+            "file": (io.BytesIO(b"fake-image-bytes"), "photo.jpg", "image/jpeg"),
+            "metadata": '{"width":100,"height":100}',
+        },
+    )
+    created = client.post(
+        "/mobile/v1/tasks/image-intake",
+        headers=headers,
+        json={
+            "profile_id": "photo-agent",
+            "asset_id": upload.get_json()["asset_id"],
+            "locale": "zh-Hans",
+        },
+    )
+    status = client.get(f"/mobile/v1/tasks/{created.get_json()['task_id']}", headers=headers)
+
+    suggestions = {
+        item["skill"]: item
+        for item in status.get_json()["image_intake"]["suggestions"]
+    }
+    assert suggestions["identify_subject"]["is_available"] is True
+
+
+def test_vision_task_uses_injected_fake_provider():
+    class RecordingVisionProvider:
+        provider_name = "recording_vision"
+
+        def __init__(self):
+            self.calls = []
+
+        def analyze(self, source_bytes, mode, instruction, locale):
+            self.calls.append(
+                {
+                    "source_bytes": source_bytes,
+                    "mode": mode,
+                    "instruction": instruction,
+                    "locale": locale,
+                }
+            )
+            return {
+                "mode": mode,
+                "title": "Recorded",
+                "summary": "Provider handled vision.",
+                "items": [{"title": "Object", "value": "Notebook"}],
+            }
+
+    provider = RecordingVisionProvider()
+    client = create_app(vision_provider=provider).test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={
+            "file": (io.BytesIO(b"source-image"), "photo.jpg", "image/jpeg"),
+            "metadata": '{"width":100,"height":100}',
+        },
+    )
+
+    created = client.post(
+        "/mobile/v1/tasks/vision",
+        headers=headers,
+        json={
+            "profile_id": "photo-agent",
+            "asset_id": upload.get_json()["asset_id"],
+            "mode": "scan",
+            "instruction": "Extract text.",
+            "locale": "en",
+        },
+    )
+    status = client.get(f"/mobile/v1/tasks/{created.get_json()['task_id']}", headers=headers)
+
+    assert provider.calls == [
+        {
+            "source_bytes": b"source-image",
+            "mode": "scan",
+            "instruction": "Extract text.",
+            "locale": "en",
+        }
+    ]
+    assert status.get_json()["provider"] == "recording_vision"
+    assert status.get_json()["vision"]["items"][0]["value"] == "Notebook"
+
+
+def test_concurrent_vision_tasks_receive_unique_task_ids():
+    class SlowVisionProvider:
+        provider_name = "slow_vision"
+
+        def __init__(self):
+            self.barrier = threading.Barrier(3)
+
+        def analyze(self, source_bytes, mode, instruction, locale):
+            self.barrier.wait(timeout=3)
+            return {
+                "mode": mode,
+                "title": mode,
+                "summary": f"{mode} completed.",
+                "items": [],
+            }
+
+    app = create_app(vision_provider=SlowVisionProvider())
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    asset_response = app.test_client().post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={"file": (io.BytesIO(b"image"), "image.png", "image/png")},
+    )
+    asset_id = asset_response.get_json()["asset_id"]
+
+    def create_task(mode: str) -> str:
+        response = app.test_client().post(
+            "/mobile/v1/tasks/vision",
+            headers=headers,
+            json={"asset_id": asset_id, "mode": mode, "instruction": mode, "locale": "zh-Hans"},
+        )
+        assert response.status_code == 200
+        return response.get_json()["task_id"]
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        task_ids = list(executor.map(create_task, ["scan", "identify", "translate"]))
+
+    assert len(set(task_ids)) == 3
+    assert sorted(task_ids) == ["task_0001", "task_0002", "task_0003"]
+    modes_by_task = {
+        task_id: app.test_client().get(f"/mobile/v1/tasks/{task_id}", headers=headers).get_json()["vision"]["mode"]
+        for task_id in task_ids
+    }
+    assert sorted(modes_by_task.values()) == ["identify", "scan", "translate"]
+
+
+def test_runtime_http_vision_provider_posts_image_payload(monkeypatch):
+    observations = {}
+
+    class FakeHTTPResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+        def read(self):
+            return b'{"vision":{"mode":"identify","title":"Desk","summary":"A desk.","items":[]}}'
+
+    def fake_urlopen(request, timeout):
+        observations["url"] = request.full_url
+        observations["timeout"] = timeout
+        observations["headers"] = dict(request.header_items())
+        observations["body"] = request.data
+        return FakeHTTPResponse()
+
+    monkeypatch.setattr(app_module.urllib_request, "urlopen", fake_urlopen)
+    provider = RuntimeHTTPVisionProvider("http://127.0.0.1:7799/kaka/vision", timeout_seconds=5)
+
+    result = provider.analyze(
+        source_bytes=b"image-bytes",
+        mode="identify",
+        instruction="Identify this.",
+        locale="zh-Hans",
+    )
+    payload = app_module.json.loads(observations["body"].decode("utf-8"))
+
+    assert observations["url"] == "http://127.0.0.1:7799/kaka/vision"
+    assert observations["timeout"] == 5
+    assert observations["headers"]["Content-type"] == "application/json"
+    assert payload["mode"] == "identify"
+    assert payload["instruction"] == "Identify this."
+    assert payload["locale"] == "zh-Hans"
+    assert payload["image_base64"] == "aW1hZ2UtYnl0ZXM="
+    assert result["title"] == "Desk"
+
+
+def test_vision_task_rejects_unknown_mode():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={
+            "file": (io.BytesIO(b"source-image"), "photo.jpg", "image/jpeg"),
+            "metadata": '{"width":100,"height":100}',
+        },
+    )
+    response = client.post(
+        "/mobile/v1/tasks/vision",
+        headers=headers,
+        json={
+            "profile_id": "photo-agent",
+            "asset_id": upload.get_json()["asset_id"],
+            "mode": "video",
+            "instruction": "Do the thing.",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.get_json()["error"]["code"] == "vision_unavailable"
+
+
 def test_qa_status_summarizes_pairing_photo_task_and_download_without_raw_bytes():
     client = create_app().test_client()
     headers = {"Authorization": "Bearer dev-mobile-token"}
@@ -384,7 +732,7 @@ def test_photo_edit_task_uses_injected_fake_provider():
             "profile_id": "photo-agent",
             "asset_id": upload.get_json()["asset_id"],
             "style": "social_cover",
-            "instruction": "Make it title-safe.",
+            "instruction": "Preserve original framing.",
             "return_variants": 1,
         },
     )
@@ -396,7 +744,7 @@ def test_photo_edit_task_uses_injected_fake_provider():
         {
             "source_bytes": b"source-image",
             "style": "social_cover",
-            "instruction": "Make it title-safe.",
+            "instruction": "Preserve original framing.",
             "return_variants": 1,
         }
     ]
@@ -415,8 +763,8 @@ def test_photo_edit_task_preserves_recipe_metadata_for_status_and_qa():
                 "provider": "recipe_local",
                 "renderer": "local_parametric",
                 "composition": {
-                    "selected_aspect_ratio": "4:5",
-                    "crop": {"x": 0.2, "y": 0.0, "width": 0.6, "height": 1.0},
+                    "selected_aspect_ratio": "original",
+                    "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0},
                 },
                 "qa": {
                     "master_difference_score": 0.18,
@@ -439,7 +787,7 @@ def test_photo_edit_task_preserves_recipe_metadata_for_status_and_qa():
                     "label": "Social",
                     "mime_type": "image/jpeg",
                     "bytes": b"social-result",
-                    "explanation": "Stronger crop.",
+                    "explanation": "Social-ready polish.",
                     "recipe_metadata": metadata,
                 },
             ]
@@ -473,13 +821,13 @@ def test_photo_edit_task_preserves_recipe_metadata_for_status_and_qa():
 
     assert [variant["label"] for variant in status["variants"]] == ["Master", "Social"]
     assert status["renderer"] == "local_parametric"
-    assert status["composition"]["selected_aspect_ratio"] == "4:5"
+    assert status["composition"]["selected_aspect_ratio"] == "original"
     assert status["qa"]["master_difference_score"] == 0.18
     assert status["qa"]["social_difference_score"] == 0.31
     assert status["share_caption"] == "Polished locally."
     assert qa_status["tasks"]["last_task"]["variant_count"] == 2
     assert qa_status["tasks"]["last_task"]["renderer"] == "local_parametric"
-    assert qa_status["tasks"]["last_task"]["composition"]["crop"]["width"] == 0.6
+    assert qa_status["tasks"]["last_task"]["composition"]["crop"]["width"] == 1.0
     assert qa_status["tasks"]["last_task"]["qa"]["social_difference_score"] == 0.31
 
 

@@ -1,0 +1,2273 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kaka Pocket Agents Prototype</title>
+  <style>
+    :root {
+      --canvas: #eef2f1;
+      --canvas-2: #f8faf9;
+      --ink: #101817;
+      --muted: #687371;
+      --faint: #8e9996;
+      --line: rgba(16, 24, 23, 0.1);
+      --line-strong: rgba(16, 24, 23, 0.18);
+      --surface: rgba(255, 255, 255, 0.86);
+      --surface-soft: rgba(255, 255, 255, 0.68);
+      --green: #23b844;
+      --green-dark: #148331;
+      --green-soft: rgba(35, 184, 68, 0.14);
+      --blue: #2878d8;
+      --amber: #e0a419;
+      --red: #db3b35;
+      --shadow: 0 22px 56px rgba(29, 43, 40, 0.15);
+      --shadow-soft: 0 3px 10px rgba(22, 35, 32, 0.08);
+      --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      --type-display: clamp(24px, 2.2vw, 36px);
+      --type-screen-title: 30px;
+      --type-title: 17px;
+      --type-body: 13px;
+      --type-label: 12px;
+      --type-caption: 11px;
+      --type-micro: 10px;
+      --weight-regular: 400;
+      --weight-medium: 600;
+      --weight-semibold: 700;
+      --weight-bold: 800;
+      --tap-min: 44px;
+      --control-pill-h: 34px;
+      --button-primary-h: 46px;
+      --icon-button: 34px;
+      --icon-button-compact: 30px;
+      --action-button-h: 30px;
+      --radius-button: 14px;
+      --radius-card: 16px;
+      --radius-pill: 999px;
+      --phone-w: 292px;
+      --phone-h: 632px;
+      --phone-mobile-w: min(calc(100vw - 72px), 286px);
+      --phone-mobile-offset: clamp(-56px, calc((100vw - var(--phone-mobile-w)) / -2), -24px);
+      --photo: url("./assets/kaka-master-shot-clean-photo.png");
+      --mountain: url("./assets/kaka-photo-mountain-portrait.png");
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 9% 12%, rgba(255, 255, 255, 0.92), transparent 26%),
+        radial-gradient(circle at 76% 12%, rgba(35, 184, 68, 0.12), transparent 22%),
+        linear-gradient(135deg, #fafcfc 0%, var(--canvas) 48%, #dfe8e5 100%);
+      font-family: var(--font-ui);
+      letter-spacing: 0;
+      overflow-x: hidden;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid rgba(35, 184, 68, 0.36);
+      outline-offset: 3px;
+    }
+
+    .page {
+      width: min(1640px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 18px 0 30px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    .title-block {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .prototype-kicker {
+      width: fit-content;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 28px;
+      padding: 0 10px;
+      border: 1px solid rgba(35, 184, 68, 0.24);
+      border-radius: 999px;
+      color: var(--green-dark);
+      background: rgba(35, 184, 68, 0.09);
+      font-size: var(--type-label);
+      font-weight: var(--weight-semibold);
+    }
+
+    .prototype-kicker::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(35, 184, 68, 0.1);
+    }
+
+    .title-block h1 {
+      margin: 0;
+      font-size: var(--type-display);
+      line-height: 1;
+      font-weight: var(--weight-bold);
+      letter-spacing: 0;
+    }
+
+    .title-block p {
+      margin: 0;
+      max-width: 82ch;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .meta-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 3px;
+      max-width: 100%;
+    }
+
+    .meta-pill {
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 10px;
+      border: 1px solid rgba(16, 24, 23, 0.08);
+      border-radius: 999px;
+      color: #354541;
+      background: rgba(255, 255, 255, 0.58);
+      font-size: var(--type-label);
+      font-weight: var(--weight-semibold);
+      white-space: nowrap;
+    }
+
+    .reference-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      max-width: 340px;
+    }
+
+    .reference-link {
+      display: inline-flex;
+      min-height: 36px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: #1e2c2a;
+      background: rgba(255, 255, 255, 0.62);
+      text-decoration: none;
+      font-size: var(--type-body);
+      font-weight: var(--weight-semibold);
+      white-space: nowrap;
+    }
+
+    .flow-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 16px;
+    }
+
+    .flow-tab {
+      min-height: var(--control-pill-h);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 13px;
+      border: 1px solid rgba(16, 24, 23, 0.09);
+      border-radius: 999px;
+      color: #31403d;
+      background: rgba(255, 255, 255, 0.55);
+      cursor: pointer;
+      font-size: var(--type-label);
+      font-weight: var(--weight-semibold);
+      white-space: nowrap;
+      transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+
+    .flow-tab.is-active {
+      border-color: rgba(35, 184, 68, 0.32);
+      color: var(--green-dark);
+      background: rgba(35, 184, 68, 0.12);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(238px, var(--phone-w)));
+      gap: clamp(12px, 1.35vw, 17px);
+      align-items: start;
+      justify-content: center;
+    }
+
+    .board.is-filtered .phone-wrap {
+      display: none;
+    }
+
+    .board.is-filtered .phone-wrap.is-selected {
+      display: grid;
+    }
+
+    .phone-wrap {
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+    }
+
+    .phone-name {
+      margin: 0;
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 10px;
+      border: 1px solid rgba(255, 255, 255, 0.68);
+      border-radius: 999px;
+      color: #30403d;
+      background: rgba(255, 255, 255, 0.52);
+      font-size: var(--type-label);
+      font-weight: var(--weight-semibold);
+    }
+
+    .phone {
+      position: relative;
+      width: min(100%, var(--phone-w));
+      height: var(--phone-h);
+      padding: 10px;
+      border-radius: 43px;
+      background:
+        linear-gradient(145deg, #111514 0%, #535a58 44%, #050606 100%);
+      box-shadow: var(--shadow), inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+    }
+
+    .screen {
+      position: relative;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at 50% -6%, rgba(255, 255, 255, 0.88), transparent 28%),
+        radial-gradient(circle at 50% 108%, rgba(35, 184, 68, 0.1), transparent 32%),
+        linear-gradient(180deg, #fbfcfb 0%, #f1f5f3 100%);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+    }
+
+    .screen::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 8px;
+      width: 106px;
+      height: 4px;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: #0a0e0d;
+      opacity: 0.92;
+    }
+
+    .status {
+      position: absolute;
+      z-index: 30;
+      top: 12px;
+      left: 21px;
+      right: 21px;
+      display: flex;
+      justify-content: space-between;
+      color: #0d1413;
+      font-size: var(--type-caption);
+      font-weight: var(--weight-semibold);
+      pointer-events: none;
+    }
+
+    .status-icons {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .bar-icon {
+      width: 16px;
+      height: 10px;
+      border: 1px solid currentColor;
+      border-radius: 3px;
+      position: relative;
+    }
+
+    .bar-icon::after {
+      content: "";
+      position: absolute;
+      right: -3px;
+      top: 3px;
+      width: 2px;
+      height: 4px;
+      border-radius: 2px;
+      background: currentColor;
+    }
+
+    .signal-icon {
+      width: 16px;
+      height: 11px;
+      border-radius: 2px;
+      background:
+        linear-gradient(to top, currentColor 0 3px, transparent 3px) 0 8px / 3px 3px no-repeat,
+        linear-gradient(to top, currentColor 0 5px, transparent 5px) 5px 6px / 3px 5px no-repeat,
+        linear-gradient(to top, currentColor 0 8px, transparent 8px) 10px 3px / 3px 8px no-repeat;
+    }
+
+    .island {
+      position: absolute;
+      z-index: 31;
+      top: 10px;
+      left: 50%;
+      width: 94px;
+      height: 27px;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: #050606;
+    }
+
+    .app {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 56px 18px 24px;
+    }
+
+    .nav {
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .nav-title {
+      font-size: 14px;
+      font-weight: var(--weight-semibold);
+      text-align: center;
+      flex: 1;
+    }
+
+    .nav-button {
+      width: var(--icon-button-compact);
+      height: var(--icon-button-compact);
+      border: 0;
+      border-radius: 50%;
+      color: #15211f;
+      background: rgba(255, 255, 255, 0.75);
+      box-shadow: 0 8px 20px rgba(22, 35, 32, 0.08);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .nav-button::after,
+    .close::after {
+      content: "";
+      position: absolute;
+      inset: -7px;
+      border-radius: 50%;
+    }
+
+    .nav-button:active,
+    .action:active,
+    .primary-button:active,
+    .secondary-button:active,
+    .mic-button:active,
+    .recall-choice:active,
+    .context-row:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .screen-title {
+      margin: 0;
+      font-size: var(--type-screen-title);
+      line-height: 1.03;
+      font-weight: var(--weight-bold);
+      letter-spacing: 0;
+    }
+
+    .screen-subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: var(--type-body);
+      line-height: 1.38;
+    }
+
+    .inline-chip {
+      width: fit-content;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 30px;
+      margin-top: 12px;
+      padding: 0 10px;
+      border: 1px solid rgba(35, 184, 68, 0.2);
+      border-radius: 999px;
+      color: var(--green-dark);
+      background: rgba(35, 184, 68, 0.1);
+      font-size: var(--type-label);
+      font-weight: var(--weight-semibold);
+    }
+
+    .inline-chip::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .runtime-card {
+      margin-top: 18px;
+      padding: 15px;
+    }
+
+    .runtime-row {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .mac-icon,
+    .action-icon,
+    .source-thumb,
+    .context-icon,
+    .choice-icon {
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+    }
+
+    .mac-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      color: white;
+      background: linear-gradient(145deg, #28ce4c, #169936);
+      box-shadow: 0 3px 10px rgba(22, 35, 32, 0.12);
+    }
+
+    .mac-icon::before {
+      content: "";
+      width: 25px;
+      height: 16px;
+      border: 2px solid white;
+      border-radius: 3px;
+      box-shadow: 0 7px 0 -5px white, 0 12px 0 -5px white;
+    }
+
+    .runtime-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: var(--weight-semibold);
+    }
+
+    .trusted {
+      margin-top: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--green-dark);
+      font-size: var(--type-label);
+      font-weight: var(--weight-semibold);
+    }
+
+    .check-dot {
+      display: inline-grid;
+      place-items: center;
+      width: 14px;
+      height: 14px;
+      border: 1px solid var(--green);
+      border-radius: 50%;
+      font-size: 10px;
+    }
+
+    .qr-shell {
+      margin: 14px auto 0;
+      width: 146px;
+      height: 146px;
+      padding: 12px;
+      border-radius: 18px;
+      background: white;
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+
+    .qr {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background:
+        linear-gradient(90deg, #111 10%, transparent 10% 20%, #111 20% 30%, transparent 30% 40%, #111 40% 50%, transparent 50% 60%, #111 60% 70%, transparent 70% 80%, #111 80% 90%, transparent 90%),
+        linear-gradient(#111 10%, transparent 10% 20%, #111 20% 30%, transparent 30% 40%, #111 40% 50%, transparent 50% 60%, #111 60% 70%, transparent 70% 80%, #111 80% 90%, transparent 90%);
+      background-blend-mode: multiply;
+      background-size: 34px 34px;
+      image-rendering: pixelated;
+    }
+
+    .qr::before,
+    .qr::after,
+    .qr span {
+      content: "";
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border: 7px solid #111;
+      background: white;
+      box-shadow: inset 0 0 0 6px #111;
+    }
+
+    .qr::before {
+      left: 0;
+      top: 0;
+    }
+
+    .qr::after {
+      right: 0;
+      top: 0;
+    }
+
+    .qr span {
+      left: 0;
+      bottom: 0;
+    }
+
+    .helper {
+      margin: 10px auto 0;
+      max-width: 178px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .button-stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .primary-button,
+    .secondary-button {
+      min-height: var(--button-primary-h);
+      border: 0;
+      border-radius: var(--radius-button);
+      cursor: pointer;
+      font-weight: var(--weight-semibold);
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .primary-button {
+      color: white;
+      background: linear-gradient(180deg, #2aca4e, var(--green));
+      box-shadow: 0 5px 14px rgba(22, 35, 32, 0.12);
+    }
+
+    .secondary-button {
+      color: #1c2826;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .home-app {
+      padding-top: 66px;
+      padding-bottom: 104px;
+    }
+
+    .home-header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+    }
+
+    .home-header h2 {
+      margin: 0;
+      font-size: 32px;
+      line-height: 1;
+      font-weight: var(--weight-bold);
+    }
+
+    .home-copy {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: var(--type-label);
+      line-height: 1.35;
+    }
+
+    .settings-button {
+      width: var(--tap-min);
+      height: var(--tap-min);
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 3px 10px rgba(22, 35, 32, 0.08);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .settings-button::before,
+    .settings-button::after {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      height: 2px;
+      border-radius: 2px;
+      background: #263633;
+    }
+
+    .settings-button::before {
+      top: 17px;
+      box-shadow: 0 8px 0 #263633;
+    }
+
+    .settings-button::after {
+      top: 16px;
+      left: 24px;
+      right: 13px;
+      background: var(--green);
+      box-shadow: -12px 8px 0 var(--green);
+    }
+
+    .orb-field {
+      position: relative;
+      display: grid;
+      place-items: center;
+      margin: 14px 0 9px;
+      height: 78px;
+    }
+
+    .orb-field::before {
+      content: "";
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(35, 184, 68, 0.18), rgba(35, 184, 68, 0) 62%),
+        repeating-radial-gradient(circle, rgba(20, 131, 49, 0.14) 0 1px, transparent 1px 4px);
+      filter: blur(0.1px);
+    }
+
+    .prompt {
+      margin: 0 0 9px;
+      color: #4c5a57;
+      text-align: center;
+      font-size: var(--type-title);
+      line-height: 1.25;
+    }
+
+    .prompt strong {
+      color: #14201e;
+      font-weight: var(--weight-bold);
+    }
+
+    .voice-panel {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 9px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .voice-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--green-dark);
+      font-size: var(--type-caption);
+      font-weight: var(--weight-semibold);
+    }
+
+    .state-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(35, 184, 68, 0.1);
+    }
+
+    .voice-line {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 8px;
+      align-items: start;
+      color: #273330;
+      font-size: var(--type-caption);
+      line-height: 1.25;
+    }
+
+    .voice-line span {
+      color: var(--faint);
+      font-weight: var(--weight-semibold);
+    }
+
+    .voice-line p {
+      margin: 0;
+    }
+
+    .voice-line.agent p {
+      color: #14201e;
+      font-weight: var(--weight-semibold);
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .quick-card {
+      min-height: 62px;
+      display: grid;
+      place-items: center;
+      gap: 4px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      background: rgba(255, 255, 255, 0.76);
+      color: #0f1817;
+      font-size: var(--type-body);
+      font-weight: var(--weight-semibold);
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .quick-card.is-active {
+      border-color: rgba(35, 184, 68, 0.4);
+      background: var(--green-soft);
+      color: var(--green-dark);
+    }
+
+    .quick-glyph {
+      width: 24px;
+      height: 24px;
+      position: relative;
+    }
+
+    .glyph-camera::before {
+      content: "";
+      position: absolute;
+      inset: 7px 3px 5px;
+      border: 2px solid currentColor;
+      border-radius: 5px;
+    }
+
+    .glyph-camera::after {
+      content: "";
+      position: absolute;
+      left: 11px;
+      top: 12px;
+      width: 7px;
+      height: 7px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+    }
+
+    .glyph-share::before {
+      content: "";
+      position: absolute;
+      left: 7px;
+      top: 11px;
+      width: 14px;
+      height: 11px;
+      border: 2px solid currentColor;
+      border-top: 0;
+      border-radius: 3px;
+    }
+
+    .glyph-share::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      top: 4px;
+      width: 8px;
+      height: 8px;
+      border-top: 2px solid currentColor;
+      border-right: 2px solid currentColor;
+      transform: rotate(-45deg);
+      box-shadow: -4px 5px 0 -3px currentColor;
+    }
+
+    .glyph-recall::before,
+    .glyph-recall::after {
+      content: "";
+      position: absolute;
+      left: 5px;
+      right: 5px;
+      height: 8px;
+      border: 2px solid currentColor;
+      border-radius: 2px;
+    }
+
+    .glyph-recall::before {
+      top: 5px;
+    }
+
+    .glyph-recall::after {
+      bottom: 5px;
+    }
+
+    .glyph-context::before {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+    }
+
+    .glyph-context::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      top: 3px;
+      width: 4px;
+      height: 22px;
+      border-radius: 4px;
+      background: currentColor;
+      transform: rotate(40deg);
+    }
+
+    .mic-dock {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 30px;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+    }
+
+    .mic-button {
+      width: 70px;
+      height: 70px;
+      border: 6px solid rgba(255, 255, 255, 0.72);
+      border-radius: 50%;
+      color: white;
+      background: linear-gradient(180deg, #2dce51, var(--green));
+      box-shadow: 0 7px 18px rgba(22, 35, 32, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.42);
+      cursor: pointer;
+      pointer-events: auto;
+      position: relative;
+      transition: transform 170ms ease, box-shadow 170ms ease;
+    }
+
+    .mic-button::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 19px;
+      width: 13px;
+      height: 23px;
+      transform: translateX(-50%);
+      border: 3px solid white;
+      border-radius: 999px;
+    }
+
+    .mic-button::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 43px;
+      width: 24px;
+      height: 14px;
+      transform: translateX(-50%);
+      border: 3px solid white;
+      border-top: 0;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 10px 0 -7px white;
+    }
+
+    .mic-button.is-listening {
+      box-shadow: 0 7px 18px rgba(22, 35, 32, 0.16), 0 0 0 10px rgba(16, 24, 23, 0.06);
+    }
+
+    .mic-caption {
+      margin-top: 6px;
+      min-height: 16px;
+      color: var(--green-dark);
+      font-size: var(--type-caption);
+      font-weight: var(--weight-semibold);
+    }
+
+    .small-dock {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 34px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .dock-button {
+      width: var(--icon-button);
+      height: var(--icon-button);
+      border: 0;
+      border-radius: 50%;
+      color: #17211f;
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: 0 3px 10px rgba(22, 35, 32, 0.08);
+      pointer-events: auto;
+      position: relative;
+    }
+
+    .dock-button::after {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border-radius: 50%;
+    }
+
+    .inbox-app {
+      padding-left: 15px;
+      padding-right: 15px;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .inbox-app::-webkit-scrollbar {
+      display: none;
+    }
+
+    .inbox-list {
+      display: grid;
+      gap: 6px;
+      padding-bottom: 18px;
+    }
+
+    .inbox-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin: -2px 1px 10px;
+      color: var(--muted);
+      font-size: var(--type-caption);
+      font-weight: var(--weight-semibold);
+    }
+
+    .inbox-summary span:last-child {
+      color: var(--green-dark);
+    }
+
+    .inbox-item {
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: rgba(255, 255, 255, 0.82);
+      transition: opacity 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .inbox-item.is-remembered {
+      border-color: rgba(35, 184, 68, 0.34);
+      background: rgba(236, 252, 241, 0.88);
+    }
+
+    .inbox-item.is-forgotten {
+      opacity: 0.58;
+      background: rgba(255, 255, 255, 0.58);
+    }
+
+    .inbox-main {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .source-thumb {
+      width: 48px;
+      height: 48px;
+      overflow: hidden;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #e8eeeb;
+    }
+
+    .thumb-article {
+      align-content: start;
+      padding: 8px 6px;
+      gap: 4px;
+      background: #f8f9f8;
+    }
+
+    .thumb-article span {
+      display: block;
+      height: 5px;
+      border-radius: 999px;
+      background: #111918;
+    }
+
+    .thumb-article span:nth-child(1) {
+      width: 32px;
+      height: 8px;
+    }
+
+    .thumb-article span:nth-child(2) {
+      width: 36px;
+      background: #7f8a87;
+    }
+
+    .thumb-article span:nth-child(3) {
+      width: 26px;
+      background: var(--green);
+    }
+
+    .thumb-photo {
+      background-image: var(--mountain);
+      background-size: cover;
+      background-position: center;
+    }
+
+    .thumb-receipt {
+      padding: 8px 7px;
+      background: #fff;
+      align-content: start;
+      gap: 5px;
+    }
+
+    .thumb-receipt span {
+      display: block;
+      height: 4px;
+      border-radius: 99px;
+      background: #2d3432;
+      opacity: 0.6;
+    }
+
+    .thumb-note {
+      padding: 7px;
+      align-content: start;
+      gap: 5px;
+      background: linear-gradient(145deg, #fbfbfb, #e9efec);
+    }
+
+    .thumb-note span {
+      display: block;
+      height: 6px;
+      border-radius: 99px;
+      background: #0e1715;
+      opacity: 0.76;
+    }
+
+    .item-title {
+      margin: 0;
+      color: #111918;
+      font-size: var(--type-label);
+      line-height: 1.2;
+      font-weight: var(--weight-semibold);
+    }
+
+    .item-meta,
+    .item-summary {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: var(--type-caption);
+      line-height: 1.24;
+    }
+
+    .item-summary {
+      color: #3a4643;
+    }
+
+    .item-status {
+      width: fit-content;
+      display: inline-flex;
+      align-items: center;
+      min-height: 18px;
+      margin-top: 4px;
+      padding: 0 7px;
+      border: 1px solid rgba(16, 24, 23, 0.08);
+      border-radius: 999px;
+      color: #596662;
+      background: rgba(255, 255, 255, 0.62);
+      font-size: var(--type-micro);
+      font-weight: var(--weight-semibold);
+    }
+
+    .inbox-item.is-remembered .item-status {
+      border-color: rgba(35, 184, 68, 0.26);
+      color: var(--green-dark);
+      background: rgba(35, 184, 68, 0.12);
+    }
+
+    .inbox-item.is-forgotten .item-status {
+      color: var(--red);
+      background: rgba(219, 59, 53, 0.08);
+    }
+
+    .item-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      margin-top: 6px;
+      padding-top: 5px;
+      border-top: 1px solid var(--line);
+    }
+
+    .action {
+      min-height: var(--action-button-h);
+      border: 0;
+      border-radius: 9px;
+      color: #172220;
+      background: transparent;
+      cursor: pointer;
+      font-size: var(--type-micro);
+      font-weight: var(--weight-semibold);
+      position: relative;
+    }
+
+    .action::after {
+      content: "";
+      position: absolute;
+      inset: -7px -2px;
+      border-radius: 10px;
+    }
+
+    .action:hover,
+    .action.is-active {
+      background: var(--green-soft);
+      color: var(--green-dark);
+    }
+
+    .action[aria-pressed="true"] {
+      background: var(--green-soft);
+      color: var(--green-dark);
+    }
+
+    .image-card {
+      position: relative;
+      height: 262px;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #d8d1c3;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36), 0 16px 34px rgba(37, 35, 29, 0.14);
+    }
+
+    .image-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(74, 58, 36, 0.28), transparent 42%),
+        radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.4), transparent 18%),
+        var(--photo);
+      background-size: cover;
+      background-position: center 40%;
+      filter: saturate(0.92);
+      transform: scale(1.04);
+    }
+
+    .mini-phone {
+      position: absolute;
+      left: 48px;
+      top: 24px;
+      width: 128px;
+      height: 214px;
+      padding: 7px;
+      border-radius: 25px;
+      background: #111;
+      transform: rotate(-8deg);
+      box-shadow: 0 18px 35px rgba(0, 0, 0, 0.24);
+    }
+
+    .mini-screen {
+      height: 100%;
+      border-radius: 18px;
+      padding: 18px 12px 12px;
+      background: #f8faf9;
+    }
+
+    .mini-title {
+      height: 7px;
+      width: 62px;
+      border-radius: 99px;
+      background: #1c2926;
+      margin-bottom: 18px;
+    }
+
+    .mini-number {
+      font-size: 21px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .mini-bars {
+      height: 92px;
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      padding: 4px 0;
+    }
+
+    .mini-bars i {
+      width: 13px;
+      border-radius: 4px 4px 0 0;
+      background: linear-gradient(180deg, #70d99b, #27a64a);
+    }
+
+    .conversation-bubble {
+      position: relative;
+      margin: -30px 14px 18px;
+      padding: 14px 14px 14px 45px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 16px 34px rgba(22, 35, 32, 0.13);
+      font-size: 13px;
+      line-height: 1.27;
+      z-index: 2;
+    }
+
+    .wave {
+      position: absolute;
+      left: 14px;
+      top: 17px;
+      width: 22px;
+      height: 20px;
+      background:
+        linear-gradient(var(--green), var(--green)) 2px 8px / 2px 6px no-repeat,
+        linear-gradient(var(--green), var(--green)) 7px 4px / 2px 14px no-repeat,
+        linear-gradient(var(--green), var(--green)) 12px 1px / 2px 20px no-repeat,
+        linear-gradient(var(--green), var(--green)) 17px 5px / 2px 12px no-repeat;
+      border-radius: 5px;
+    }
+
+    .suggestion-label {
+      margin: 0 0 9px;
+      font-size: var(--type-caption);
+      font-weight: var(--weight-semibold);
+      color: #2b3835;
+    }
+
+    .suggestion-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .suggestion {
+      min-height: 54px;
+      display: grid;
+      align-items: center;
+      justify-items: start;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.72);
+      color: #14201e;
+      font-size: var(--type-label);
+      font-weight: var(--weight-semibold);
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .suggestion strong {
+      color: var(--green-dark);
+      font-weight: var(--weight-bold);
+    }
+
+    .suggestion.is-active {
+      border-color: rgba(35, 184, 68, 0.42);
+      background: var(--green-soft);
+    }
+
+    .context-sheet {
+      margin-top: 0;
+      padding: 12px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 3px 12px rgba(22, 35, 32, 0.08);
+    }
+
+    .sheet-top {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 9px;
+    }
+
+    .sheet-top h2 {
+      margin: 0;
+      font-size: var(--type-title);
+      line-height: 1.12;
+      font-weight: var(--weight-bold);
+    }
+
+    .close {
+      width: var(--icon-button-compact);
+      height: var(--icon-button-compact);
+      border: 0;
+      border-radius: 50%;
+      background: #eef2f1;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      position: relative;
+    }
+
+    .context-list {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .context-row {
+      width: 100%;
+      min-height: 45px;
+      display: grid;
+      grid-template-columns: 33px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      color: #14201e;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .context-row:last-child {
+      border-bottom: 0;
+    }
+
+    .context-icon,
+    .choice-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      color: white;
+      font-size: 12px;
+      font-weight: var(--weight-bold);
+      position: relative;
+    }
+
+    .context-icon,
+    .choice-icon {
+      font-size: 0;
+    }
+
+    .context-icon.time {
+      background: #1b2422;
+    }
+
+    .context-icon.source {
+      background: var(--blue);
+    }
+
+    .context-icon.place {
+      background: #52615d;
+    }
+
+    .context-icon.power {
+      background: var(--green);
+    }
+
+    .context-icon.time::before {
+      content: "";
+      width: 15px;
+      height: 15px;
+      border: 2px solid white;
+      border-radius: 50%;
+    }
+
+    .context-icon.time::after {
+      content: "";
+      position: absolute;
+      left: 14px;
+      top: 8px;
+      width: 2px;
+      height: 8px;
+      border-radius: 2px;
+      background: white;
+      box-shadow: 4px 7px 0 -1px white;
+      transform-origin: bottom;
+    }
+
+    .context-icon.source::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      border: 2px solid white;
+      border-radius: 50%;
+    }
+
+    .context-icon.source::after {
+      content: "";
+      position: absolute;
+      left: 13px;
+      top: 7px;
+      width: 5px;
+      height: 15px;
+      border-radius: 99px;
+      background: white;
+      transform: rotate(34deg);
+    }
+
+    .context-icon.place::before {
+      content: "";
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-bottom: 18px solid white;
+      transform: rotate(42deg);
+    }
+
+    .context-icon.power::before {
+      content: "";
+      width: 17px;
+      height: 9px;
+      border: 2px solid white;
+      border-radius: 3px;
+    }
+
+    .context-icon.power::after {
+      content: "";
+      position: absolute;
+      right: 5px;
+      top: 13px;
+      width: 2px;
+      height: 5px;
+      border-radius: 2px;
+      background: white;
+    }
+
+    .context-label {
+      display: block;
+      font-size: var(--type-body);
+      font-weight: var(--weight-semibold);
+    }
+
+    .context-detail {
+      display: block;
+      margin-top: 1px;
+      color: var(--muted);
+      font-size: var(--type-micro);
+      line-height: 1.2;
+      font-weight: var(--weight-medium);
+    }
+
+    .allowed {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-right: 8px;
+      color: var(--green-dark);
+      font-size: var(--type-micro);
+      font-weight: var(--weight-semibold);
+    }
+
+    .context-row.is-off .allowed {
+      color: var(--faint);
+    }
+
+    .context-row.is-off .context-detail {
+      color: var(--faint);
+    }
+
+    .snapshot-note {
+      margin: 7px 2px 0;
+      color: var(--muted);
+      font-size: var(--type-micro);
+      line-height: 1.28;
+    }
+
+    .recall-section {
+      margin-top: 10px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: var(--type-title);
+      line-height: 1.1;
+      font-weight: var(--weight-bold);
+    }
+
+    .section-copy {
+      margin: 5px 0 8px;
+      color: var(--muted);
+      font-size: var(--type-label);
+      line-height: 1.35;
+    }
+
+    .recall-list {
+      display: grid;
+      gap: 5px;
+    }
+
+    .recall-choice {
+      min-height: 45px;
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      padding: 6px 8px;
+      background: rgba(255, 255, 255, 0.84);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .recall-choice.is-selected {
+      border-color: rgba(35, 184, 68, 0.42);
+      background: var(--green-soft);
+    }
+
+    .recall-preview {
+      margin-top: 7px;
+      padding: 7px 9px;
+      border: 1px solid rgba(16, 24, 23, 0.08);
+      border-radius: 13px;
+      color: #36433f;
+      background: rgba(255, 255, 255, 0.64);
+      font-size: var(--type-micro);
+      line-height: 1.3;
+      font-weight: var(--weight-medium);
+    }
+
+    .choice-icon.remember {
+      background: var(--green);
+    }
+
+    .choice-icon.once {
+      background: var(--amber);
+    }
+
+    .choice-icon.forget {
+      background: var(--red);
+    }
+
+    .choice-icon.remember::before {
+      content: "";
+      width: 15px;
+      height: 17px;
+      border: 2px solid white;
+      border-radius: 4px;
+    }
+
+    .choice-icon.remember::after {
+      content: "";
+      position: absolute;
+      left: 11px;
+      top: 13px;
+      width: 8px;
+      height: 4px;
+      border-left: 2px solid white;
+      border-bottom: 2px solid white;
+      transform: rotate(-45deg);
+    }
+
+    .choice-icon.once::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      border: 2px solid white;
+      border-radius: 50%;
+    }
+
+    .choice-icon.once::after {
+      content: "";
+      position: absolute;
+      left: 14px;
+      top: 8px;
+      width: 2px;
+      height: 9px;
+      border-radius: 2px;
+      background: white;
+      box-shadow: 4px 7px 0 -1px white;
+    }
+
+    .choice-icon.forget::before {
+      content: "";
+      width: 15px;
+      height: 16px;
+      border: 2px solid white;
+      border-top: 0;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .choice-icon.forget::after {
+      content: "";
+      position: absolute;
+      left: 9px;
+      top: 8px;
+      width: 13px;
+      height: 2px;
+      border-radius: 2px;
+      background: white;
+      box-shadow: 3px -3px 0 -1px white;
+    }
+
+    .choice-copy strong {
+      display: block;
+      color: #13201e;
+      font-size: var(--type-label);
+      line-height: 1.2;
+    }
+
+    .choice-copy span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: var(--type-micro);
+      line-height: 1.2;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      z-index: 100;
+      min-width: 230px;
+      transform: translate(-50%, 18px);
+      border: 1px solid rgba(255, 255, 255, 0.38);
+      border-radius: 999px;
+      padding: 11px 16px;
+      color: white;
+      background: rgba(12, 18, 17, 0.86);
+      box-shadow: 0 6px 18px rgba(12, 18, 17, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      text-align: center;
+      font-size: var(--type-body);
+      font-weight: var(--weight-semibold);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .phone {
+        transition: transform 240ms ease, box-shadow 240ms ease;
+      }
+
+      .phone-wrap:hover .phone {
+        transform: translateY(-4px);
+        box-shadow: 0 28px 68px rgba(29, 43, 40, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+      }
+
+      .mic-button.is-listening {
+        animation: listenPulse 1.6s ease-in-out infinite;
+      }
+
+      @keyframes listenPulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+
+        50% {
+          transform: scale(1.045);
+        }
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 1ms !important;
+        scroll-behavior: auto !important;
+        transition-duration: 1ms !important;
+      }
+    }
+
+    @media (max-width: 1370px) {
+      .board {
+        grid-template-columns: repeat(3, minmax(256px, var(--phone-w)));
+      }
+    }
+
+    @media (max-width: 930px) {
+      .topbar {
+        align-items: start;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .board {
+        grid-template-columns: repeat(2, minmax(256px, var(--phone-w)));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .page {
+        width: 100%;
+        padding: 12px 12px 28px;
+      }
+
+      .topbar {
+        align-items: stretch;
+      }
+
+      .title-block h1 {
+        font-size: 25px;
+      }
+
+      .meta-strip {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: min(100%, 250px);
+      }
+
+      .meta-pill {
+        justify-content: center;
+        padding: 0 8px;
+      }
+
+      .flow-tabs {
+        position: sticky;
+        top: 8px;
+        z-index: 80;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        margin: 2px -12px 14px;
+        padding: 0 12px 4px;
+        scrollbar-width: none;
+      }
+
+      .flow-tabs::-webkit-scrollbar {
+        display: none;
+      }
+
+      .flow-tab {
+        flex: 0 0 auto;
+        background: rgba(255, 255, 255, 0.82);
+      }
+
+      .flow-tab[data-flow-target="all"] {
+        display: none;
+      }
+
+      .board {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        grid-template-columns: 1fr;
+        gap: 18px;
+        width: 100vw;
+        max-width: 100vw;
+        margin-left: calc(50% - 50vw);
+        justify-content: center;
+      }
+
+      .board:not(.is-filtered) .phone-wrap {
+        display: none;
+      }
+
+      .board:not(.is-filtered) .phone-wrap.is-selected {
+        display: grid;
+      }
+
+      .phone-wrap {
+        width: var(--phone-mobile-w);
+        justify-items: center;
+        transform: translateX(var(--phone-mobile-offset));
+      }
+
+      .phone {
+        width: 100%;
+        height: 619px;
+      }
+
+      .title-block p {
+        font-size: 13px;
+      }
+
+      .reference-link {
+        width: fit-content;
+        max-width: 100%;
+      }
+
+      .reference-actions {
+        justify-content: flex-start;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="title-block">
+        <span class="prototype-kicker">Interactive UI prototype</span>
+        <h1>Kaka Pocket Agents</h1>
+        <p>Voice-first local-agent UI for share intake, image conversation, context consent, and explicit Recall.</p>
+        <div class="meta-strip" aria-label="Prototype scope">
+          <span class="meta-pill">Voice-first</span>
+          <span class="meta-pill">Share intake</span>
+          <span class="meta-pill">Task-scoped context</span>
+          <span class="meta-pill">Explicit Recall</span>
+        </div>
+      </div>
+      <div class="reference-actions" aria-label="Related UI prototypes">
+        <a class="reference-link" href="./kaka-pocket-agents-presentation.html">Presentation visual</a>
+        <a class="reference-link" href="./kaka-pocket-agents-app-handoff.html">App handoff prototype</a>
+        <a class="reference-link" href="./kaka-master-shot-ui-prototype.html">Existing Master Shot prototype</a>
+      </div>
+    </header>
+
+    <nav class="flow-tabs" aria-label="Prototype flow selector">
+      <button class="flow-tab is-active" type="button" data-flow-target="all" aria-pressed="true">All flows</button>
+      <button class="flow-tab" type="button" data-flow-target="connect" aria-pressed="false">Connect</button>
+      <button class="flow-tab" type="button" data-flow-target="home" aria-pressed="false">Voice</button>
+      <button class="flow-tab" type="button" data-flow-target="inbox" aria-pressed="false">Inbox</button>
+      <button class="flow-tab" type="button" data-flow-target="image" aria-pressed="false">Image</button>
+      <button class="flow-tab" type="button" data-flow-target="context" aria-pressed="false">Context</button>
+    </nav>
+
+    <section class="board" aria-label="Kaka Pocket Agents main interface prototypes">
+      <article class="phone-wrap" data-flow="connect">
+        <p class="phone-name">Connect Runtime</p>
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="status-icons"><span class="signal-icon"></span><span class="bar-icon"></span></span></div>
+            <div class="island"></div>
+            <div class="app">
+              <button class="nav-button" aria-label="Pairing help">i</button>
+              <div class="spacer"></div>
+              <h2 class="screen-title">Connect<br>to Runtime</h2>
+              <p class="screen-subtitle">Kaka runs locally with your trusted Pocket Agent runtime.</p>
+              <div class="runtime-card panel">
+                <div class="runtime-row">
+                  <div class="mac-icon" aria-hidden="true"></div>
+                  <div>
+                    <p class="runtime-title">Hermes on MacBook</p>
+                    <div class="trusted"><span class="check-dot">✓</span>Local and trusted</div>
+                  </div>
+                </div>
+                <div class="qr-shell">
+                  <div class="qr" aria-label="Pairing QR placeholder"><span></span></div>
+                </div>
+                <p class="helper">Scan this code with Kaka Desktop to pair securely.</p>
+              </div>
+              <div class="button-stack">
+                <button class="primary-button" data-toast="Bridge start request queued">Start bridge</button>
+                <button class="secondary-button" data-toast="Ready to scan runtime QR">Scan QR</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="phone-wrap is-selected" data-flow="home">
+        <p class="phone-name">Voice Home</p>
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="status-icons"><span class="signal-icon"></span><span class="bar-icon"></span></span></div>
+            <div class="island"></div>
+            <div class="app home-app">
+              <div class="home-header">
+                <div>
+                  <h2>Kaka</h2>
+                  <p class="home-copy">Your local Pocket Agent is ready.</p>
+                </div>
+                <button class="settings-button" aria-label="Open controls"></button>
+              </div>
+              <div class="inline-chip">Hermes on MacBook</div>
+              <div class="orb-field" aria-hidden="true"></div>
+              <p class="prompt" id="voicePrompt">What should I <strong>help with?</strong></p>
+              <div class="voice-panel" aria-live="polite">
+                <div class="voice-state"><span class="state-dot"></span><strong id="voiceState">Ready for push-to-talk</strong></div>
+                <div class="voice-line"><span>You</span><p id="voiceUserText">Ask about the shared article.</p></div>
+                <div class="voice-line agent"><span>Kaka</span><p id="voiceAgentText">I can summarize, save, or use it once.</p></div>
+              </div>
+              <div class="quick-grid">
+                <button class="quick-card" data-toast="Camera intake selected" aria-pressed="false"><span class="quick-glyph glyph-camera"></span>Camera</button>
+                <button class="quick-card" data-toast="Share Inbox opened" aria-pressed="false"><span class="quick-glyph glyph-share"></span>Share Inbox</button>
+                <button class="quick-card" data-toast="Recall search opened" aria-pressed="false"><span class="quick-glyph glyph-recall"></span>Recall</button>
+                <button class="quick-card" data-toast="Context preview opened" aria-pressed="false"><span class="quick-glyph glyph-context"></span>Context</button>
+              </div>
+              <div class="spacer"></div>
+              <div class="small-dock">
+                <button class="dock-button" aria-label="Open keyboard">⌘</button>
+                <button class="dock-button" aria-label="More actions">...</button>
+              </div>
+              <div class="mic-dock">
+                <button class="mic-button" id="homeMic" aria-label="Push to talk"></button>
+                <div class="mic-caption" id="homeMicCaption"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="phone-wrap" data-flow="inbox">
+        <p class="phone-name">Share Inbox</p>
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="status-icons"><span class="signal-icon"></span><span class="bar-icon"></span></span></div>
+            <div class="island"></div>
+            <div class="app inbox-app">
+              <div class="nav">
+                <button class="nav-button" aria-label="Back">‹</button>
+                <div class="nav-title">Share to Kaka Inbox</div>
+                <button class="nav-button" aria-label="More">...</button>
+              </div>
+              <div class="inbox-summary">
+                <span>3 user-shared items</span>
+                <span>Use once by default</span>
+              </div>
+              <div class="inbox-list">
+                <div class="inbox-item" data-item-title="Kinfolk - The Design Conference" data-summary="Summary ready: design systems, quiet interfaces, and notes worth saving for the launch review.">
+                  <div class="inbox-main">
+                    <div class="source-thumb thumb-article" aria-hidden="true"><span></span><span></span><span></span></div>
+                    <div>
+                      <p class="item-title">Kinfolk - The Design Conference</p>
+                      <p class="item-meta">Article · Safari</p>
+                      <p class="item-summary">A calm design essay with notes worth saving.</p>
+                      <span class="item-status" aria-live="polite">Use once</span>
+                    </div>
+                  </div>
+                  <div class="item-actions">
+                    <button class="action" data-inbox-action="summary" data-toast="Summary requested" aria-pressed="false">Summarize</button>
+                    <button class="action" data-inbox-action="ask" data-toast="Question mode opened" aria-pressed="false">Ask</button>
+                    <button class="action" data-inbox-action="remember" data-toast="Saved to Recall" aria-pressed="false">Remember</button>
+                    <button class="action" data-inbox-action="forget" data-toast="Removed from inbox" aria-pressed="false">Forget</button>
+                  </div>
+                </div>
+
+                <div class="inbox-item" data-item-title="Hiking in Big Sur" data-summary="Photo summary ready: coastal trail, golden-hour light, and a candidate image for enhancement.">
+                  <div class="inbox-main">
+                    <div class="source-thumb thumb-photo" aria-hidden="true"></div>
+                    <div>
+                      <p class="item-title">Hiking in Big Sur</p>
+                      <p class="item-meta">Photo · 12 MP · Yesterday</p>
+                      <p class="item-summary">Landscape photo ready for image intake.</p>
+                      <span class="item-status" aria-live="polite">Use once</span>
+                    </div>
+                  </div>
+                  <div class="item-actions">
+                    <button class="action" data-inbox-action="summary" data-toast="Photo summary queued" aria-pressed="false">Summarize</button>
+                    <button class="action" data-inbox-action="ask" data-toast="Image question ready" aria-pressed="false">Ask</button>
+                    <button class="action" data-inbox-action="remember" data-toast="Photo remembered" aria-pressed="false">Remember</button>
+                    <button class="action" data-inbox-action="forget" data-toast="Photo forgotten" aria-pressed="false">Forget</button>
+                  </div>
+                </div>
+
+                <div class="inbox-item" data-item-title="Meeting Notes" data-summary="Notes summary ready: launch timeline, next sync, and two follow-up decisions for the runtime.">
+                  <div class="inbox-main">
+                    <div class="source-thumb thumb-note" aria-hidden="true"><span></span><span></span><span></span></div>
+                    <div>
+                      <p class="item-title">Meeting Notes</p>
+                      <p class="item-meta">Clipboard · Today</p>
+                      <p class="item-summary">Align on launch timeline and next sync.</p>
+                      <span class="item-status" aria-live="polite">Use once</span>
+                    </div>
+                  </div>
+                  <div class="item-actions">
+                    <button class="action" data-inbox-action="summary" data-toast="Notes summarized" aria-pressed="false">Summarize</button>
+                    <button class="action" data-inbox-action="ask" data-toast="Ask about notes" aria-pressed="false">Ask</button>
+                    <button class="action" data-inbox-action="remember" data-toast="Notes remembered" aria-pressed="false">Remember</button>
+                    <button class="action" data-inbox-action="forget" data-toast="Notes forgotten" aria-pressed="false">Forget</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="phone-wrap" data-flow="image">
+        <p class="phone-name">Image Intake</p>
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="status-icons"><span class="signal-icon"></span><span class="bar-icon"></span></span></div>
+            <div class="island"></div>
+            <div class="app">
+              <div class="nav">
+                <button class="nav-button" aria-label="Back">‹</button>
+                <div class="nav-title">Image</div>
+                <button class="nav-button" aria-label="More">...</button>
+              </div>
+              <div class="image-card" aria-label="Shared screenshot preview">
+                <div class="mini-phone">
+                  <div class="mini-screen">
+                    <div class="mini-title"></div>
+                    <div class="mini-number">$3,287.52</div>
+                    <div class="mini-bars"><i style="height: 24px"></i><i style="height: 42px"></i><i style="height: 62px"></i><i style="height: 74px"></i></div>
+                  </div>
+                </div>
+              </div>
+              <div class="conversation-bubble">
+                <span class="wave" aria-hidden="true"></span>
+                What can I do with this screenshot?
+              </div>
+              <p class="suggestion-label">Detected suggestions</p>
+              <div class="suggestion-grid">
+                <button class="suggestion" data-toast="OCR extraction selected" aria-pressed="false"><strong>Extract text</strong></button>
+                <button class="suggestion" data-toast="Translation selected" aria-pressed="false"><strong>Translate</strong></button>
+                <button class="suggestion" data-toast="Identification selected" aria-pressed="false"><strong>Identify</strong></button>
+                <button class="suggestion" data-toast="Photo enhancement selected" aria-pressed="false"><strong>Enhance photo</strong></button>
+              </div>
+              <div class="small-dock">
+                <button class="dock-button" aria-label="Open keyboard">⌘</button>
+                <button class="dock-button" aria-label="More actions">...</button>
+              </div>
+              <div class="mic-dock">
+                <button class="mic-button" id="imageMic" aria-label="Push to talk for image"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="phone-wrap" data-flow="context">
+        <p class="phone-name">Context + Recall</p>
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="status-icons"><span class="signal-icon"></span><span class="bar-icon"></span></span></div>
+            <div class="island"></div>
+            <div class="app">
+              <div class="context-sheet">
+                <div class="sheet-top">
+                  <div>
+                    <h2>Context Snapshot</h2>
+                    <p class="screen-subtitle">Task-scoped context</p>
+                  </div>
+                  <button class="close" aria-label="Close">×</button>
+                </div>
+                <div class="context-list">
+                  <button class="context-row" data-context aria-pressed="true">
+                    <span class="context-icon time" aria-hidden="true"></span>
+                    <span><span class="context-label">Time</span><span class="context-detail">Today 21:40 CST</span></span>
+                    <span class="allowed">Allowed <span class="check-dot">✓</span></span>
+                  </button>
+                  <button class="context-row" data-context aria-pressed="true">
+                    <span class="context-icon source" aria-hidden="true"></span>
+                    <span><span class="context-label">Source</span><span class="context-detail">Shared from Safari</span></span>
+                    <span class="allowed">Allowed <span class="check-dot">✓</span></span>
+                  </button>
+                  <button class="context-row" data-context aria-pressed="true">
+                    <span class="context-icon place" aria-hidden="true"></span>
+                    <span><span class="context-label">Coarse location</span><span class="context-detail">City only</span></span>
+                    <span class="allowed">Allowed <span class="check-dot">✓</span></span>
+                  </button>
+                  <button class="context-row" data-context aria-pressed="true">
+                    <span class="context-icon power" aria-hidden="true"></span>
+                    <span><span class="context-label">Battery</span><span class="context-detail">62%, not charging</span></span>
+                    <span class="allowed">Allowed <span class="check-dot">✓</span></span>
+                  </button>
+                </div>
+                <p class="snapshot-note">Snapshot is sent with this task only unless Recall is confirmed.</p>
+              </div>
+
+              <div class="recall-section">
+                <h2 class="section-title">Recall</h2>
+                <p class="section-copy">Choose how Kaka keeps this item.</p>
+                <div class="recall-list" id="recallChoices" role="radiogroup" aria-label="Recall retention choice">
+                  <button class="recall-choice is-selected" role="radio" aria-checked="true" data-recall-preview="Will save summary, extracted text, and provenance in Hermes only." data-toast="Remember selected">
+                    <span class="choice-icon remember" aria-hidden="true"></span>
+                    <span class="choice-copy"><strong>Remember</strong><span>Keep and use across tasks.</span></span>
+                  </button>
+                  <button class="recall-choice" role="radio" aria-checked="false" data-recall-preview="Will process this task, then drop the item from long-term memory." data-toast="Use Once selected">
+                    <span class="choice-icon once" aria-hidden="true"></span>
+                    <span class="choice-copy"><strong>Use Once</strong><span>Use for this task only.</span></span>
+                  </button>
+                  <button class="recall-choice" role="radio" aria-checked="false" data-recall-preview="Will delete the artifact, extracted text, summary, and index entries." data-toast="Forget selected">
+                    <span class="choice-icon forget" aria-hidden="true"></span>
+                    <span class="choice-copy"><strong>Forget</strong><span>Remove from Kaka.</span></span>
+                  </button>
+                </div>
+                <div class="recall-preview" id="recallPreview" aria-live="polite">Will save summary, extracted text, and provenance in Hermes only.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const toast = document.getElementById("toast");
+    let toastTimer = null;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("is-visible");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("is-visible");
+      }, 1500);
+    }
+
+    const board = document.querySelector(".board");
+    const flowTabs = document.querySelectorAll("[data-flow-target]");
+    const mobileFlow = window.matchMedia("(max-width: 620px)");
+
+    function setFlow(target) {
+      const resolvedTarget = target === "all" && mobileFlow.matches ? "home" : target;
+      const filtered = resolvedTarget !== "all";
+
+      board.classList.toggle("is-filtered", filtered);
+      document.querySelectorAll("[data-flow]").forEach((card) => {
+        card.classList.toggle("is-selected", filtered ? card.dataset.flow === resolvedTarget : card.dataset.flow === "home");
+      });
+
+      flowTabs.forEach((tab) => {
+        const active = tab.dataset.flowTarget === resolvedTarget || (!filtered && tab.dataset.flowTarget === "all");
+        tab.classList.toggle("is-active", active);
+        tab.setAttribute("aria-pressed", String(active));
+      });
+    }
+
+    flowTabs.forEach((tab) => {
+      tab.addEventListener("click", () => setFlow(tab.dataset.flowTarget));
+    });
+
+    mobileFlow.addEventListener("change", () => {
+      const active = document.querySelector(".flow-tab.is-active");
+      setFlow(active ? active.dataset.flowTarget : "all");
+    });
+
+    if (mobileFlow.matches) setFlow("home");
+
+    document.querySelectorAll("[data-toast]").forEach((button) => {
+      button.addEventListener("click", () => showToast(button.dataset.toast));
+    });
+
+    function bindSingleSelection(selector) {
+      document.querySelectorAll(selector).forEach((button) => {
+        button.addEventListener("click", () => {
+          const group = button.parentElement;
+          group.querySelectorAll(selector).forEach((item) => {
+            item.classList.remove("is-active");
+            item.setAttribute("aria-pressed", "false");
+          });
+          button.classList.add("is-active");
+          button.setAttribute("aria-pressed", "true");
+        });
+      });
+    }
+
+    bindSingleSelection(".quick-card");
+    bindSingleSelection(".suggestion");
+
+    function bindMic(buttonId, captionId) {
+      const button = document.getElementById(buttonId);
+      const caption = captionId ? document.getElementById(captionId) : null;
+      const voiceState = document.getElementById("voiceState");
+      const voiceUserText = document.getElementById("voiceUserText");
+      const voiceAgentText = document.getElementById("voiceAgentText");
+      if (!button) return;
+      button.addEventListener("click", () => {
+        const listening = button.classList.toggle("is-listening");
+        if (caption) caption.textContent = listening ? "Listening" : "";
+        if (buttonId === "homeMic") {
+          voiceState.textContent = listening ? "Listening and transcribing" : "Ready for confirmation";
+          voiceUserText.textContent = listening ? "Summarize this and keep it use once." : "Summarize this and keep it use once.";
+          voiceAgentText.textContent = listening ? "Capturing audio locally before sending to Hermes." : "Summary can run without saving to Recall.";
+        }
+        showToast(listening ? "Voice capture started" : "Voice capture stopped");
+      });
+    }
+
+    bindMic("homeMic", "homeMicCaption");
+    bindMic("imageMic");
+
+    document.querySelectorAll("[data-inbox-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const item = button.closest(".inbox-item");
+        const action = button.dataset.inboxAction;
+        const summary = item.querySelector(".item-summary");
+        const status = item.querySelector(".item-status");
+        const title = item.dataset.itemTitle;
+
+        item.querySelectorAll("[data-inbox-action]").forEach((actionButton) => {
+          actionButton.classList.remove("is-active");
+          actionButton.setAttribute("aria-pressed", "false");
+        });
+        button.classList.add("is-active");
+        button.setAttribute("aria-pressed", "true");
+        item.classList.remove("is-remembered", "is-forgotten");
+
+        if (action === "summary") {
+          summary.textContent = item.dataset.summary;
+          status.textContent = "Summarized, use once";
+          showToast("Summary expanded");
+        } else if (action === "ask") {
+          summary.textContent = "Voice follow-up is ready. Ask a question before saving anything.";
+          status.textContent = "Voice follow-up";
+          document.getElementById("voiceUserText").textContent = `Ask about ${title}.`;
+          document.getElementById("voiceAgentText").textContent = "I can answer with source and provenance.";
+          showToast("Voice follow-up ready");
+        } else if (action === "remember") {
+          item.classList.add("is-remembered");
+          status.textContent = "Remembered in Recall";
+          showToast("Saved to local Recall");
+        } else if (action === "forget") {
+          item.classList.add("is-forgotten");
+          status.textContent = "Forgotten, undo available";
+          showToast("Removed from Kaka");
+        }
+      });
+    });
+
+    document.querySelectorAll("[data-context]").forEach((row) => {
+      row.addEventListener("click", () => {
+        row.classList.toggle("is-off");
+        const allowed = row.querySelector(".allowed");
+        const isOff = row.classList.contains("is-off");
+        allowed.innerHTML = isOff ? "Off" : "Allowed <span class=\"check-dot\">✓</span>";
+        row.setAttribute("aria-pressed", String(!isOff));
+        showToast(isOff ? "Context field disabled" : "Context field allowed");
+      });
+    });
+
+    document.querySelectorAll(".recall-choice").forEach((choice) => {
+      choice.addEventListener("click", () => {
+        document.querySelectorAll(".recall-choice").forEach((item) => {
+          item.classList.remove("is-selected");
+          item.setAttribute("aria-checked", "false");
+        });
+        choice.classList.add("is-selected");
+        choice.setAttribute("aria-checked", "true");
+        document.getElementById("recallPreview").textContent = choice.dataset.recallPreview;
+      });
+    });
+  </script>
+</body>
+</html>

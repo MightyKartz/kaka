@@ -16,20 +16,29 @@ public final class CaptureFlowViewModel: ObservableObject {
     }
 
     @Published public var selectedIntent: EditIntent
+    @Published public var selectedCameraMode: SmartCameraMode
     @Published public private(set) var state: State
     @Published public private(set) var preparedUpload: PreparedImageUpload?
     @Published public private(set) var originalPreviewAsset: DownloadedAsset?
     @Published public private(set) var completedStatus: TaskStatusResponse?
-    private let submitter: any PhotoEditSubmitting
+    private let photoSubmitter: any PhotoEditSubmitting
+    private let visionSubmitter: any VisionSubmitting
+    private let imageIntakeSubmitter: any ImageIntakeSubmitting
 
     public init(
         selectedIntent: EditIntent = .naturalEnhance,
+        selectedCameraMode: SmartCameraMode = .masterShot,
         state: State = .empty,
-        submitter: any PhotoEditSubmitting = MobileBridgePhotoEditSubmitter()
+        submitter: any PhotoEditSubmitting = MobileBridgePhotoEditSubmitter(),
+        visionSubmitter: any VisionSubmitting = MobileBridgeVisionSubmitter(),
+        imageIntakeSubmitter: any ImageIntakeSubmitting = MobileBridgeImageIntakeSubmitter()
     ) {
         self.selectedIntent = selectedIntent
+        self.selectedCameraMode = selectedCameraMode
         self.state = state
-        self.submitter = submitter
+        self.photoSubmitter = submitter
+        self.visionSubmitter = visionSubmitter
+        self.imageIntakeSubmitter = imageIntakeSubmitter
     }
 
     public func prepareImage(
@@ -144,8 +153,18 @@ public final class CaptureFlowViewModel: ObservableObject {
 
     public func markCompleted(_ status: TaskStatusResponse) {
         completedStatus = status
-        preparedUpload = nil
+        if status.resultType != "image_intake" {
+            preparedUpload = nil
+        }
         state = .completed(taskID: status.taskID)
+    }
+
+    public func resetForNextCapture() {
+        selectedIntent = .naturalEnhance
+        preparedUpload = nil
+        originalPreviewAsset = nil
+        completedStatus = nil
+        state = .empty
     }
 
     public func submitPreparedImage(connection: StoredConnection?) async {
@@ -159,9 +178,56 @@ public final class CaptureFlowViewModel: ObservableObject {
         }
 
         do {
-            let terminalStatus = try await submitter.submit(
+            let terminalStatus: TaskStatusResponse
+            if selectedCameraMode == .masterShot {
+                terminalStatus = try await photoSubmitter.submit(
+                    upload: preparedUpload,
+                    intent: selectedIntent,
+                    connection: connection
+                ) { [weak self] progress in
+                    await self?.apply(progress)
+                }
+            } else {
+                terminalStatus = try await visionSubmitter.submit(
+                    upload: preparedUpload,
+                    mode: selectedCameraMode,
+                    connection: connection
+                ) { [weak self] progress in
+                    await self?.apply(progress)
+                }
+            }
+            completedStatus = terminalStatus
+            if terminalStatus.status == "completed" {
+                state = .completed(taskID: terminalStatus.taskID)
+            } else {
+                state = .failed(message: failureMessage(for: terminalStatus))
+            }
+        } catch MobileBridgeHTTPClient.ClientError.httpStatus(401, _) {
+            state = .failed(message: "The local agent token was rejected. Change runtime and pair again.")
+        } catch ConnectionCheckError.missingPhotoEdit {
+            state = .failed(message: "This local agent runtime is missing the Photo Pack.")
+        } catch ConnectionCheckError.missingVision {
+            state = .failed(message: "This local agent runtime is missing Vision tasks.")
+        } catch let error as URLError where error.isLikelyOffline {
+            state = .failed(message: "Your local agent is offline. Check the network and try again.")
+        } catch {
+            state = .failed(message: selectedCameraMode == .masterShot ? "Could not submit photo edit." : "Could not submit vision task.")
+        }
+    }
+
+    public func submitImageIntake(connection: StoredConnection?) async {
+        guard let connection else {
+            state = .failed(message: "Connect to your local agent before sending a photo.")
+            return
+        }
+        guard let preparedUpload else {
+            state = .failed(message: "Choose a photo before sending it to your local agent.")
+            return
+        }
+
+        do {
+            let terminalStatus = try await imageIntakeSubmitter.submit(
                 upload: preparedUpload,
-                intent: selectedIntent,
                 connection: connection
             ) { [weak self] progress in
                 await self?.apply(progress)
@@ -174,12 +240,12 @@ public final class CaptureFlowViewModel: ObservableObject {
             }
         } catch MobileBridgeHTTPClient.ClientError.httpStatus(401, _) {
             state = .failed(message: "The local agent token was rejected. Change runtime and pair again.")
-        } catch ConnectionCheckError.missingPhotoEdit {
-            state = .failed(message: "This local agent runtime is missing the Photo Pack.")
+        } catch ConnectionCheckError.missingVision {
+            state = .failed(message: "This local agent runtime is missing Vision tasks.")
         } catch let error as URLError where error.isLikelyOffline {
             state = .failed(message: "Your local agent is offline. Check the network and try again.")
         } catch {
-            state = .failed(message: "Could not submit photo edit.")
+            state = .failed(message: "Could not inspect image.")
         }
     }
 
@@ -204,7 +270,17 @@ public final class CaptureFlowViewModel: ObservableObject {
         switch status.failureCode {
         case "provider_failed", "provider_rejected_image":
             return "The photo provider failed. Check local agent provider credentials or logs."
+        case "vision_failed":
+            return "The vision provider failed. Check local agent provider credentials or logs."
+        case "image_intake_failed":
+            return "The image intake provider failed. Check local agent provider credentials or logs."
         default:
+            if status.resultType == "vision" {
+                return "Vision task did not complete."
+            }
+            if status.resultType == "image_intake" {
+                return "Image intake did not complete."
+            }
             return "Photo edit did not complete."
         }
     }

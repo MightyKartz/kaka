@@ -10,7 +10,6 @@ import AppKit
 public struct ResultGalleryView: View {
     @StateObject private var viewModel: ResultGalleryViewModel
     @StateObject private var saveFlow = PhotoSaveFlow()
-    @AppStorage("kaka.interfaceLanguage") private var languageRawValue = AppLanguage.chinese.rawValue
     @State private var comparisonPosition = 0.5
     @State private var shareURL: URL?
     @Environment(\.openURL) private var openURL
@@ -55,7 +54,6 @@ public struct ResultGalleryView: View {
                 VStack(spacing: 14) {
                     beforeAfterComparison(presentation)
                     variantTabs(presentation)
-                    recipePanel(presentation)
                     actionPanel(presentation)
                 }
                 .padding(.horizontal, 14)
@@ -88,7 +86,7 @@ public struct ResultGalleryView: View {
     }
 
     private var language: AppLanguage {
-        AppLanguage(rawValue: languageRawValue) ?? .chinese
+        AppLanguage.resolved(storedValue: nil)
     }
 
     private var presentation: ResultScreenPresentation {
@@ -96,8 +94,6 @@ public struct ResultGalleryView: View {
             comparison: viewModel.comparisonPresentation,
             variants: viewModel.variants,
             selectedVariantID: viewModel.selectedVariantID,
-            recipe: viewModel.recipePresentation,
-            explanation: viewModel.explanation,
             state: viewModel.state,
             saveState: saveFlow.state,
             language: language,
@@ -113,7 +109,7 @@ public struct ResultGalleryView: View {
             ZStack(alignment: .trailing) {
                 ResultImageLayer(
                     title: presentation.beforeLabel,
-                    detail: language == .chinese ? "Source" : "Source photo",
+                    detail: language == .chinese ? "原始照片" : "Source photo",
                     symbol: "photo",
                     asset: viewModel.originalPreviewAsset,
                     fallbackColor: Color(red: 0.18, green: 0.23, blue: 0.24)
@@ -195,46 +191,40 @@ public struct ResultGalleryView: View {
         .background(.white.opacity(0.07), in: Capsule())
     }
 
-    private func recipePanel(_ presentation: ResultScreenPresentation) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(presentation.recipeTitle)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
-
-            if presentation.recipeChips.isEmpty == false {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 86), spacing: 8)], alignment: .leading, spacing: 8) {
-                    ForEach(presentation.recipeChips, id: \.self) { chip in
-                        Text(chip)
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity, minHeight: 34)
-                            .padding(.horizontal, 10)
-                            .background(.white.opacity(0.08), in: Capsule())
-                    }
-                }
-            }
-
-            if let note = presentation.recipeNote {
-                Text(note)
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.64))
-                    .lineLimit(2)
-            }
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(.white.opacity(0.08), lineWidth: 1)
-        )
-    }
-
     private var comparisonHeight: CGFloat {
         #if os(iOS)
-        min(500, max(340, UIScreen.main.bounds.height * 0.43))
+        let width = min(UIScreen.main.bounds.width - 28, 620)
+        let height = width / comparisonAspectRatio
+        return min(max(height, 220), UIScreen.main.bounds.height * 0.62)
         #else
-        500
+        let height = 620 / comparisonAspectRatio
+        return min(max(height, 280), 760)
+        #endif
+    }
+
+    private var comparisonAspectRatio: CGFloat {
+        imageAspectRatio(for: viewModel.originalPreviewAsset)
+            ?? imageAspectRatio(for: viewModel.downloadedAssetForSelectedVariant)
+            ?? 3.0 / 4.0
+    }
+
+    private func imageAspectRatio(for asset: DownloadedAsset?) -> CGFloat? {
+        guard let asset else {
+            return nil
+        }
+
+        #if canImport(UIKit)
+        guard let image = UIImage(data: asset.data), image.size.height > 0 else {
+            return nil
+        }
+        return max(0.1, image.size.width / image.size.height)
+        #elseif canImport(AppKit)
+        guard let image = NSImage(data: asset.data), image.size.height > 0 else {
+            return nil
+        }
+        return max(0.1, image.size.width / image.size.height)
+        #else
+        return nil
         #endif
     }
 
@@ -263,8 +253,6 @@ public struct ResultGalleryView: View {
 
                 shareButton(presentation)
             }
-
-            sharePlatformRow(presentation)
 
             if let statusMessage = presentation.statusMessage {
                 Text(statusMessage)
@@ -312,38 +300,6 @@ public struct ResultGalleryView: View {
         }
     }
 
-    private func sharePlatformRow(_ presentation: ResultScreenPresentation) -> some View {
-        HStack(spacing: 8) {
-            ForEach(presentation.sharePlatformTitles, id: \.self) { title in
-                sharePlatformControl(title)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func sharePlatformControl(_ title: String) -> some View {
-        if let shareURL {
-            if let caption = viewModel.shareCaptionForSelectedVariant {
-                ShareLink(item: shareURL, message: Text(caption)) {
-                    ResultPlatformLabel(title: title, isEnabled: true)
-                }
-                .buttonStyle(.plain)
-            } else {
-                ShareLink(item: shareURL) {
-                    ResultPlatformLabel(title: title, isEnabled: true)
-                }
-                .buttonStyle(.plain)
-            }
-        } else {
-            Button {
-            } label: {
-                ResultPlatformLabel(title: title, isEnabled: false)
-            }
-            .buttonStyle(.plain)
-            .disabled(true)
-        }
-    }
-
     @MainActor
     private func downloadSelectedVariant() async {
         await viewModel.downloadSelectedVariant(connection: activeConnection())
@@ -367,7 +323,10 @@ public struct ResultGalleryView: View {
             shareURL = nil
             return
         }
-        shareURL = try? ResultShareFile.write(asset: asset, variantID: variant.id)
+        shareURL = try? ResultShareFile.write(
+            asset: asset,
+            displayName: ResultShareFile.localizedDisplayName(for: variant.label, language: language)
+        )
     }
 
     private func saveSelectedVariant() {
@@ -518,41 +477,41 @@ private struct ResultActionLabel: View {
     }
 }
 
-private struct ResultPlatformLabel: View {
-    let title: String
-    let isEnabled: Bool
-
-    var body: some View {
-        Text(title)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.white)
-            .lineLimit(1)
-            .minimumScaleFactor(0.72)
-            .frame(maxWidth: .infinity, minHeight: 40)
-            .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(.white.opacity(0.08), lineWidth: 1)
-            )
-            .opacity(isEnabled ? 1 : 0.42)
-    }
-}
-
 private enum ResultShareFile {
-    static func write(asset: DownloadedAsset, variantID: String) throws -> URL {
+    static func write(asset: DownloadedAsset, displayName: String) throws -> URL {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("AgentPocketShares", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 
         let fileURL = directory.appendingPathComponent(
-            "\(safeFileName(from: variantID)).\(fileExtension(for: asset.mimeType))"
+            "\(safeFileName(from: displayName)).\(fileExtension(for: asset.mimeType))"
         )
         try asset.data.write(to: fileURL, options: .atomic)
         return fileURL
     }
 
+    static func localizedDisplayName(for variantLabel: String, language: AppLanguage) -> String {
+        let normalizedLabel = variantLabel.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        switch (normalizedLabel, language) {
+        case ("master", .chinese):
+            return "Kaka-大师成片"
+        case ("social", .chinese):
+            return "Kaka-社交成片"
+        case (_, .chinese):
+            return "Kaka-成片"
+        case ("master", .english):
+            return "Kaka-Master-Result"
+        case ("social", .english):
+            return "Kaka-Social-Result"
+        case (_, .english):
+            return "Kaka-Result"
+        }
+    }
+
     private static func safeFileName(from value: String) -> String {
-        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_"))
+        let allowed = CharacterSet.letters
+            .union(.decimalDigits)
+            .union(CharacterSet(charactersIn: "-_"))
         let scalars = value.unicodeScalars.map { scalar in
             allowed.contains(scalar) ? Character(scalar) : "_"
         }

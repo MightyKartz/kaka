@@ -58,9 +58,8 @@ def test_recipe_local_adapter_renders_master_and_social_variants(tmp_path):
     assert output_paths[0].read_bytes() != source_bytes
     assert output_paths[1].read_bytes() != source_bytes
     assert output_paths[0].read_bytes() != output_paths[1].read_bytes()
-    assert manifest["composition"]["selected_aspect_ratio"] == "4:5"
-    assert manifest["composition"]["crop"]["width"] <= 1
-    assert manifest["composition"]["crop"]["height"] <= 1
+    assert manifest["composition"]["selected_aspect_ratio"] == "original"
+    assert manifest["composition"]["crop"] == {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0}
     assert manifest["qa"]["master_difference_score"] > 0.01
     assert manifest["qa"]["social_difference_score"] > manifest["qa"]["master_difference_score"]
     assert manifest["safety"]["no_generative_pixels"] is True
@@ -85,7 +84,7 @@ def test_recipe_local_adapter_clamps_recipe_values():
     assert clamped["upscale"]["max_scale"] == 3.0
 
 
-def test_recipe_local_adapter_upscales_when_crop_output_is_below_target(tmp_path):
+def test_recipe_local_adapter_preserves_original_dimensions_by_default(tmp_path):
     adapter = load_recipe_adapter()
     input_path = tmp_path / "input.jpg"
     output_dir = tmp_path / "out"
@@ -102,11 +101,11 @@ def test_recipe_local_adapter_upscales_when_crop_output_is_below_target(tmp_path
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     rendered = Image.open(result["variants"][0]["path"])
 
-    assert rendered.size == (192, 240)
-    assert manifest["upscale"]["upscaled"] is True
-    assert manifest["upscale"]["scale"] == 2.0
-    assert manifest["upscale"]["input_size"] == [96, 120]
-    assert manifest["upscale"]["output_size"] == [192, 240]
+    assert rendered.size == (160, 120)
+    assert manifest["upscale"]["upscaled"] is False
+    assert manifest["upscale"]["scale"] == 1.0
+    assert manifest["upscale"]["input_size"] == [160, 120]
+    assert manifest["upscale"]["output_size"] == [160, 120]
 
 
 def test_recipe_local_adapter_rejects_missing_safety_flag():

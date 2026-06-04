@@ -11,6 +11,7 @@ final class CaptureFlowViewModelTests: XCTestCase {
         let viewModel = CaptureFlowViewModel()
 
         XCTAssertEqual(viewModel.selectedIntent.rawValue, "natural_enhance")
+        XCTAssertEqual(viewModel.selectedCameraMode, .masterShot)
         XCTAssertEqual(viewModel.state, .empty)
     }
 
@@ -104,7 +105,7 @@ final class CaptureFlowViewModelTests: XCTestCase {
 
         XCTAssertEqual(task.assetID, "asset_123")
         XCTAssertEqual(task.style, "social_cover")
-        XCTAssertTrue(task.instruction.contains("title-safe"))
+        XCTAssertTrue(task.instruction.contains("original framing"))
         XCTAssertEqual(task.returnVariants, 3)
     }
 
@@ -160,7 +161,8 @@ final class CaptureFlowViewModelTests: XCTestCase {
 
     func testSubmitPreparedImageUploadsStartsTaskAndStoresCompletedStatus() async throws {
         let submitter = StubPhotoEditSubmitter(status: try completedStatus())
-        let viewModel = CaptureFlowViewModel(submitter: submitter)
+        let visionSubmitter = StubVisionSubmitter(status: try completedVisionStatus(mode: .identify))
+        let viewModel = CaptureFlowViewModel(submitter: submitter, visionSubmitter: visionSubmitter)
         viewModel.selectedIntent = .portraitPolish
         try viewModel.prepareImage(
             data: Data("jpeg bytes".utf8),
@@ -177,8 +179,59 @@ final class CaptureFlowViewModelTests: XCTestCase {
         XCTAssertEqual(submitter.calls.map(\.intent.rawValue), ["portrait_polish"])
         XCTAssertEqual(submitter.calls.map(\.connection.mobileToken), ["mobile_secret"])
         XCTAssertEqual(submitter.progressEvents, [.uploading, .startingTask, .submitted(taskID: "task_123")])
+        XCTAssertTrue(visionSubmitter.calls.isEmpty)
         XCTAssertEqual(viewModel.state, .completed(taskID: "task_123"))
         XCTAssertEqual(viewModel.completedStatus?.variants?.first?.assetID, "asset_result_1")
+    }
+
+    func testSubmitPreparedImageUsesVisionSubmitterForSmartCameraModes() async throws {
+        let photoSubmitter = StubPhotoEditSubmitter(status: try completedStatus())
+        let visionSubmitter = StubVisionSubmitter(status: try completedVisionStatus(mode: .translate))
+        let viewModel = CaptureFlowViewModel(
+            selectedCameraMode: .translate,
+            submitter: photoSubmitter,
+            visionSubmitter: visionSubmitter
+        )
+        try viewModel.prepareImage(
+            data: Data("jpeg bytes".utf8),
+            mimeType: "image/jpeg",
+            fileName: "menu.jpg",
+            width: 640,
+            height: 480,
+            maxUploadMB: 30
+        )
+
+        await viewModel.submitPreparedImage(connection: try storedConnection())
+
+        XCTAssertTrue(photoSubmitter.calls.isEmpty)
+        XCTAssertEqual(visionSubmitter.calls.map(\.upload.fileName), ["menu.jpg"])
+        XCTAssertEqual(visionSubmitter.calls.map(\.mode), [.translate])
+        XCTAssertEqual(visionSubmitter.calls.map(\.connection.mobileToken), ["mobile_secret"])
+        XCTAssertEqual(visionSubmitter.progressEvents, [.uploading, .startingTask, .submitted(taskID: "task_vision_123")])
+        XCTAssertEqual(viewModel.state, .completed(taskID: "task_vision_123"))
+        XCTAssertEqual(viewModel.completedStatus?.resultType, "vision")
+        XCTAssertEqual(viewModel.completedStatus?.vision?.mode, "translate")
+    }
+
+    func testSubmitPreparedImageIntakeUploadsStartsTaskAndStoresIntakeStatus() async throws {
+        let intakeSubmitter = StubImageIntakeSubmitter(status: try completedImageIntakeStatus())
+        let viewModel = CaptureFlowViewModel(imageIntakeSubmitter: intakeSubmitter)
+        try viewModel.prepareImage(
+            data: Data("jpeg bytes".utf8),
+            mimeType: "image/jpeg",
+            fileName: "desk.jpg",
+            width: 640,
+            height: 480,
+            maxUploadMB: 30
+        )
+
+        await viewModel.submitImageIntake(connection: try storedConnection())
+
+        XCTAssertEqual(intakeSubmitter.calls.map(\.upload.fileName), ["desk.jpg"])
+        XCTAssertEqual(viewModel.state, .completed(taskID: "task_intake_123"))
+        XCTAssertEqual(viewModel.completedStatus?.resultType, "image_intake")
+        XCTAssertEqual(viewModel.completedStatus?.imageIntake?.suggestions.first?.skill, .photoEnhance)
+        XCTAssertNotNil(viewModel.preparedUpload, "The prepared image must remain available for follow-up skill execution.")
     }
 
     func testSubmitPreparedImageKeepsOriginalPreviewForResultReview() async throws {
@@ -209,6 +262,28 @@ final class CaptureFlowViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.state, .completed(taskID: "task_123"))
         XCTAssertEqual(viewModel.completedStatus?.variants?.first?.assetID, "asset_result_1")
         XCTAssertNil(viewModel.preparedUpload)
+    }
+
+    func testResetForNextCaptureClearsCompletedStateAndPreservesCameraMode() throws {
+        let viewModel = CaptureFlowViewModel(selectedIntent: .socialCover, selectedCameraMode: .food)
+        try viewModel.prepareImage(
+            data: Data("jpeg bytes".utf8),
+            mimeType: "image/jpeg",
+            fileName: "desk.jpg",
+            width: 640,
+            height: 480,
+            maxUploadMB: 30
+        )
+        viewModel.markCompleted(try completedStatus())
+
+        viewModel.resetForNextCapture()
+
+        XCTAssertEqual(viewModel.selectedIntent, .naturalEnhance)
+        XCTAssertEqual(viewModel.selectedCameraMode, .food)
+        XCTAssertEqual(viewModel.state, .empty)
+        XCTAssertNil(viewModel.preparedUpload)
+        XCTAssertNil(viewModel.originalPreviewAsset)
+        XCTAssertNil(viewModel.completedStatus)
     }
 
     func testSubmitWithoutPreparedImageFailsClearly() async throws {
@@ -310,6 +385,25 @@ final class CaptureFlowViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.state, .failed(message: "This local agent runtime is missing the Photo Pack."))
     }
 
+    func testSubmitMissingVisionShowsRecoveryMessage() async throws {
+        let viewModel = CaptureFlowViewModel(
+            selectedCameraMode: .identify,
+            visionSubmitter: StubVisionSubmitter(error: ConnectionCheckError.missingVision)
+        )
+        try viewModel.prepareImage(
+            data: Data("jpeg bytes".utf8),
+            mimeType: "image/jpeg",
+            fileName: "object.jpg",
+            width: 640,
+            height: 480,
+            maxUploadMB: 30
+        )
+
+        await viewModel.submitPreparedImage(connection: try storedConnection())
+
+        XCTAssertEqual(viewModel.state, .failed(message: "This local agent runtime is missing Vision tasks."))
+    }
+
     private func storedConnection() throws -> StoredConnection {
         StoredConnection(
             endpoint: try AgentEndpoint(rawURL: "https://hermes.example.com"),
@@ -324,6 +418,37 @@ final class CaptureFlowViewModelTests: XCTestCase {
     private func completedStatus() throws -> TaskStatusResponse {
         let data = """
         {"task_id":"task_123","status":"completed","progress":1.0,"message":"Done.","variants":[{"id":"variant_1","label":"Natural","asset_id":"asset_result_1","download_url":"/mobile/v1/assets/asset_result_1/download"}],"explanation":"Balanced exposure."}
+        """.data(using: .utf8)!
+
+        return try JSONDecoder.mobileBridge.decode(TaskStatusResponse.self, from: data)
+    }
+
+    private func completedVisionStatus(mode: SmartCameraMode) throws -> TaskStatusResponse {
+        let taskMode = mode.visionTaskKind?.rawValue ?? "identify"
+        let data = """
+        {"task_id":"task_vision_123","status":"completed","progress":1.0,"message":"Done.","result_type":"vision","vision":{"mode":"\(taskMode)","title":"Vision Result","summary":"Completed.","items":[{"title":"Object","value":"Notebook"}]}}
+        """.data(using: .utf8)!
+
+        return try JSONDecoder.mobileBridge.decode(TaskStatusResponse.self, from: data)
+    }
+
+    private func completedImageIntakeStatus() throws -> TaskStatusResponse {
+        let data = """
+        {
+          "task_id":"task_intake_123",
+          "status":"completed",
+          "progress":1.0,
+          "result_type":"image_intake",
+          "image_intake":{
+            "image_type":"photo",
+            "title":"已看到照片",
+            "summary":"我可以帮你优化这张照片。",
+            "confidence":0.62,
+            "suggestions":[
+              {"skill":"photo_enhance","title":"大师级优化","reason":"适合自然增强。","confidence":0.62,"is_available":true}
+            ]
+          }
+        }
         """.data(using: .utf8)!
 
         return try JSONDecoder.mobileBridge.decode(TaskStatusResponse.self, from: data)
@@ -405,5 +530,73 @@ private final class StubPhotoEditSubmitter: PhotoEditSubmitting, @unchecked Send
             throw error
         }
         return status!
+    }
+}
+
+private final class StubVisionSubmitter: VisionSubmitting, @unchecked Sendable {
+    struct Call: Equatable {
+        let upload: PreparedImageUpload
+        let mode: SmartCameraMode
+        let connection: StoredConnection
+    }
+
+    private(set) var calls: [Call] = []
+    private(set) var progressEvents: [PhotoEditSubmissionProgress] = []
+    private let status: TaskStatusResponse?
+    private let error: Error?
+
+    init(status: TaskStatusResponse) {
+        self.status = status
+        self.error = nil
+    }
+
+    init(error: Error) {
+        self.status = nil
+        self.error = error
+    }
+
+    func submit(
+        upload: PreparedImageUpload,
+        mode: SmartCameraMode,
+        connection: StoredConnection,
+        progress: @escaping @Sendable (PhotoEditSubmissionProgress) async -> Void
+    ) async throws -> TaskStatusResponse {
+        calls.append(Call(upload: upload, mode: mode, connection: connection))
+        await progress(.uploading)
+        await progress(.startingTask)
+        await progress(.submitted(taskID: "task_vision_123"))
+        progressEvents = [.uploading, .startingTask, .submitted(taskID: "task_vision_123")]
+        if let error {
+            throw error
+        }
+        return status!
+    }
+}
+
+private final class StubImageIntakeSubmitter: ImageIntakeSubmitting, @unchecked Sendable {
+    struct Call: Equatable {
+        let upload: PreparedImageUpload
+        let connection: StoredConnection
+    }
+
+    private(set) var calls: [Call] = []
+    private(set) var progressEvents: [PhotoEditSubmissionProgress] = []
+    private let status: TaskStatusResponse
+
+    init(status: TaskStatusResponse) {
+        self.status = status
+    }
+
+    func submit(
+        upload: PreparedImageUpload,
+        connection: StoredConnection,
+        progress: @escaping @Sendable (PhotoEditSubmissionProgress) async -> Void
+    ) async throws -> TaskStatusResponse {
+        calls.append(Call(upload: upload, connection: connection))
+        progressEvents = [.uploading, .startingTask, .submitted(taskID: status.taskID)]
+        for event in progressEvents {
+            await progress(event)
+        }
+        return status
     }
 }

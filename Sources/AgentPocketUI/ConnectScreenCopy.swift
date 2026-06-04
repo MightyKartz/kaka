@@ -6,6 +6,17 @@ public enum AppLanguage: String, CaseIterable, Identifiable, Sendable {
 
     public var id: String { rawValue }
 
+    public static func resolved(
+        storedValue: String?,
+        preferredLanguages: [String] = Locale.preferredLanguages
+    ) -> AppLanguage {
+        let firstPreferredLanguage = preferredLanguages.first?.lowercased() ?? ""
+        if firstPreferredLanguage.hasPrefix("zh") {
+            return .chinese
+        }
+        return .english
+    }
+
     public var displayTitle: String {
         switch self {
         case .chinese:
@@ -27,8 +38,6 @@ public struct ConnectScreenCopy: Equatable, Sendable {
     public let scanCodeTitle: String
     public let privacyLine: String
     public let settingsTitle: String
-    public let languageTitle: String
-    public let languageDescription: String
     public let runtimeTitle: String
     public let runtimeDescription: String
     public let runtimeValue: String
@@ -64,8 +73,6 @@ public struct ConnectScreenCopy: Equatable, Sendable {
             scanCodeTitle = state == .scanning ? "手动输入" : "扫描二维码"
             privacyLine = "照片和密钥留在你的设备与本机运行时"
             settingsTitle = "项目设置"
-            languageTitle = "界面语言"
-            languageDescription = "选择一种语言后，全项目界面统一显示，不混杂文案。"
             runtimeTitle = "本机运行时"
             runtimeDescription = "管理当前连接和信任状态。"
             runtimeValue = connectedRuntime == nil ? "待连接" : "已连接"
@@ -94,8 +101,6 @@ public struct ConnectScreenCopy: Equatable, Sendable {
             scanCodeTitle = state == .scanning ? "Enter Manually" : "Scan Code"
             privacyLine = "Photos and secrets stay on your devices and local runtime"
             settingsTitle = "Project Settings"
-            languageTitle = "Interface Language"
-            languageDescription = "Use one language across Kaka."
             runtimeTitle = "Local Runtime"
             runtimeDescription = "Current pairing and trust."
             runtimeValue = connectedRuntime == nil ? "Not Connected" : "Connected"
@@ -128,8 +133,6 @@ public struct ConnectScreenCopy: Equatable, Sendable {
             scanCodeTitle,
             privacyLine,
             settingsTitle,
-            languageTitle,
-            languageDescription,
             runtimeTitle,
             runtimeDescription,
             runtimeValue,

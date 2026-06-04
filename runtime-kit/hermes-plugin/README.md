@@ -38,6 +38,21 @@ PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
   --hermes-profile <profile>
 ```
 
+If Hermes exposes a local vision endpoint for Kaka image-conversation vision skills, the plugin should pass it explicitly:
+
+```bash
+PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
+  --lan \
+  --bonjour \
+  --bonjour-host "$(ipconfig getifaddr en0)" \
+  --runtime hermes \
+  --hermes-profile <profile> \
+  --vision-provider runtime_http \
+  --vision-endpoint http://127.0.0.1:<hermes-port>/kaka/vision
+```
+
+Without `runtime_http`, scan/identify/translate/food use `fixture_vision`, which is only useful for deterministic UI testing and will not identify real camera content.
+
 The command is included for development transparency only. It is not the desired consumer onboarding UX.
 
 ## Safety Checklist

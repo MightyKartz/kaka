@@ -2,6 +2,27 @@ import XCTest
 @testable import AgentPocketUI
 
 final class ConnectScreenCopyTests: XCTestCase {
+    func testDefaultLanguageFollowsEnglishSystemPreference() {
+        XCTAssertEqual(
+            AppLanguage.resolved(storedValue: nil, preferredLanguages: ["en-US", "zh-Hans"]),
+            .english
+        )
+    }
+
+    func testDefaultLanguageFollowsChineseSystemPreference() {
+        XCTAssertEqual(
+            AppLanguage.resolved(storedValue: nil, preferredLanguages: ["zh-Hans-CN", "en-US"]),
+            .chinese
+        )
+    }
+
+    func testStoredLanguageNoLongerOverridesSystemPreference() {
+        XCTAssertEqual(
+            AppLanguage.resolved(storedValue: AppLanguage.chinese.rawValue, preferredLanguages: ["en-US"]),
+            .english
+        )
+    }
+
     func testChineseCopyLocalizesConnectHomeAndSettings() {
         let copy = ConnectScreenCopy(
             state: .idle,
@@ -14,7 +35,6 @@ final class ConnectScreenCopyTests: XCTestCase {
         XCTAssertEqual(copy.scanCodeTitle, "扫描二维码")
         XCTAssertEqual(copy.nearbyRuntimeDescription, "确认这台 Mac 后，Kaka 会保存一个移动端令牌，下次自动连接。")
         XCTAssertEqual(copy.settingsTitle, "项目设置")
-        XCTAssertEqual(copy.languageTitle, "界面语言")
         XCTAssertEqual(copy.deviceName, "我的电脑")
         XCTAssertEqual(copy.onlineTrustedTitle, "点击连接后发现")
         XCTAssertEqual(copy.trustBadgeTitles, ["本地网络", "待确认"])
@@ -33,7 +53,6 @@ final class ConnectScreenCopyTests: XCTestCase {
         XCTAssertEqual(copy.scanCodeTitle, "Scan Code")
         XCTAssertEqual(copy.nearbyRuntimeDescription, "Confirm this Mac once. Kaka stores a mobile token and reconnects next time.")
         XCTAssertEqual(copy.settingsTitle, "Project Settings")
-        XCTAssertEqual(copy.languageTitle, "Interface Language")
         XCTAssertEqual(copy.onlineTrustedTitle, "Tap Connect to Find")
         XCTAssertEqual(copy.trustBadgeTitles, ["Local Network", "Confirm"])
         XCTAssertFalse(copy.visibleCopy.containsCJKCharacters)

@@ -129,7 +129,7 @@ final class ResultGalleryViewModelTests: XCTestCase {
     func testRecipeSummaryOverridesLegacyExplanationAndShareCaptionIsAvailable() throws {
         let viewModel = ResultGalleryViewModel(status: try completedLocalRecipeStatus())
 
-        XCTAssertEqual(viewModel.explanation, "Balanced exposure and reframed to 4:5.")
+        XCTAssertEqual(viewModel.explanation, "Balanced exposure while preserving the original frame.")
         XCTAssertEqual(viewModel.shareCaptionForSelectedVariant, "Shot polished locally with Kaka.")
         XCTAssertEqual(viewModel.selectedVariant?.label, "Master")
     }
@@ -164,17 +164,11 @@ final class ResultGalleryViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.comparisonPresentation.hasEditedPreview)
     }
 
-    func testRecipePresentationTurnsLocalRecipeMetadataIntoMasterShotChips() throws {
+    func testRecipeMetadataStillFeedsInternalSummaryWithoutVisibleChips() throws {
         let viewModel = ResultGalleryViewModel(status: try completedLocalRecipeStatus())
 
-        XCTAssertEqual(
-            viewModel.recipePresentation?.chips,
-            ["4:5 Crop", "Lift Shadows", "Tune Color", "Boost Subject"]
-        )
-        XCTAssertEqual(
-            viewModel.recipePresentation?.note,
-            "Keeps real detail while tuning crop, light, and subject depth."
-        )
+        XCTAssertEqual(viewModel.explanation, "Balanced exposure while preserving the original frame.")
+        XCTAssertEqual(viewModel.shareCaptionForSelectedVariant, "Shot polished locally with Kaka.")
     }
 
     private func completedStatus() throws -> TaskStatusResponse {
@@ -199,14 +193,14 @@ final class ResultGalleryViewModelTests: XCTestCase {
           "explanation": "Legacy explanation.",
           "renderer": "local_parametric",
           "composition": {
-            "selected_aspect_ratio": "4:5",
-            "crop": {"x": 0.2, "y": 0.0, "width": 0.6, "height": 1.0}
+            "selected_aspect_ratio": "original",
+            "crop": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0}
           },
           "qa": {
             "master_difference_score": 0.18,
             "social_difference_score": 0.31
           },
-          "recipe_summary": "Balanced exposure and reframed to 4:5.",
+          "recipe_summary": "Balanced exposure while preserving the original frame.",
           "share_caption": "Shot polished locally with Kaka."
         }
         """.data(using: .utf8)!

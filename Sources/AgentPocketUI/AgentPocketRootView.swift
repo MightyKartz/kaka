@@ -25,7 +25,7 @@ public struct AgentPocketRootView: View {
                 return
             }
             hasBootstrappedConnection = true
-            await connectionViewModel.restoreSavedConnection()
+            await connectionViewModel.restoreSavedConnectionOrDiscoverNearby()
         }
     }
 }

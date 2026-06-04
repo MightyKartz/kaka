@@ -54,6 +54,45 @@ final class MobileBridgeHTTPIntegrationTests: XCTestCase {
         XCTAssertTrue(downloaded.data.starts(with: [0x89, 0x50, 0x4E, 0x47]))
     }
 
+    func testURLSessionClientCompletesVisionLifecycleAgainstLocalMockBridge() async throws {
+        let port = nextAvailablePort()
+        try startMockBridge(port: port)
+        try await waitForHealth(port: port)
+
+        let client = MobileBridgeHTTPClient(
+            endpoint: try AgentEndpoint(rawURL: "http://127.0.0.1:\(port)"),
+            token: "dev-mobile-token",
+            session: URLSession(configuration: .ephemeral)
+        )
+        let upload = try ImageUploadPolicy(maxUploadMB: 30).prepare(
+            data: Data("source-image".utf8),
+            mimeType: "image/jpeg",
+            fileName: "photo.jpg",
+            width: 100,
+            height: 100,
+            localCreationTime: nil
+        )
+
+        let uploaded = try await client.uploadAsset(upload)
+        let created = try await client.startVisionTask(
+            VisionTaskRequest(
+                profileID: "photo-agent",
+                assetID: uploaded.assetID,
+                mode: .identify,
+                instruction: "Identify the visible object.",
+                locale: "zh-Hans"
+            )
+        )
+        let status = try await client.fetchTaskStatus(taskID: created.taskID)
+
+        XCTAssertEqual(created.status, "queued")
+        XCTAssertEqual(status.status, "completed")
+        XCTAssertEqual(status.resultType, "vision")
+        XCTAssertEqual(status.vision?.mode, "identify")
+        XCTAssertEqual(status.vision?.title, "识别结果")
+        XCTAssertEqual(status.vision?.items.first?.title, "主要物体")
+    }
+
     func testURLSessionClientExchangesPairingCodeThenFetchesCapabilities() async throws {
         let port = nextAvailablePort()
         try startMockBridge(port: port)
@@ -94,7 +133,10 @@ final class MobileBridgeHTTPIntegrationTests: XCTestCase {
             String(port),
         ]
         var environment = ProcessInfo.processInfo.environment
-        environment["PYTHONPATH"] = root.appendingPathComponent("mock_bridge").path
+        environment["PYTHONPATH"] = [
+            root.appendingPathComponent("runtime-kit").path,
+            root.appendingPathComponent("mock_bridge").path,
+        ].joined(separator: ":")
         process.environment = environment
         process.standardOutput = Pipe()
         process.standardError = Pipe()
