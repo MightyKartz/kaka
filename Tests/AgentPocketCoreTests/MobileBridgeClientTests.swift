@@ -183,6 +183,33 @@ final class MobileBridgeClientTests: XCTestCase {
         XCTAssertTrue(body.contains("\"locale\":\"zh-Hans\""))
     }
 
+    func testBuildsUniversalIntakeTaskRequest() throws {
+        let endpoint = try AgentEndpoint(rawURL: "http://127.0.0.1:8765")
+        let task = UniversalIntakeTaskRequest(
+            kind: .text,
+            text: "Launch notes",
+            note: "Extract tasks",
+            locale: "en-US",
+            preferredProfileID: "photo-agent",
+            sourceApp: "Notes"
+        )
+
+        let request = try MobileBridgeClient.makeUniversalIntakeTaskRequest(
+            endpoint: endpoint,
+            token: "mobile-token",
+            task: task
+        )
+        let body = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
+
+        XCTAssertEqual(request.url?.path, "/mobile/v1/tasks/intake")
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer mobile-token")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertTrue(body.contains("\"kind\":\"text\""))
+        XCTAssertTrue(body.contains("\"preferred_profile_id\":\"photo-agent\""))
+        XCTAssertTrue(body.contains("\"source_app\":\"Notes\""))
+    }
+
     func testDecodesVisionTaskStatusResponse() throws {
         let data = """
         {

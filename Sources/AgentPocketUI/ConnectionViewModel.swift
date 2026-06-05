@@ -4,6 +4,7 @@ import Foundation
 public enum ConnectionCheckError: Error, Equatable, Sendable {
     case missingPhotoEdit
     case missingVision
+    case missingIntake
 }
 
 @MainActor

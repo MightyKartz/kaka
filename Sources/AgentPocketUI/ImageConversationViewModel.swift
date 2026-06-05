@@ -155,12 +155,13 @@ public final class ImageConversationViewModel: ObservableObject {
         await execute(skill: KakaSkillRouter.route(text), userInstruction: text, connection: connection)
     }
 
-    public func reportVoiceUnavailable() {
-        let text = "语音输入还没有接入，请先用文字告诉 Kaka。"
-        if messages.last?.text == text {
+    public func submitVoiceTranscript(_ transcript: String, connection: StoredConnection?) async {
+        let text = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard text.isEmpty == false else {
             return
         }
-        messages.append(KakaImageMessage(role: .assistant, text: text))
+        prompt = text
+        await submitPrompt(connection: connection)
     }
 
     private func execute(skill: KakaSkillID, userInstruction: String?, connection: StoredConnection?) async {

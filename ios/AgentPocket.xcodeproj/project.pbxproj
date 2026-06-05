@@ -16,6 +16,9 @@
 		100000000000000000000107 /* AgentPocketCore in Frameworks */ = {isa = PBXBuildFile; productRef = 100000000000000000000701 /* AgentPocketCore */; };
 		100000000000000000000108 /* AgentPocketUI in Frameworks */ = {isa = PBXBuildFile; productRef = 100000000000000000000702 /* AgentPocketUI */; };
 		200000000000000000000101 /* AgentPocketPickerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000001 /* AgentPocketPickerUITests.swift */; };
+		300000000000000000000101 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000001 /* ShareViewController.swift */; };
+		300000000000000000000102 /* KakaShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 300000000000000000000201 /* KakaShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		300000000000000000000103 /* AgentPocketCore in Frameworks */ = {isa = PBXBuildFile; productRef = 100000000000000000000701 /* AgentPocketCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,7 +29,28 @@
 			remoteGlobalIDString = 100000000000000000000501;
 			remoteInfo = AgentPocket;
 		};
+		300000000000000000000503 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 100000000000000000000801 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 300000000000000000000501;
+			remoteInfo = KakaShareExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		100000000000000000000303 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				300000000000000000000102 /* KakaShareExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		100000000000000000000001 /* AgentPocketApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentPocketApp.swift; sourceTree = "<group>"; };
@@ -36,9 +60,14 @@
 		100000000000000000000005 /* Features/Task/TaskProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Task/TaskProgressView.swift; sourceTree = "<group>"; };
 		100000000000000000000006 /* Features/Result/ResultGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Result/ResultGalleryView.swift; sourceTree = "<group>"; };
 		100000000000000000000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		100000000000000000000008 /* AgentPocket.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AgentPocket.entitlements; sourceTree = "<group>"; };
 		100000000000000000000201 /* AgentPocket.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AgentPocket.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		200000000000000000000001 /* AgentPocketPickerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentPocketPickerUITests.swift; sourceTree = "<group>"; };
 		200000000000000000000201 /* AgentPocketPickerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AgentPocketPickerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		300000000000000000000001 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		300000000000000000000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		300000000000000000000003 /* KakaShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KakaShareExtension.entitlements; sourceTree = "<group>"; };
+		300000000000000000000201 /* KakaShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KakaShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +87,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		300000000000000000000302 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				300000000000000000000103 /* AgentPocketCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -65,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000402 /* AgentPocket */,
+				300000000000000000000402 /* KakaShareExtension */,
 				200000000000000000000402 /* AgentPocketPickerUITests */,
 				100000000000000000000403 /* Products */,
 			);
@@ -80,6 +118,7 @@
 				100000000000000000000005 /* Features/Task/TaskProgressView.swift */,
 				100000000000000000000006 /* Features/Result/ResultGalleryView.swift */,
 				100000000000000000000007 /* Info.plist */,
+				100000000000000000000008 /* AgentPocket.entitlements */,
 			);
 			path = AgentPocket;
 			sourceTree = "<group>";
@@ -88,6 +127,7 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000201 /* AgentPocket.app */,
+				300000000000000000000201 /* KakaShareExtension.appex */,
 				200000000000000000000201 /* AgentPocketPickerUITests.xctest */,
 			);
 			name = Products;
@@ -101,6 +141,16 @@
 			path = AgentPocketPickerUITests;
 			sourceTree = "<group>";
 		};
+		300000000000000000000402 /* KakaShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000001 /* ShareViewController.swift */,
+				300000000000000000000002 /* Info.plist */,
+				300000000000000000000003 /* KakaShareExtension.entitlements */,
+			);
+			path = KakaShareExtension;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -110,10 +160,12 @@
 			buildPhases = (
 				100000000000000000000301 /* Sources */,
 				100000000000000000000302 /* Frameworks */,
+				100000000000000000000303 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				300000000000000000000502 /* PBXTargetDependency */,
 			);
 			name = AgentPocket;
 			packageProductDependencies = (
@@ -141,6 +193,25 @@
 			productReference = 200000000000000000000201 /* AgentPocketPickerUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		300000000000000000000501 /* KakaShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 300000000000000000000602 /* Build configuration list for PBXNativeTarget "KakaShareExtension" */;
+			buildPhases = (
+				300000000000000000000301 /* Sources */,
+				300000000000000000000302 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KakaShareExtension;
+			packageProductDependencies = (
+				100000000000000000000701 /* AgentPocketCore */,
+			);
+			productName = KakaShareExtension;
+			productReference = 300000000000000000000201 /* KakaShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -157,6 +228,11 @@
 						ProvisioningStyle = Automatic;
 					};
 					200000000000000000000501 = {
+						CreatedOnToolsVersion = 26.5;
+						DevelopmentTeam = J6P96F432P;
+						ProvisioningStyle = Automatic;
+					};
+					300000000000000000000501 = {
 						CreatedOnToolsVersion = 26.5;
 						DevelopmentTeam = J6P96F432P;
 						ProvisioningStyle = Automatic;
@@ -180,6 +256,7 @@
 			projectRoot = "";
 			targets = (
 				100000000000000000000501 /* AgentPocket */,
+				300000000000000000000501 /* KakaShareExtension */,
 				200000000000000000000501 /* AgentPocketPickerUITests */,
 			);
 		};
@@ -207,6 +284,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		300000000000000000000301 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				300000000000000000000101 /* ShareViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -214,6 +299,11 @@
 			isa = PBXTargetDependency;
 			target = 100000000000000000000501 /* AgentPocket */;
 			targetProxy = 200000000000000000000503 /* PBXContainerItemProxy */;
+		};
+		300000000000000000000502 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 300000000000000000000501 /* KakaShareExtension */;
+			targetProxy = 300000000000000000000503 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -339,6 +429,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AgentPocket/AgentPocket.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = J6P96F432P;
@@ -369,6 +460,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AgentPocket/AgentPocket.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = J6P96F432P;
@@ -431,6 +523,64 @@
 			};
 			name = Release;
 		};
+		300000000000000000000621 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = KakaShareExtension/KakaShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J6P96F432P;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KakaShareExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kartz.agentpocket.dev.KakaShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_INCLUDE_PATHS = "$(PROJECT_DIR)/../build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		300000000000000000000622 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = KakaShareExtension/KakaShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J6P96F432P;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KakaShareExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kartz.agentpocket.dev.KakaShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_INCLUDE_PATHS = "$(PROJECT_DIR)/../build/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -457,6 +607,15 @@
 			buildConfigurations = (
 				200000000000000000000621 /* Debug */,
 				200000000000000000000622 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		300000000000000000000602 /* Build configuration list for PBXNativeTarget "KakaShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				300000000000000000000621 /* Debug */,
+				300000000000000000000622 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

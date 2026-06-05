@@ -8,6 +8,8 @@ import AppKit
 
 public struct ImageConversationView: View {
     @StateObject private var viewModel: ImageConversationViewModel
+    @StateObject private var voiceCaptureViewModel = VoiceCaptureViewModel()
+    @State private var isVoiceCapturePresented = false
     private let activeConnection: () -> StoredConnection?
     private let language: AppLanguage
 
@@ -48,6 +50,22 @@ public struct ImageConversationView: View {
         }
         .safeAreaInset(edge: .bottom) {
             promptComposer
+        }
+        .sheet(isPresented: $isVoiceCapturePresented) {
+            VoiceCaptureView(
+                viewModel: voiceCaptureViewModel,
+                onCancel: {
+                    isVoiceCapturePresented = false
+                },
+                onSend: { transcript in
+                    isVoiceCapturePresented = false
+                    Task {
+                        await viewModel.submitVoiceTranscript(transcript, connection: activeConnection())
+                        voiceCaptureViewModel.reset()
+                    }
+                }
+            )
+            .presentationDetents([.medium, .large])
         }
         .navigationTitle("Kaka")
     }
@@ -144,7 +162,8 @@ public struct ImageConversationView: View {
                 )
 
             Button {
-                viewModel.reportVoiceUnavailable()
+                voiceCaptureViewModel.markTranscriptReady("")
+                isVoiceCapturePresented = true
             } label: {
                 Image(systemName: "mic.fill")
                     .font(.system(size: 17, weight: .semibold))
@@ -153,7 +172,7 @@ public struct ImageConversationView: View {
             .buttonStyle(.plain)
             .foregroundStyle(.white.opacity(0.72))
             .accessibilityLabel(language == .chinese ? "语音输入" : "Voice input")
-            .accessibilityHint(voiceHint)
+            .accessibilityHint(language == .chinese ? "打开语音草稿。" : "Open voice draft.")
 
             Button {
                 Task {
@@ -189,9 +208,6 @@ public struct ImageConversationView: View {
         language == .chinese ? "告诉 Kaka 你想怎么处理这张图片" : "Tell Kaka what to do with this image"
     }
 
-    private var voiceHint: String {
-        language == .chinese ? "语音输入将在下一阶段接入。" : "Voice input will be connected in the next phase."
-    }
 }
 
 private struct ConversationResultDetails: View {

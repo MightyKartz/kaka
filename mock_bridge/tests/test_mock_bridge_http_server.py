@@ -96,6 +96,44 @@ def test_http_server_serves_development_pairing_payload():
         server.server_close()
 
 
+def test_http_server_supports_recall_delete():
+    server = create_http_server(host="127.0.0.1", port=0)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base_url = f"http://127.0.0.1:{server.server_address[1]}"
+    headers = {
+        "Authorization": "Bearer dev-mobile-token",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        remembered = _json_request(
+            f"{base_url}/mobile/v1/recall/actions",
+            method="POST",
+            body=json.dumps(
+                {
+                    "action": "remember",
+                    "source_task_id": "task_123",
+                    "user_visible_summary": "Remember this through the HTTP server.",
+                }
+            ).encode("utf-8"),
+            headers=headers,
+        )
+        item_id = remembered["item"]["item_id"]
+
+        deleted = _json_request(
+            f"{base_url}/mobile/v1/recall/items/{item_id}",
+            method="DELETE",
+            headers={"Authorization": "Bearer dev-mobile-token"},
+        )
+
+        assert deleted == {"status": "forgotten", "deleted_item_ids": [item_id]}
+    finally:
+        server.shutdown()
+        thread.join(timeout=2)
+        server.server_close()
+
+
 def test_bonjour_advertisement_publishes_discoverable_pairing_metadata():
     launched_commands = []
     process = FakeProcess()

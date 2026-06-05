@@ -75,6 +75,8 @@ Required controls:
 - `Use Once`: process the item for the current task without long-term storage.
 - `Forget`: delete the original artifact, extracted text, summary, and retrieval index entries where the runtime controls them.
 
+Current Recall D.0 exposes `POST /mobile/v1/recall/actions`, `GET /mobile/v1/recall/items`, and `DELETE /mobile/v1/recall/items/{item_id}`. `remember` and `forget` require visible confirmation in the phone UI before submission; `use_once` succeeds without creating a persisted item. Search/retrieval, export, and retrieval-index deletion remain future Recall work.
+
 Recall records should keep provenance so the user can understand why an item exists, where it came from, and which task created it. The iPhone should offer browsing, search, delete, and export entry points, while the runtime owns storage and index deletion.
 
 ## Network Rules

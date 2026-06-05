@@ -20,6 +20,20 @@ public enum MobileBridgeClient {
         upload: PreparedImageUpload,
         boundary: String = "Boundary-\(UUID().uuidString)"
     ) throws -> URLRequest {
+        try makeAssetUploadRequest(
+            endpoint: endpoint,
+            token: token,
+            upload: upload.asPreparedAssetUpload,
+            boundary: boundary
+        )
+    }
+
+    public static func makeAssetUploadRequest(
+        endpoint: AgentEndpoint,
+        token: String,
+        upload: PreparedAssetUpload,
+        boundary: String = "Boundary-\(UUID().uuidString)"
+    ) throws -> URLRequest {
         var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/assets", token: token)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
@@ -92,13 +106,91 @@ public enum MobileBridgeClient {
         return request
     }
 
+    public static func makeUniversalIntakeTaskRequest(
+        endpoint: AgentEndpoint,
+        token: String,
+        task: UniversalIntakeTaskRequest
+    ) throws -> URLRequest {
+        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/tasks/intake", token: token)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder.mobileBridge.encode(task)
+        return request
+    }
+
+    public static func makeRecallActionRequest(
+        endpoint: AgentEndpoint,
+        token: String,
+        action: RecallActionRequest
+    ) throws -> URLRequest {
+        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/recall/actions", token: token)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder.mobileBridge.encode(action)
+        return request
+    }
+
+    public static func makeRecallItemsRequest(
+        endpoint: AgentEndpoint,
+        token: String
+    ) -> URLRequest {
+        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/recall/items", token: token)
+        request.httpMethod = "GET"
+        return request
+    }
+
+    public static func makeDeleteRecallItemRequest(
+        endpoint: AgentEndpoint,
+        token: String,
+        itemID: String
+    ) -> URLRequest {
+        let encodedItemID = pathSegment(itemID)
+        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/recall/items/\(encodedItemID)", token: token)
+        request.httpMethod = "DELETE"
+        return request
+    }
+
     public static func makeTaskStatusRequest(
         endpoint: AgentEndpoint,
         token: String,
         taskID: String
     ) -> URLRequest {
-        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/tasks/\(taskID)", token: token)
+        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/tasks/\(pathSegment(taskID))", token: token)
         request.httpMethod = "GET"
+        return request
+    }
+
+    public static func makeRuntimeTasksRequest(
+        endpoint: AgentEndpoint,
+        token: String
+    ) -> URLRequest {
+        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/tasks", token: token)
+        request.httpMethod = "GET"
+        return request
+    }
+
+    public static func makeRuntimeTaskCancelRequest(
+        endpoint: AgentEndpoint,
+        token: String,
+        taskID: String
+    ) -> URLRequest {
+        let encodedTaskID = pathSegment(taskID)
+        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/tasks/\(encodedTaskID)/cancel", token: token)
+        request.httpMethod = "POST"
+        return request
+    }
+
+    public static func makeRuntimeTaskApprovalRequest(
+        endpoint: AgentEndpoint,
+        token: String,
+        taskID: String,
+        approval: RuntimeTaskApprovalRequest
+    ) throws -> URLRequest {
+        let encodedTaskID = pathSegment(taskID)
+        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/tasks/\(encodedTaskID)/approval", token: token)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder.mobileBridge.encode(approval)
         return request
     }
 
@@ -121,5 +213,11 @@ public enum MobileBridgeClient {
         request.httpMethod = "GET"
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
         return request
+    }
+
+    private static func pathSegment(_ value: String) -> String {
+        var allowed = CharacterSet.alphanumerics
+        allowed.insert(charactersIn: "-._~")
+        return value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
     }
 }

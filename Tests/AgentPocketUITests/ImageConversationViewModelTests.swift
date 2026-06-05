@@ -38,6 +38,24 @@ final class ImageConversationViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.messages.last?.result?.taskID, "task_vision_123")
     }
 
+    func testSubmittingVoiceTranscriptRoutesAndExecutesSkillThroughPromptPath() async throws {
+        let executor = StubImageSkillExecutor(status: try completedVisionStatus(mode: .scan))
+        let viewModel = ImageConversationViewModel(
+            intakeStatus: try completedImageIntakeStatus(),
+            originalAsset: nil,
+            preparedUpload: PreparedImageUpload.fixture(),
+            skillExecutor: executor
+        )
+
+        await viewModel.submitVoiceTranscript("  提取文字  ", connection: try storedConnection())
+
+        XCTAssertEqual(executor.calls.map(\.skill), [.ocr])
+        XCTAssertEqual(executor.calls.first?.instruction, "提取文字")
+        XCTAssertEqual(viewModel.prompt, "")
+        XCTAssertEqual(viewModel.messages.dropLast().last?.role, .assistant)
+        XCTAssertEqual(viewModel.messages.last?.role, .result)
+    }
+
     func testPhotoResultPresentationReturnsActionableResultCardData() throws {
         let presentation = ImageConversationResultPresentation(
             status: try completedPhotoStatus(),
@@ -162,17 +180,19 @@ final class ImageConversationViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.messages.last?.role, .result)
     }
 
-    func testVoiceUnavailableFeedbackAppendsAssistantMessage() throws {
+    func testEmptyVoiceTranscriptDoesNotSubmit() async throws {
+        let executor = StubImageSkillExecutor(status: try completedVisionStatus(mode: .scan))
         let viewModel = ImageConversationViewModel(
             intakeStatus: try completedImageIntakeStatus(),
             originalAsset: nil,
-            preparedUpload: PreparedImageUpload.fixture()
+            preparedUpload: PreparedImageUpload.fixture(),
+            skillExecutor: executor
         )
 
-        viewModel.reportVoiceUnavailable()
+        await viewModel.submitVoiceTranscript("   ", connection: try storedConnection())
 
-        XCTAssertEqual(viewModel.messages.last?.role, .assistant)
-        XCTAssertEqual(viewModel.messages.last?.text, "语音输入还没有接入，请先用文字告诉 Kaka。")
+        XCTAssertTrue(executor.calls.isEmpty)
+        XCTAssertEqual(viewModel.messages.count, 1)
     }
 
     private func completedImageIntakeStatus() throws -> TaskStatusResponse {

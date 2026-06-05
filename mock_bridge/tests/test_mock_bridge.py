@@ -37,6 +37,7 @@ def test_capabilities_advertise_photo_edit_and_sse():
     assert response.status_code == 200
     assert "photo_edit" in body["tasks"]
     assert "image_intake" in body["tasks"]
+    assert "intake" in body["tasks"]
     assert body["tasks"]["photo_edit"]["supports_sse"] is True
     assert body["tasks"]["vision"]["supports_sse"] is True
     assert body["tasks"]["image_intake"]["supports_sse"] is True
@@ -53,9 +54,24 @@ def test_capabilities_advertise_vision_modes():
 
     body = response.get_json()
     assert response.status_code == 200
-    assert body["profiles"][0]["capabilities"] == ["photo_edit", "vision", "image_intake"]
+    assert body["profiles"][0]["capabilities"] == ["photo_edit", "vision", "image_intake", "intake"]
     assert body["tasks"]["vision"]["modes"] == ["scan", "identify", "translate", "food"]
     assert body["tasks"]["vision"]["provider"] == "fixture_vision"
+
+
+def test_capabilities_advertise_universal_intake_contract():
+    client = create_app().test_client()
+
+    response = client.get(
+        "/mobile/v1/capabilities",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+    )
+
+    intake = response.get_json()["tasks"]["intake"]
+    assert response.status_code == 200
+    assert intake["accepted_types"] == ["text", "url", "image", "pdf"]
+    assert intake["supports_context_snapshot"] is True
+    assert intake["supports_sse"] is False
 
 
 def test_capabilities_advertise_runtime_neutral_local_recipe_contract():
@@ -443,6 +459,212 @@ def test_image_intake_marks_identify_available_for_runtime_http_vision_provider(
         for item in status.get_json()["image_intake"]["suggestions"]
     }
     assert suggestions["identify_subject"]["is_available"] is True
+
+
+def test_universal_text_intake_lifecycle_returns_status_url_and_suggestions():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    created = client.post(
+        "/mobile/v1/tasks/intake",
+        headers=headers,
+        json={
+            "type": "text",
+            "text": "Buy milk and send launch review notes",
+            "note": "Extract next actions.",
+            "locale": "en-US",
+            "preferred_profile_id": "photo-agent",
+            "source_app": "Notes",
+            "received_at": "2026-06-05T09:00:00Z",
+            "context_snapshot": {
+                "timestamp": "2026-06-05T09:30:00Z",
+                "timezone": "Asia/Shanghai",
+                "source_surface": "share_extension",
+                "network": "wifi",
+            },
+        },
+    )
+    status = client.get(created.get_json()["status_url"], headers=headers)
+
+    body = status.get_json()
+    suggestions = {item["id"]: item for item in body["intake"]["suggestions"]}
+    assert created.status_code == 200
+    assert created.get_json() == {
+        "task_id": "task_0001",
+        "status": "queued",
+        "status_url": "/mobile/v1/tasks/task_0001",
+        "events_url": "/mobile/v1/tasks/task_0001/events",
+    }
+    assert body["status"] == "completed"
+    assert body["result_type"] == "intake"
+    assert body["intake"]["kind"] == "text"
+    assert body["intake"]["type"] == "text"
+    assert "37 characters" in body["intake"]["summary"]
+    assert body["intake"]["metadata"]["source_app"] == "Notes"
+    assert body["intake"]["metadata"]["context_snapshot"]["source_surface"] == "share_extension"
+    assert body["intake"]["metadata"]["context_snapshot"]["network"] == "wifi"
+    assert suggestions["summarize"]["is_available"] is True
+    assert suggestions["extract_tasks"]["requires_confirmation"] is False
+
+
+def test_universal_url_intake_lifecycle_returns_link_summary():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    created = client.post(
+        "/mobile/v1/tasks/intake",
+        headers=headers,
+        json={
+            "type": "url",
+            "url": "https://example.com/launch-review",
+            "note": "Summarize before standup.",
+            "locale": "en-US",
+            "source_app": "Safari",
+            "received_at": "2026-06-05T10:00:00Z",
+        },
+    )
+    status = client.get(created.get_json()["status_url"], headers=headers)
+
+    intake = status.get_json()["intake"]
+    assert created.status_code == 200
+    assert intake["kind"] == "url"
+    assert intake["type"] == "url"
+    assert "https://example.com/launch-review" in intake["summary"]
+    assert intake["metadata"]["source_app"] == "Safari"
+    assert [item["id"] for item in intake["suggestions"]] == ["summarize", "remember", "forget"]
+
+
+def test_universal_image_intake_delegates_to_existing_image_result_builder(monkeypatch):
+    calls = []
+
+    def fake_build_image_intake_result(image_bytes, locale, recognized_lines):
+        calls.append(
+            {
+                "image_bytes": image_bytes,
+                "locale": locale,
+                "recognized_lines": recognized_lines,
+            }
+        )
+        return {
+            "image_type": "document",
+            "title": "Delegated image intake",
+            "summary": "Delegated image summary.",
+            "suggestions": [{"skill": "photo_enhance", "label": "Enhance"}],
+        }
+
+    monkeypatch.setattr(app_module, "build_image_intake_result", fake_build_image_intake_result)
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={
+            "file": (io.BytesIO(b"shared-image-bytes"), "shared.png", "image/png"),
+            "metadata": '{"width":200,"height":100}',
+        },
+    )
+
+    created = client.post(
+        "/mobile/v1/tasks/intake",
+        headers=headers,
+        json={
+            "type": "image",
+            "source": {"asset_id": upload.get_json()["asset_id"]},
+            "locale": "zh-Hans",
+            "source_app": "Photos",
+        },
+    )
+    status = client.get(created.get_json()["status_url"], headers=headers)
+
+    body = status.get_json()
+    assert created.status_code == 200
+    assert calls == [
+        {
+            "image_bytes": b"shared-image-bytes",
+            "locale": "zh-Hans",
+            "recognized_lines": [],
+        }
+    ]
+    assert body["result_type"] == "intake"
+    assert body["intake"]["kind"] == "image"
+    assert body["intake"]["type"] == "image"
+    assert body["intake"]["image_intake"]["title"] == "Delegated image intake"
+    assert body["image_intake"]["title"] == "Delegated image intake"
+    assert body["image_intake"]["suggestions"][0]["is_available"] is True
+
+
+def test_universal_pdf_intake_preserves_source_metadata():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={
+            "file": (io.BytesIO(b"%PDF-1.7 fake"), "brief.pdf", "application/pdf"),
+            "metadata": '{"page_count":8,"title":"Launch Brief"}',
+        },
+    )
+
+    created = client.post(
+        "/mobile/v1/tasks/intake",
+        headers=headers,
+        json={
+            "type": "pdf",
+            "source": {
+                "asset_id": upload.get_json()["asset_id"],
+                "filename": "brief.pdf",
+                "mime_type": "application/pdf",
+                "page_count": 8,
+            },
+            "note": "Find risks.",
+            "source_app": "Files",
+        },
+    )
+    status = client.get(created.get_json()["status_url"], headers=headers)
+
+    intake = status.get_json()["intake"]
+    assert created.status_code == 200
+    assert intake["kind"] == "pdf"
+    assert intake["type"] == "pdf"
+    assert "brief.pdf" in intake["summary"]
+    assert intake["metadata"]["asset_id"] == upload.get_json()["asset_id"]
+    assert intake["metadata"]["filename"] == "brief.pdf"
+    assert intake["metadata"]["mime_type"] == "application/pdf"
+    assert intake["metadata"]["page_count"] == 8
+
+
+def test_universal_intake_requires_auth_and_rejects_bad_payloads():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    unauthorized = client.post(
+        "/mobile/v1/tasks/intake",
+        json={"type": "text", "text": "hello"},
+    )
+    unknown_type = client.post(
+        "/mobile/v1/tasks/intake",
+        headers=headers,
+        json={"type": "video", "text": "hello"},
+    )
+    missing_image = client.post(
+        "/mobile/v1/tasks/intake",
+        headers=headers,
+        json={"type": "image", "source": {"asset_id": "asset_missing"}},
+    )
+    missing_text = client.post(
+        "/mobile/v1/tasks/intake",
+        headers=headers,
+        json={"type": "text", "text": ""},
+    )
+
+    assert unauthorized.status_code == 401
+    assert unauthorized.get_json()["error"]["code"] == "unauthorized"
+    assert unknown_type.status_code == 400
+    assert unknown_type.get_json()["error"]["code"] == "intake_unavailable"
+    assert missing_image.status_code == 404
+    assert missing_image.get_json()["error"]["code"] == "not_found"
+    assert missing_text.status_code == 400
+    assert missing_text.get_json()["error"]["code"] == "invalid_intake_payload"
 
 
 def test_vision_task_uses_injected_fake_provider():
@@ -866,3 +1088,290 @@ def test_photo_edit_provider_failure_becomes_failed_task_status():
     assert body["failure_code"] == "provider_failed"
     assert body["message"] == "The photo provider failed. Check Hermes provider credentials or logs."
     assert "provider-secret-value" not in body["message"]
+
+
+def test_recall_remember_persists_visible_item():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    remembered = client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_task_id": "task_123",
+            "user_visible_summary": "Remember that launch summaries should be in Chinese.",
+        },
+    )
+    listed = client.get("/mobile/v1/recall/items", headers=headers)
+
+    body = remembered.get_json()
+    assert remembered.status_code == 200
+    assert body["action"] == "remember"
+    assert body["status"] == "remembered"
+    assert body["item"]["item_id"] == "recall_0001"
+    assert body["item"]["summary"] == "Remember that launch summaries should be in Chinese."
+    assert body["item"]["created_at"] == "2026-06-05T00:00:00Z"
+    assert body["item"]["provenance"]["source_task_id"] == "task_123"
+    assert listed.status_code == 200
+    assert listed.get_json()["items"] == [body["item"]]
+
+
+def test_recall_use_once_succeeds_without_persisting_item():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    used = client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "use_once",
+            "source_task_id": "task_123",
+            "user_visible_summary": "Use this detail for the current answer only.",
+        },
+    )
+    listed = client.get("/mobile/v1/recall/items", headers=headers)
+
+    assert used.status_code == 200
+    assert used.get_json() == {
+        "action": "use_once",
+        "status": "used_once",
+        "item": None,
+        "deleted_item_ids": [],
+    }
+    assert listed.status_code == 200
+    assert listed.get_json()["items"] == []
+
+
+def test_recall_forget_by_source_is_deterministic():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    inbox_item_id = "12345678-1234-1234-1234-1234567890AB"
+    client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_inbox_item_id": inbox_item_id,
+            "user_visible_summary": "Remember the launch preference.",
+        },
+    )
+
+    first = client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "forget",
+            "source_inbox_item_id": inbox_item_id,
+            "user_visible_summary": "Forget the launch preference.",
+        },
+    )
+    second = client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "forget",
+            "source_inbox_item_id": inbox_item_id,
+            "user_visible_summary": "Forget the launch preference.",
+        },
+    )
+
+    assert first.status_code == 200
+    assert first.get_json() == {
+        "action": "forget",
+        "status": "forgotten",
+        "item": None,
+        "deleted_item_ids": ["recall_0001"],
+    }
+    assert second.status_code == 200
+    assert second.get_json() == {
+        "action": "forget",
+        "status": "forgotten",
+        "item": None,
+        "deleted_item_ids": [],
+    }
+
+
+def test_recall_forget_with_two_provenance_fields_requires_both_to_match():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    inbox_item_id = "12345678-1234-1234-1234-1234567890AB"
+    other_inbox_item_id = "12345678-1234-1234-1234-1234567890AC"
+    client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_task_id": "task_123",
+            "source_inbox_item_id": inbox_item_id,
+            "user_visible_summary": "Remember the matched launch preference.",
+        },
+    )
+    client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_task_id": "task_123",
+            "source_inbox_item_id": other_inbox_item_id,
+            "user_visible_summary": "Remember the other launch preference.",
+        },
+    )
+
+    deleted = client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "forget",
+            "source_task_id": "task_123",
+            "source_inbox_item_id": inbox_item_id,
+            "user_visible_summary": "Forget the matched launch preference.",
+        },
+    )
+    listed = client.get("/mobile/v1/recall/items", headers=headers)
+
+    assert deleted.status_code == 200
+    assert deleted.get_json()["deleted_item_ids"] == ["recall_0001"]
+    assert [item["item_id"] for item in listed.get_json()["items"]] == ["recall_0002"]
+
+
+def test_recall_items_are_returned_newest_first():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    for summary in ["First", "Second"]:
+        client.post(
+            "/mobile/v1/recall/actions",
+            headers=headers,
+            json={
+                "action": "remember",
+                "source_task_id": f"task_{summary.lower()}",
+                "user_visible_summary": summary,
+            },
+        )
+
+    listed = client.get("/mobile/v1/recall/items", headers=headers)
+
+    assert [item["item_id"] for item in listed.get_json()["items"]] == ["recall_0002", "recall_0001"]
+
+
+def test_recall_delete_item_by_id_is_deterministic():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    remembered = client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_task_id": "task_123",
+            "user_visible_summary": "Remember the launch preference.",
+        },
+    )
+    item_id = remembered.get_json()["item"]["item_id"]
+
+    first = client.delete(f"/mobile/v1/recall/items/{item_id}", headers=headers)
+    second = client.delete(f"/mobile/v1/recall/items/{item_id}", headers=headers)
+    listed = client.get("/mobile/v1/recall/items", headers=headers)
+
+    assert first.status_code == 200
+    assert first.get_json() == {"status": "forgotten", "deleted_item_ids": [item_id]}
+    assert second.status_code == 200
+    assert second.get_json() == {"status": "forgotten", "deleted_item_ids": []}
+    assert listed.get_json()["items"] == []
+
+
+def test_runtime_task_list_returns_waiting_tasks_first():
+    app = create_app()
+    app.tasks["task_running"] = {
+        "task_id": "task_running",
+        "title": "Summarize PDF",
+        "status": "running",
+        "progress": 0.2,
+        "updated_at": "2026-06-05T09:32:00Z",
+    }
+    app.tasks["task_waiting"] = {
+        "task_id": "task_waiting",
+        "title": "Approve Recall write",
+        "status": "waiting_for_approval",
+        "progress": 0.4,
+        "message": "Review memory write",
+        "updated_at": "2026-06-05T09:31:00Z",
+    }
+    client = app.test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    listed = client.get("/mobile/v1/tasks", headers=headers)
+
+    assert listed.status_code == 200
+    assert [task["id"] for task in listed.get_json()["tasks"]] == ["task_waiting", "task_running"]
+    assert listed.get_json()["tasks"][0]["status"] == "waiting_for_approval"
+
+
+def test_runtime_task_cancel_and_approval_update_task_summary():
+    app = create_app()
+    app.tasks["task_waiting"] = {
+        "task_id": "task_waiting",
+        "title": "Approve Recall write",
+        "status": "waiting_for_approval",
+        "progress": 0.4,
+        "message": "Review memory write",
+        "updated_at": "2026-06-05T09:31:00Z",
+    }
+    app.tasks["task_running"] = {
+        "task_id": "task_running",
+        "title": "Summarize PDF",
+        "status": "running",
+        "progress": 0.2,
+        "updated_at": "2026-06-05T09:32:00Z",
+    }
+    client = app.test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    approved = client.post(
+        "/mobile/v1/tasks/task_waiting/approval",
+        headers=headers,
+        json={"action": "approve", "note": "Looks safe."},
+    )
+    cancelled = client.post(
+        "/mobile/v1/tasks/task_running/cancel",
+        headers=headers,
+    )
+
+    assert approved.status_code == 200
+    assert approved.get_json()["status"] == "approved"
+    assert approved.get_json()["task"]["status"] == "running"
+    assert approved.get_json()["task"]["message"] == "Approved."
+    assert cancelled.status_code == 200
+    assert cancelled.get_json()["status"] == "cancelled"
+    assert cancelled.get_json()["task"]["status"] == "cancelled"
+    assert cancelled.get_json()["task"]["progress"] == 1.0
+
+
+def test_runtime_task_approval_requires_explicit_valid_action():
+    app = create_app()
+    app.tasks["task_waiting"] = {
+        "task_id": "task_waiting",
+        "title": "Approve Recall write",
+        "status": "waiting_for_approval",
+        "progress": 0.4,
+        "message": "Review memory write",
+        "updated_at": "2026-06-05T09:31:00Z",
+    }
+    client = app.test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    missing = client.post(
+        "/mobile/v1/tasks/task_waiting/approval",
+        headers=headers,
+        json={},
+    )
+    invalid = client.post(
+        "/mobile/v1/tasks/task_waiting/approval",
+        headers=headers,
+        json={"action": "maybe"},
+    )
+
+    assert missing.status_code == 400
+    assert missing.get_json()["error"]["code"] == "invalid_task_approval"
+    assert invalid.status_code == 400
+    assert invalid.get_json()["error"]["code"] == "invalid_task_approval"
+    assert app.tasks["task_waiting"]["status"] == "waiting_for_approval"

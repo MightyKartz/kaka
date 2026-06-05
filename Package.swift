@@ -23,7 +23,7 @@ let package = Package(
             name: "AgentPocketApp",
             dependencies: ["AgentPocketUI"],
             path: "ios/AgentPocket",
-            exclude: ["Info.plist"]
+            exclude: ["Info.plist", "AgentPocket.entitlements"]
         ),
         .testTarget(
             name: "AgentPocketCoreTests",
