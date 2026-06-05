@@ -1,12 +1,12 @@
 # Kaka Pocket Agents Direction
 
-Updated: 2026-06-04
+Updated: 2026-06-05
 
 ## Purpose
 
 This document captures the product discussion and current recommendation for evolving Kaka from a single-capture visual agent client into a voice-first Pocket Agents front end.
 
-The near-term implementation truth is still narrower: Kaka currently focuses on iPhone capture or library selection, `image_intake`, suggested image skills, local vision tasks, and local recipe photo editing through a user-owned runtime. Pocket Agents is the next product direction, not a claim that all features are already implemented.
+The near-term implementation truth is now Phase A plus the original camera loop: Kaka focuses on iPhone capture or library selection, `image_intake`, suggested image skills, local vision tasks, local recipe photo editing, Share Extension inbox capture, a transcript-first voice follow-up skeleton, an opt-in Context Snapshot preview, a Recall v0 explicit-action contract, and an in-app Runtime Task Inbox foundation through a user-owned runtime. Pocket Agents remains the next product direction; real microphone transcription, richer device context collectors, Recall search/browse/export, App Intents, Live Activity, passive context, and production-grade long-running task orchestration are still future phases.
 
 Current UI prototype artifacts:
 
@@ -70,7 +70,7 @@ Reference links:
 
 This is the highest-value next expansion after image intake.
 
-Users should be able to share text, links, screenshots, PDFs, images, and small files into Kaka from any app. Kaka turns each input into an inbox item, asks the runtime to classify it, then offers actions such as summarize, translate, extract tasks, explain screenshot, enhance photo, save to Recall, or continue by voice.
+Users should be able to share text, links, screenshot images, PDFs, images, and small files into Kaka from any app. Kaka turns each input into an inbox item, asks the runtime to classify it, then offers actions such as summarize, translate, extract tasks, explain visible UI, enhance photo, save to Recall, or continue by voice.
 
 Why it matters:
 
@@ -78,13 +78,16 @@ Why it matters:
 - It fits iOS well through Share/Action Extensions.
 - It generalizes the current `image_intake` pattern into universal intake.
 
-Initial implementation shape:
+Phase A implementation shape:
 
-- Add an iOS Share Extension.
-- Store incoming items in an App Group container.
-- Open or foreground the main app to submit the item through Mobile Bridge.
-- Start with text, URL, image, and screenshot inputs.
-- Do not silently upload shared content without visible user intent.
+- iOS Share Extension target `KakaShareExtension`.
+- App Group inbox store using `group.dev.kartz.Kaka`.
+- Share Extension captures text, URL, image, and PDF-visible file payloads into local JSON plus copied payload files. Screenshots shared from Photos or Files are captured as image payloads in this slice.
+- Main app exposes an Inbox tab while connected to a runtime.
+- Text and URL inbox items submit through `POST /mobile/v1/tasks/intake`.
+- Shared image payloads, including screenshots represented as images, route through the existing `image_intake` path so image conversation behavior is preserved.
+- Shared PDFs are captured locally in the inbox; after a visible main-app Send action, Kaka uploads the PDF as a generic asset and submits it through universal intake with the returned `asset_id`.
+- The extension does not silently upload shared content.
 
 ### 2. Permissioned Context Snapshot
 
@@ -221,19 +224,23 @@ The current `image_intake` task can become the first specialization of a broader
 
 Goal: let Kaka receive content from outside the camera flow.
 
+Status as of 2026-06-05: implemented as the first share inbox slice.
+
 Deliverables:
 
-- iOS Share Extension for text, URL, image, screenshot, and PDF inputs
-- app-side inbox item model
-- runtime-side `intake` protocol draft for non-image content
-- basic action suggestions
-- tests for extension payload parsing and bridge submission
+- iOS Share Extension for text, URL, image, and PDF capture; screenshots are captured as images in this slice
+- app-side `KakaInboxItem` and App Group-compatible `FileKakaInboxStore`
+- runtime-side `intake` protocol and mock bridge endpoint for text, URL, image, and PDF asset intake
+- basic action suggestions for text, URL, image, and PDF intake results
+- main app Inbox tab for connected runtimes
+- tests for plist/entitlements, inbox persistence, bridge submission, and image route preservation
 
 Exit criteria:
 
-- A URL shared from Safari becomes an inbox item and gets a summary suggestion.
-- A screenshot shared from Photos gets screenshot Q&A suggestions.
-- An image still routes through the existing image conversation path.
+- A URL shared from Safari can become an inbox item and submit to `/mobile/v1/tasks/intake`.
+- Shared text can submit to `/mobile/v1/tasks/intake` and return summary/action suggestions.
+- A screenshot shared as an image keeps the existing `image_intake` route.
+- A PDF shared to Kaka is captured into the App Group inbox, then uploads from a visible main-app Send action and submits to `/mobile/v1/tasks/intake` with an `asset_id`.
 
 ### Phase B: Voice-first Conversation
 
@@ -256,6 +263,8 @@ Exit criteria:
 
 Goal: give the runtime situational context without background surveillance.
 
+Status as of 2026-06-05: contract-first slice implemented for Inbox universal intake. The preview defaults off, denied collectors do not block intake, and snapshots are sent only when the runtime advertises `supports_context_snapshot`. The current collector is intentionally minimal: timestamp, timezone, locale, and source surface.
+
 Deliverables:
 
 - context preview sheet
@@ -274,36 +283,42 @@ Exit criteria:
 
 Goal: let the user explicitly save useful artifacts and retrieve them later.
 
+Status as of 2026-06-05: D.0 explicit actions are implemented. `remember`, `use_once`, and `forget` have Mobile Bridge contracts, Swift client models, mock bridge endpoints, visible confirmation UI, and an Inbox result entry point. This is not the full Recall exit yet: search/retrieval, export, and retrieval-index deletion remain future D.1 work.
+
 Deliverables:
 
-- runtime-side local memory store
-- inbox item `Remember`, `Use Once`, and `Forget` actions
-- search and retrieval endpoint
-- iPhone Recall browsing UI
-- deletion and export paths
+- runtime-side local memory store: D.0 mock bridge in-memory store implemented; production runtime store still required
+- inbox/result `Remember`, `Use Once`, and `Forget` actions: D.0 implemented for Inbox results
+- mobile bridge actions: D.0 implements `POST /mobile/v1/recall/actions`, `GET /mobile/v1/recall/items`, `DELETE /mobile/v1/recall/items/{item_id}`
+- standalone iPhone Recall action ViewModel/View for visible confirmation: D.0 implemented
+- search and retrieval endpoint: future D.1
+- iPhone Recall browsing UI: future D.1 beyond the current action entry point
+- deletion and export paths: delete action exists in D.0; export and retrieval-index deletion are future D.1
 
 Exit criteria:
 
-- User can remember a shared link or screenshot.
-- Later voice or text search retrieves it with provenance.
-- Delete removes both content and retrieval index entries.
+- D.0: User can confirm `Remember`, `Use Once`, or `Forget` from an Inbox result, including results produced from shared links and screenshots.
+- D.1: Later voice or text search retrieves remembered items with provenance.
+- D.1: Delete removes both content and retrieval index entries.
 
 ### Phase E: Task Inbox, App Intents, And Live Activity
 
 Goal: make local runtime jobs visible and controllable from the phone.
 
+Status as of 2026-06-05: E.0 Runtime Task Inbox foundation is implemented. Kaka has Swift task summary models, a connected Tasks tab, and mock Mobile Bridge endpoints for listing, cancelling, and approving runtime tasks. App Intents and Live Activity remain future E.1 work after in-app task state is stable.
+
 Deliverables:
 
-- task inbox for running, waiting, failed, and completed jobs
-- Live Activity for long-running agent tasks where appropriate
-- App Intents for starting common actions through Siri, Shortcuts, Spotlight, widgets, or Action Button
-- approval cards for runtime actions
+- task inbox for running, waiting, failed, and completed jobs: E.0 implemented
+- approval cards/actions for runtime work: E.0 approval endpoint and in-app action implemented
+- Live Activity for long-running agent tasks where appropriate: future E.1
+- App Intents for starting common actions through Siri, Shortcuts, Spotlight, widgets, or Action Button: future E.1
 
 Exit criteria:
 
-- Long-running runtime task can be tracked from iPhone.
-- User can approve, cancel, or continue a task from Kaka.
-- Shortcuts/App Intents can start safe intake actions without opening hidden listeners.
+- E.0: Runtime tasks can be viewed from iPhone.
+- E.0: User can approve or cancel a task from Kaka.
+- E.1: Shortcuts/App Intents can start safe intake actions without opening hidden listeners.
 
 ## Product Boundaries
 
@@ -326,13 +341,13 @@ Avoid in MVP:
 
 ## First Implementation Slice
 
-The first Pocket Agents slice should be:
+The first Pocket Agents slice is now:
 
-1. Share a URL, text, screenshot, or image to Kaka.
+1. Share a URL, text, screenshot image, or image to Kaka.
 2. Kaka creates an inbox item.
 3. The runtime returns summary plus suggested actions.
-4. The user can continue by voice.
-5. The user can choose `Remember`, `Use Once`, or `Forget`.
+4. Image payloads, including screenshots represented as images, continue through the existing image conversation path.
+5. Voice follow-up plus `Remember`, `Use Once`, and `Forget` confirmation UI remain the next layer.
 
 This slice is big enough to prove Pocket Agents, but small enough to stay aligned with the current Mobile Bridge and privacy boundary.
 
@@ -341,5 +356,5 @@ This slice is big enough to prove Pocket Agents, but small enough to stay aligne
 - Should the external brand remain Kaka while the category becomes Pocket Agents, or should Pocket Agents become a visible product name?
 - Should Recall live entirely in Hermes/OpenClaw first, or should the Runtime Kit provide a default local store?
 - Should voice transcription run on-device first, runtime-side first, or support both through capabilities?
-- Which content types should Share to Kaka support in the first build: text/URL/image only, or PDF/audio as well?
+- Should the PDF upload size limit remain the Phase A.1 default of 25 MB, or move to runtime capability negotiation?
 - Should context snapshots default to off per task, or should Kaka ask once and remember a scoped preference?

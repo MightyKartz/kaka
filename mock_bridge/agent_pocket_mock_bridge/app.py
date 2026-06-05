@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Mapping, MutableMapping, Optional, Protocol
 from urllib import error as urllib_error
 from urllib import request as urllib_request
+from urllib.parse import unquote
 
 from kaka_mobile_runtime_kit.image_intake import build_image_intake_result
 
@@ -364,6 +365,9 @@ class MockClient:
     ) -> MockResponse:
         return self.app.handle("POST", path, headers=headers or {}, json_body=json, form_data=data)
 
+    def delete(self, path: str, headers: Optional[Mapping[str, str]] = None) -> MockResponse:
+        return self.app.handle("DELETE", path, headers=headers or {})
+
 
 class MockBridgeApp:
     def __init__(
@@ -381,10 +385,13 @@ class MockBridgeApp:
         self.pairing_codes: Dict[str, str] = dict(pairing_codes or {DEV_PAIRING_CODE: DEV_DISPLAY_NAME})
         self._dev_pairing_sequence = 1
         self._task_sequence = 1
+        self._recall_sequence = 1
         self._task_lock = threading.Lock()
+        self._recall_lock = threading.Lock()
         self.used_pairing_codes: set[str] = set()
         self.assets: MutableMapping[str, Dict[str, Any]] = {}
         self.tasks: MutableMapping[str, Dict[str, Any]] = {}
+        self.recall_items: MutableMapping[str, Dict[str, Any]] = {}
         self.download_requests: List[Dict[str, Any]] = []
         self.request_counts: Dict[str, int] = {
             "health": 0,
@@ -395,9 +402,16 @@ class MockBridgeApp:
             "photo_task_create": 0,
             "vision_task_create": 0,
             "image_intake_task_create": 0,
+            "intake_task_create": 0,
             "task_status": 0,
             "task_events": 0,
+            "task_list": 0,
+            "task_cancel": 0,
+            "task_approval": 0,
             "asset_download": 0,
+            "recall_action": 0,
+            "recall_items": 0,
+            "recall_delete": 0,
         }
 
     def test_client(self) -> MockClient:
@@ -451,6 +465,10 @@ class MockBridgeApp:
         if method == "GET" and path == "/mobile/v1/qa/status":
             return self._json(self._qa_status())
 
+        if method == "GET" and path == "/mobile/v1/tasks":
+            self._count_request("task_list")
+            return self._runtime_tasks()
+
         if method == "POST" and path == "/mobile/v1/assets":
             self._count_request("asset_upload")
             return self._upload_asset(form_data or {})
@@ -466,6 +484,33 @@ class MockBridgeApp:
         if method == "POST" and path == "/mobile/v1/tasks/image-intake":
             self._count_request("image_intake_task_create")
             return self._create_image_intake_task(json_body or {})
+
+        if method == "POST" and path == "/mobile/v1/tasks/intake":
+            self._count_request("intake_task_create")
+            return self._create_universal_intake_task(json_body or {})
+
+        if method == "POST" and path == "/mobile/v1/recall/actions":
+            self._count_request("recall_action")
+            return self._recall_action(json_body or {})
+
+        if method == "GET" and path == "/mobile/v1/recall/items":
+            self._count_request("recall_items")
+            return self._recall_items()
+
+        if method == "DELETE" and path.startswith("/mobile/v1/recall/items/"):
+            self._count_request("recall_delete")
+            item_id = unquote(path.removeprefix("/mobile/v1/recall/items/"))
+            return self._delete_recall_item(item_id)
+
+        if method == "POST" and path.startswith("/mobile/v1/tasks/") and path.endswith("/cancel"):
+            self._count_request("task_cancel")
+            task_id = unquote(path.removeprefix("/mobile/v1/tasks/").removesuffix("/cancel"))
+            return self._cancel_runtime_task(task_id)
+
+        if method == "POST" and path.startswith("/mobile/v1/tasks/") and path.endswith("/approval"):
+            self._count_request("task_approval")
+            task_id = unquote(path.removeprefix("/mobile/v1/tasks/").removesuffix("/approval"))
+            return self._approve_runtime_task(task_id, json_body or {})
 
         if method == "GET" and path.startswith("/mobile/v1/tasks/"):
             suffix = path.removeprefix("/mobile/v1/tasks/")
@@ -706,7 +751,7 @@ class MockBridgeApp:
                 {
                     "id": "photo-agent",
                     "display_name": "Photo Agent",
-                    "capabilities": ["photo_edit", "vision", "image_intake"],
+                    "capabilities": ["photo_edit", "vision", "image_intake", "intake"],
                 }
             ],
             "tasks": {
@@ -741,6 +786,13 @@ class MockBridgeApp:
                     "accepted_mime_types": ["image/jpeg", "image/heic", "image/png"],
                     "provider": "heuristic_image_intake",
                     "supports_sse": True,
+                },
+                "intake": {
+                    "accepted_types": ["text", "url", "image", "pdf"],
+                    "provider": "heuristic_universal_intake",
+                    "supports_context_snapshot": True,
+                    "supports_recall_actions": True,
+                    "supports_sse": False,
                 },
             },
             "retention": {
@@ -939,18 +991,8 @@ class MockBridgeApp:
             return self._error("not_found", "The source asset does not exist.", 404)
 
         task_id = self._next_task_id()
-        source_asset = self.assets[asset_id]
         try:
-            image_intake = dict(
-                build_image_intake_result(
-                    image_bytes=source_asset["bytes"],
-                    locale=payload.get("locale"),
-                    recognized_lines=[],
-                )
-            )
-            image_intake["suggestions"] = self._capability_aware_intake_suggestions(
-                image_intake.get("suggestions", [])
-            )
+            image_intake = self._build_image_intake_result_for_asset(asset_id, payload)
         except Exception:
             self.tasks[task_id] = {
                 "task_id": task_id,
@@ -982,6 +1024,388 @@ class MockBridgeApp:
             {
                 "task_id": task_id,
                 "status": "queued",
+                "events_url": f"/mobile/v1/tasks/{task_id}/events",
+            }
+        )
+
+    def _create_universal_intake_task(self, payload: Mapping[str, Any]) -> MockResponse:
+        intake_type = str(payload.get("type", payload.get("kind", ""))).strip().lower()
+        if intake_type not in {"text", "url", "image", "pdf"}:
+            return self._error("intake_unavailable", "The requested intake type is not available.", 400)
+
+        asset_id = self._source_asset_id(payload)
+        if intake_type in {"image", "pdf"}:
+            if not asset_id:
+                return self._error("invalid_intake_payload", "The intake source must include an asset_id.", 400)
+            if asset_id not in self.assets:
+                return self._error("not_found", "The source asset does not exist.", 404)
+
+        if intake_type == "text" and not self._source_text(payload):
+            return self._error("invalid_intake_payload", "Text intake requires a non-empty text field.", 400)
+        if intake_type == "url" and not self._source_url(payload):
+            return self._error("invalid_intake_payload", "URL intake requires a non-empty url field.", 400)
+
+        task_id = self._next_task_id()
+        try:
+            intake = self._build_universal_intake_result(intake_type, payload)
+        except Exception:
+            self.tasks[task_id] = {
+                "task_id": task_id,
+                "status": "failed",
+                "progress": 1.0,
+                "message": "The universal intake provider failed. Check runtime logs.",
+                "failure_code": "intake_failed",
+                "provider": "heuristic_universal_intake",
+                "result_type": "intake",
+            }
+            return self._task_create_response(task_id)
+
+        task = {
+            "task_id": task_id,
+            "status": "completed",
+            "progress": 1.0,
+            "message": "Completed.",
+            "result_type": "intake",
+            "intake": intake,
+            "provider": "heuristic_universal_intake",
+        }
+        image_intake = intake.get("image_intake")
+        if isinstance(image_intake, Mapping):
+            task["image_intake"] = image_intake
+        self.tasks[task_id] = task
+        return self._task_create_response(task_id)
+
+    def _recall_action(self, payload: Mapping[str, Any]) -> MockResponse:
+        action = str(payload.get("action", "")).strip()
+        summary = str(payload.get("user_visible_summary", "")).strip()
+        if action not in {"remember", "use_once", "forget"}:
+            return self._error("invalid_recall_action", "The recall action must be remember, use_once, or forget.", 400)
+        if not summary:
+            return self._error("invalid_recall_payload", "Recall actions require a user_visible_summary.", 400)
+
+        if action == "remember":
+            item = self._remember_recall_item(summary=summary, payload=payload)
+            return self._json(
+                {
+                    "action": "remember",
+                    "status": "remembered",
+                    "item": item,
+                    "deleted_item_ids": [],
+                }
+            )
+
+        if action == "use_once":
+            return self._json(
+                {
+                    "action": "use_once",
+                    "status": "used_once",
+                    "item": None,
+                    "deleted_item_ids": [],
+                }
+            )
+
+        deleted_item_ids = self._forget_recall_items_by_source(payload)
+        return self._json(
+            {
+                "action": "forget",
+                "status": "forgotten",
+                "item": None,
+                "deleted_item_ids": deleted_item_ids,
+            }
+        )
+
+    def _remember_recall_item(self, summary: str, payload: Mapping[str, Any]) -> Mapping[str, Any]:
+        with self._recall_lock:
+            item_id = f"recall_{self._recall_sequence:04d}"
+            self._recall_sequence += 1
+            item = {
+                "item_id": item_id,
+                "summary": summary,
+                "created_at": "2026-06-05T00:00:00Z",
+                "provenance": self._recall_provenance(payload),
+            }
+            self.recall_items[item_id] = item
+            return dict(item)
+
+    def _recall_provenance(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        provenance: Dict[str, Any] = {}
+        source_task_id = str(payload.get("source_task_id", "")).strip()
+        source_inbox_item_id = str(payload.get("source_inbox_item_id", "")).strip()
+        if source_task_id:
+            provenance["source_task_id"] = source_task_id
+        if source_inbox_item_id:
+            provenance["source_inbox_item_id"] = source_inbox_item_id
+        return provenance
+
+    def _forget_recall_items_by_source(self, payload: Mapping[str, Any]) -> List[str]:
+        source_task_id = str(payload.get("source_task_id", "")).strip()
+        source_inbox_item_id = str(payload.get("source_inbox_item_id", "")).strip()
+        if not source_task_id and not source_inbox_item_id:
+            return []
+
+        deleted_item_ids: List[str] = []
+        with self._recall_lock:
+            for item_id, item in list(self.recall_items.items()):
+                provenance = item.get("provenance")
+                if not isinstance(provenance, Mapping):
+                    continue
+                matches_task = not source_task_id or provenance.get("source_task_id") == source_task_id
+                matches_inbox = not source_inbox_item_id or provenance.get("source_inbox_item_id") == source_inbox_item_id
+                if matches_task and matches_inbox:
+                    deleted_item_ids.append(item_id)
+                    del self.recall_items[item_id]
+        return deleted_item_ids
+
+    def _recall_items(self) -> MockResponse:
+        with self._recall_lock:
+            items = [
+                dict(item)
+                for _, item in sorted(self.recall_items.items(), reverse=True)
+            ]
+        return self._json({"items": items})
+
+    def _delete_recall_item(self, item_id: str) -> MockResponse:
+        deleted_item_ids: List[str] = []
+        with self._recall_lock:
+            if item_id in self.recall_items:
+                del self.recall_items[item_id]
+                deleted_item_ids.append(item_id)
+        return self._json({"status": "forgotten", "deleted_item_ids": deleted_item_ids})
+
+    def _runtime_tasks(self) -> MockResponse:
+        with self._task_lock:
+            tasks = [
+                self._runtime_task_summary(task)
+                for _, task in self.tasks.items()
+            ]
+        tasks.sort(
+            key=lambda task: (
+                task.get("status") != "waiting_for_approval",
+                str(task.get("updated_at", "")),
+            )
+        )
+        waiting = [task for task in tasks if task.get("status") == "waiting_for_approval"]
+        other = [task for task in tasks if task.get("status") != "waiting_for_approval"]
+        other.sort(key=lambda task: str(task.get("updated_at", "")), reverse=True)
+        return self._json({"tasks": waiting + other})
+
+    def _cancel_runtime_task(self, task_id: str) -> MockResponse:
+        with self._task_lock:
+            task = self.tasks.get(task_id)
+            if task is None:
+                return self._error("not_found", "The runtime task does not exist.", 404)
+            task["status"] = "cancelled"
+            task["progress"] = 1.0
+            task["message"] = "Cancelled."
+            task["updated_at"] = "2026-06-05T09:35:00Z"
+            summary = self._runtime_task_summary(task)
+        return self._json({"status": "cancelled", "task": summary})
+
+    def _approve_runtime_task(self, task_id: str, payload: Mapping[str, Any]) -> MockResponse:
+        raw_action = payload.get("action")
+        if not isinstance(raw_action, str):
+            return self._error("invalid_task_approval", "Task approval action must be approve or reject.", 400)
+        action = raw_action.strip()
+        if action not in {"approve", "reject"}:
+            return self._error("invalid_task_approval", "Task approval action must be approve or reject.", 400)
+        with self._task_lock:
+            task = self.tasks.get(task_id)
+            if task is None:
+                return self._error("not_found", "The runtime task does not exist.", 404)
+            if action == "approve":
+                task["status"] = "running"
+                task["progress"] = max(float(task.get("progress", 0.0)), 0.5)
+                task["message"] = "Approved."
+                response_status = "approved"
+            else:
+                task["status"] = "cancelled"
+                task["progress"] = 1.0
+                task["message"] = "Rejected."
+                response_status = "rejected"
+            task["updated_at"] = "2026-06-05T09:35:00Z"
+            summary = self._runtime_task_summary(task)
+        return self._json({"status": response_status, "task": summary})
+
+    def _runtime_task_summary(self, task: Mapping[str, Any]) -> Dict[str, Any]:
+        task_id = str(task.get("task_id", task.get("id", "")))
+        title = str(task.get("title", "")).strip()
+        if not title:
+            intake = task.get("intake")
+            image_intake = task.get("image_intake")
+            vision = task.get("vision")
+            if isinstance(intake, Mapping):
+                title = str(intake.get("title", "")).strip()
+            elif isinstance(image_intake, Mapping):
+                title = str(image_intake.get("title", "")).strip()
+            elif isinstance(vision, Mapping):
+                title = str(vision.get("title", "")).strip()
+        if not title:
+            title = "Runtime task"
+        return {
+            "id": task_id,
+            "title": title,
+            "status": str(task.get("status", "queued")),
+            "progress": float(task.get("progress", 0.0)),
+            "message": task.get("message"),
+            "updated_at": str(task.get("updated_at", "2026-06-05T09:30:00Z")),
+        }
+
+    def _build_universal_intake_result(self, intake_type: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        metadata = self._universal_intake_metadata(payload)
+        if intake_type == "text":
+            text_value = self._source_text(payload)
+            result = {
+                "title": "Shared text ready",
+                "summary": f"Kaka received {len(text_value)} characters of text from {metadata.get('source_app', 'an app')}.",
+                "suggestions": [
+                    self._intake_suggestion("summarize", "Summarize"),
+                    self._intake_suggestion("extract_tasks", "Extract Tasks"),
+                    self._intake_suggestion("remember", "Remember", requires_confirmation=True),
+                ],
+            }
+        elif intake_type == "url":
+            url_value = self._source_url(payload)
+            result = {
+                "title": "Shared link ready",
+                "summary": f"Kaka received a link from {metadata.get('source_app', 'an app')}: {url_value}",
+                "suggestions": [
+                    self._intake_suggestion("summarize", "Summarize"),
+                    self._intake_suggestion("remember", "Remember", requires_confirmation=True),
+                    self._intake_suggestion("forget", "Forget", requires_confirmation=True),
+                ],
+            }
+        elif intake_type == "image":
+            asset_id = self._source_asset_id(payload)
+            image_intake = self._build_image_intake_result_for_asset(asset_id, payload)
+            result = {
+                "title": image_intake.get("title", "Image ready"),
+                "summary": image_intake.get("summary", "Kaka can inspect this image and suggest visual skills."),
+                "suggestions": [
+                    self._intake_suggestion("open_image_conversation", "Open Image Conversation"),
+                    self._intake_suggestion("forget", "Forget", requires_confirmation=True),
+                ],
+                "image_intake": image_intake,
+            }
+        else:
+            filename = str(metadata.get("filename") or "PDF").strip() or "PDF"
+            page_count = metadata.get("page_count")
+            pages = f" with {page_count} pages" if page_count else ""
+            result = {
+                "title": "PDF ready",
+                "summary": f"Kaka received {filename}{pages} for local runtime intake.",
+                "suggestions": [
+                    self._intake_suggestion("summarize", "Summarize"),
+                    self._intake_suggestion("extract_tasks", "Extract Tasks"),
+                    self._intake_suggestion("forget", "Forget", requires_confirmation=True),
+                ],
+            }
+
+        result.update(
+            {
+                "kind": intake_type,
+                "type": intake_type,
+                "metadata": metadata,
+            }
+        )
+        return result
+
+    def _build_image_intake_result_for_asset(self, asset_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        source_asset = self.assets[asset_id]
+        image_intake = dict(
+            build_image_intake_result(
+                image_bytes=source_asset["bytes"],
+                locale=payload.get("locale"),
+                recognized_lines=[],
+            )
+        )
+        image_intake["suggestions"] = self._capability_aware_intake_suggestions(
+            image_intake.get("suggestions", [])
+        )
+        return image_intake
+
+    def _source_mapping(self, payload: Mapping[str, Any]) -> Mapping[str, Any]:
+        source = payload.get("source")
+        return source if isinstance(source, Mapping) else {}
+
+    def _source_text(self, payload: Mapping[str, Any]) -> str:
+        source = self._source_mapping(payload)
+        return str(payload.get("text", source.get("text", ""))).strip()
+
+    def _source_url(self, payload: Mapping[str, Any]) -> str:
+        source = self._source_mapping(payload)
+        return str(payload.get("url", source.get("url", ""))).strip()
+
+    def _source_asset_id(self, payload: Mapping[str, Any]) -> str:
+        source = self._source_mapping(payload)
+        return str(payload.get("asset_id", source.get("asset_id", ""))).strip()
+
+    def _universal_intake_metadata(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
+        source = dict(self._source_mapping(payload))
+        metadata: Dict[str, Any] = {}
+        for key in (
+            "asset_id",
+            "filename",
+            "mime_type",
+            "page_count",
+            "text",
+            "url",
+        ):
+            value = payload.get(key, source.get(key))
+            if value not in (None, ""):
+                metadata[key] = value
+        for key in (
+            "note",
+            "locale",
+            "preferred_profile_id",
+            "source_app",
+            "received_at",
+        ):
+            value = payload.get(key)
+            if value not in (None, ""):
+                metadata[key] = value
+        context_snapshot = payload.get("context_snapshot")
+        if isinstance(context_snapshot, Mapping):
+            metadata["context_snapshot"] = dict(context_snapshot)
+
+        asset_id = self._source_asset_id(payload)
+        asset = self.assets.get(asset_id)
+        if asset is not None:
+            metadata.setdefault("asset_id", asset_id)
+            metadata.setdefault("filename", asset.get("filename"))
+            metadata.setdefault("mime_type", asset.get("mime_type"))
+            metadata.setdefault("size_bytes", asset.get("size_bytes"))
+            metadata.setdefault("sha256", asset.get("sha256"))
+            raw_asset_metadata = asset.get("metadata")
+            if isinstance(raw_asset_metadata, str) and raw_asset_metadata.strip():
+                try:
+                    decoded_asset_metadata = json.loads(raw_asset_metadata)
+                except json.JSONDecodeError:
+                    decoded_asset_metadata = None
+                if isinstance(decoded_asset_metadata, Mapping):
+                    metadata.setdefault("asset_metadata", dict(decoded_asset_metadata))
+                    if "page_count" in decoded_asset_metadata:
+                        metadata.setdefault("page_count", decoded_asset_metadata["page_count"])
+        return {key: value for key, value in metadata.items() if value is not None}
+
+    def _intake_suggestion(
+        self,
+        suggestion_id: str,
+        label: str,
+        requires_confirmation: bool = False,
+    ) -> Mapping[str, Any]:
+        return {
+            "id": suggestion_id,
+            "label": label,
+            "requires_confirmation": requires_confirmation,
+            "is_available": True,
+        }
+
+    def _task_create_response(self, task_id: str) -> MockResponse:
+        return self._json(
+            {
+                "task_id": task_id,
+                "status": "queued",
+                "status_url": f"/mobile/v1/tasks/{task_id}",
                 "events_url": f"/mobile/v1/tasks/{task_id}/events",
             }
         )
@@ -1036,7 +1460,7 @@ class MockBridgeApp:
                 'event: task.progress\n'
                 f'data: {json.dumps({"progress": 1.0, "message": message})}\n\n'
             )
-        elif task.get("result_type") in {"vision", "image_intake"}:
+        elif task.get("result_type") in {"vision", "image_intake", "intake"}:
             result_type = task.get("result_type")
             payload = (
                 'event: task.progress\ndata: {"progress":1.0,"message":"Completed."}\n\n'

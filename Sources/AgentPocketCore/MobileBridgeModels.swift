@@ -48,10 +48,14 @@ public struct CapabilitiesResponse: Decodable, Equatable, Sendable {
     public struct Tasks: Decodable, Equatable, Sendable {
         public let photoEdit: PhotoEditCapability
         public let vision: VisionCapability?
+        public let imageIntake: ImageIntakeCapability?
+        public let intake: UniversalIntakeCapability?
 
         private enum CodingKeys: String, CodingKey {
             case photoEdit = "photo_edit"
             case vision
+            case imageIntake = "image_intake"
+            case intake
         }
     }
 
@@ -114,6 +118,50 @@ public struct CapabilitiesResponse: Decodable, Equatable, Sendable {
             case modes
             case provider
             case supportsSSE = "supports_sse"
+        }
+    }
+
+    public struct ImageIntakeCapability: Decodable, Equatable, Sendable {
+        public let maxUploadMB: Int
+        public let acceptedMimeTypes: [String]
+        public let provider: String?
+        public let supportsSSE: Bool
+
+        private enum CodingKeys: String, CodingKey {
+            case maxUploadMB = "max_upload_mb"
+            case acceptedMimeTypes = "accepted_mime_types"
+            case provider
+            case supportsSSE = "supports_sse"
+        }
+    }
+
+    public struct UniversalIntakeCapability: Decodable, Equatable, Sendable {
+        public let acceptedTypes: [UniversalIntakeKind]
+        public let supportsSSE: Bool
+        public let supportsContextSnapshot: Bool
+        public let supportsVoiceFollowup: Bool
+        public let supportsRecallActions: Bool
+
+        public var acceptedKinds: [UniversalIntakeKind] { acceptedTypes }
+
+        private enum CodingKeys: String, CodingKey {
+            case acceptedTypes = "accepted_types"
+            case acceptedKinds = "accepted_kinds"
+            case supportsSSE = "supports_sse"
+            case supportsContextSnapshot = "supports_context_snapshot"
+            case supportsVoiceFollowup = "supports_voice_followup"
+            case supportsRecallActions = "supports_recall_actions"
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            acceptedTypes = try container.decodeIfPresent([UniversalIntakeKind].self, forKey: .acceptedTypes)
+                ?? container.decodeIfPresent([UniversalIntakeKind].self, forKey: .acceptedKinds)
+                ?? []
+            supportsSSE = try container.decodeIfPresent(Bool.self, forKey: .supportsSSE) ?? false
+            supportsContextSnapshot = try container.decodeIfPresent(Bool.self, forKey: .supportsContextSnapshot) ?? false
+            supportsVoiceFollowup = try container.decodeIfPresent(Bool.self, forKey: .supportsVoiceFollowup) ?? false
+            supportsRecallActions = try container.decodeIfPresent(Bool.self, forKey: .supportsRecallActions) ?? false
         }
     }
 
@@ -358,6 +406,7 @@ public struct TaskStatusResponse: Decodable, Equatable, Sendable {
     public let resultType: String?
     public let vision: VisionResult?
     public let imageIntake: ImageIntakeResult?
+    public let intake: UniversalIntakeResult?
 
     private enum CodingKeys: String, CodingKey {
         case taskID = "task_id"
@@ -375,6 +424,7 @@ public struct TaskStatusResponse: Decodable, Equatable, Sendable {
         case resultType = "result_type"
         case vision
         case imageIntake = "image_intake"
+        case intake
     }
 
     public struct Variant: Decodable, Equatable, Sendable {

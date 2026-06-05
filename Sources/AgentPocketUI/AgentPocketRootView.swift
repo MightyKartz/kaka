@@ -1,3 +1,4 @@
+import AgentPocketCore
 import SwiftUI
 
 public struct AgentPocketRootView: View {
@@ -11,11 +12,7 @@ public struct AgentPocketRootView: View {
         NavigationStack {
             switch connectionViewModel.state {
             case .connected(let runtime):
-                CaptureView(viewModel: captureViewModel, connectedRuntime: runtime) {
-                    connectionViewModel.forgetSavedConnection()
-                } activeConnection: {
-                    connectionViewModel.activeConnection
-                }
+                connectedTabs(runtime: runtime)
             default:
                 ConnectView(viewModel: connectionViewModel)
             }
@@ -27,5 +24,42 @@ public struct AgentPocketRootView: View {
             hasBootstrappedConnection = true
             await connectionViewModel.restoreSavedConnectionOrDiscoverNearby()
         }
+    }
+
+    private func connectedTabs(runtime: ConnectedRuntime) -> some View {
+        TabView {
+            CaptureView(viewModel: captureViewModel, connectedRuntime: runtime) {
+                connectionViewModel.forgetSavedConnection()
+            } activeConnection: {
+                connectionViewModel.activeConnection
+            }
+            .tabItem {
+                Label("Capture", systemImage: "camera.viewfinder")
+            }
+
+            InboxView(viewModel: makeInboxViewModel()) {
+                connectionViewModel.activeConnection
+            }
+            .tabItem {
+                Label("Inbox", systemImage: "tray.full")
+            }
+
+            TaskInboxView {
+                connectionViewModel.activeConnection
+            }
+            .tabItem {
+                Label("Tasks", systemImage: "list.bullet.rectangle")
+            }
+        }
+    }
+
+    private func makeInboxViewModel() -> InboxViewModel {
+        let store = FileKakaInboxStore()
+        return InboxViewModel(
+            store: store,
+            imageSubmitter: MobileBridgeImageInboxSubmitter(
+                loader: FileInboxImagePayloadLoader()
+            )
+        )
     }
 }

@@ -84,9 +84,45 @@ final class AssetUploadTests: XCTestCase {
         )
         XCTAssertTrue(body.contains("name=\"metadata\""))
         XCTAssertTrue(body.contains("\"width\":640"))
+        XCTAssertTrue(body.contains("\"height\":480"))
+        XCTAssertTrue(body.contains("\"local_creation_time\":\"2026-05-30T12:00:00Z\""))
         XCTAssertTrue(body.contains("\"strip_sensitive_exif\":true"))
+        XCTAssertTrue(body.contains("\"source\":\"image_upload\""))
+        XCTAssertTrue(body.contains("\"original_file_name\":\"photo.jpg\""))
+        XCTAssertTrue(body.contains("\"strip_sensitive_metadata\":true"))
         XCTAssertTrue(body.contains("name=\"file\"; filename=\"photo.jpg\""))
         XCTAssertTrue(body.contains("Content-Type: image/jpeg"))
         XCTAssertTrue(body.contains("jpeg bytes"))
+    }
+
+    func testGenericAssetUploadRequestBuildsMultipartBodyWithoutImageMetadata() throws {
+        let upload = PreparedAssetUpload(
+            data: Data("%PDF-1.7".utf8),
+            mimeType: "application/pdf",
+            fileName: "brief.pdf",
+            metadata: AssetUploadMetadata(
+                source: "share_extension",
+                stripSensitiveMetadata: true
+            )
+        )
+
+        let request = try MobileBridgeClient.makeAssetUploadRequest(
+            endpoint: try AgentEndpoint(rawURL: "http://127.0.0.1:8765"),
+            token: "mobile-token",
+            upload: upload,
+            boundary: "Boundary-Test"
+        )
+
+        let body = String(data: request.httpBody ?? Data(), encoding: .utf8)
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer mobile-token")
+        XCTAssertTrue(body?.contains("name=\"metadata\"") == true)
+        XCTAssertTrue(body?.contains("\"source\":\"share_extension\"") == true)
+        XCTAssertTrue(body?.contains("\"width\"") == false)
+        XCTAssertTrue(body?.contains("\"height\"") == false)
+        XCTAssertTrue(body?.contains("\"local_creation_time\"") == false)
+        XCTAssertTrue(body?.contains("\"strip_sensitive_exif\"") == false)
+        XCTAssertTrue(body?.contains("filename=\"brief.pdf\"") == true)
+        XCTAssertTrue(body?.contains("Content-Type: application/pdf") == true)
     }
 }

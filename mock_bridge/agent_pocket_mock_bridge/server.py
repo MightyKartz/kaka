@@ -93,6 +93,9 @@ class MockBridgeRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         self._handle("POST")
 
+    def do_DELETE(self) -> None:
+        self._handle("DELETE")
+
     def log_message(self, format: str, *args: Any) -> None:
         return
 
@@ -102,7 +105,7 @@ class MockBridgeRequestHandler(BaseHTTPRequestHandler):
         json_body: Optional[Mapping[str, Any]] = None
         form_data: Optional[Mapping[str, Any]] = None
 
-        if method == "POST" and body:
+        if method in {"POST", "DELETE"} and body:
             if content_type.startswith("application/json"):
                 json_body = json.loads(body.decode("utf-8"))
             elif content_type.startswith("multipart/form-data"):

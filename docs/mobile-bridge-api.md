@@ -2,9 +2,9 @@
 
 ## Overview
 
-The Mobile Bridge is the stable HTTPS boundary between Agent Pocket and a user-owned compatible agent runtime, such as Hermes, OpenClaw, or a sidecar that exposes the same contract. The iPhone app is a thin visual client: it pairs with a runtime, uploads photos, starts `image_intake`, shows suggested skills in an image conversation, starts photo-edit or vision tasks for the user's instruction, watches progress, and downloads edited images when needed. The runtime owns model credentials, workflow selection, vision analysis, crop planning, local image rendering, memory, approvals, and tool execution.
+The Mobile Bridge is the stable HTTPS boundary between Agent Pocket and a user-owned compatible agent runtime, such as Hermes, OpenClaw, or a sidecar that exposes the same contract. The iPhone app is a thin visual client: it pairs with a runtime, uploads photos and visible shared PDF payloads, starts `image_intake`, shows suggested skills in an image conversation, accepts visible Share Extension inbox items, starts universal `intake` tasks for text, links, and PDFs, starts photo-edit or vision tasks for the user's instruction, watches progress, and downloads edited images when needed. The runtime owns model credentials, workflow selection, vision analysis, crop planning, local image rendering, memory, approvals, and tool execution.
 
-The broader Pocket Agents direction keeps the same boundary for future input types: share-sheet items, screenshots, pasted text, links, voice notes, and permissioned context snapshots should flow through Mobile Bridge as explicit user-initiated intake tasks. These future endpoints are directional until implemented and tested; the current Phase 1 contract is still `image_intake`, `vision`, and `photo_edit`.
+The broader Pocket Agents direction keeps the same boundary for future input types: share-sheet items, screenshots, pasted text, links, voice notes, and permissioned context snapshots flow through Mobile Bridge as explicit user-initiated intake tasks. Phase A implements the additive `/mobile/v1/tasks/intake` contract beside the existing `image_intake`, `vision`, and `photo_edit` paths. Existing image clients should continue using `image_intake`.
 
 Base path: `/mobile/v1`
 
@@ -49,6 +49,10 @@ Common codes:
 - `pairing_already_used`
 - `photo_edit_unavailable`
 - `vision_unavailable`
+- `intake_unavailable`
+- `invalid_intake_payload`
+- `invalid_recall_action`
+- `invalid_recall_payload`
 - `unsupported_media_type`
 - `upload_too_large`
 - `task_failed`
@@ -108,7 +112,7 @@ Response:
     {
       "id": "photo-agent",
       "display_name": "Photo Agent",
-      "capabilities": ["photo_edit", "vision", "image_intake"]
+      "capabilities": ["photo_edit", "vision", "image_intake", "intake"]
     }
   ],
   "tasks": {
@@ -138,6 +142,13 @@ Response:
       "accepted_mime_types": ["image/jpeg", "image/heic", "image/png"],
       "provider": "heuristic_image_intake",
       "supports_sse": true
+    },
+    "intake": {
+      "accepted_types": ["text", "url", "image", "pdf"],
+      "provider": "heuristic_universal_intake",
+      "supports_context_snapshot": true,
+      "supports_recall_actions": true,
+      "supports_sse": false
     }
   },
   "retention": {
@@ -148,24 +159,122 @@ Response:
 }
 ```
 
-## Future Universal Intake Direction
+## Universal Intake Task
 
-The current implementation specializes intake around images:
+`POST /mobile/v1/tasks/intake`
+
+This additive endpoint handles visible user-shared non-camera items. The iOS Phase A app stores Share Extension payloads in an App Group inbox first; it does not silently upload shared content from the extension. The main app submits visible text and URL inbox items to this endpoint after the user is connected to a runtime. For `pdf`, the main app uploads the shared PDF payload from the visible Inbox action, then starts `/mobile/v1/tasks/intake` with the returned `asset_id`. Shared image payloads, including screenshots represented as images, keep routing through `image_intake` so the existing image conversation remains intact.
+
+Request for text:
+
+```json
+{
+  "kind": "text",
+  "text": "Buy milk and send launch review notes",
+  "note": "Extract tasks",
+  "locale": "en-US",
+  "preferred_profile_id": "photo-agent",
+  "source_app": "Notes",
+  "received_at": "2026-06-05T07:30:00+08:00",
+  "source": {
+    "surface": "share_extension",
+    "host_app": "Notes"
+  },
+  "user_instruction": "Extract tasks"
+}
+```
+
+Request for URL:
+
+```json
+{
+  "kind": "url",
+  "url": "https://example.com/article",
+  "source": {
+    "surface": "share_extension",
+    "host_app": "Safari"
+  }
+}
+```
+
+Request for image or PDF-capable runtimes:
+
+```json
+{
+  "kind": "pdf",
+  "asset_id": "asset_pdf_123",
+  "source": {
+    "surface": "share_extension",
+    "host_app": "Files"
+  }
+}
+```
+
+The mock bridge also accepts legacy-compatible `"type"` in place of `"kind"`. For `image` and `pdf`, the runtime expects an existing `asset_id`. The iOS app obtains the PDF `asset_id` only from a visible main-app Inbox submission; the Share Extension still never uploads directly.
+
+Create response:
+
+```json
+{
+  "task_id": "task_intake_01",
+  "status": "queued",
+  "status_url": "/mobile/v1/tasks/task_intake_01",
+  "events_url": "/mobile/v1/tasks/task_intake_01/events"
+}
+```
+
+Completed status:
+
+```json
+{
+  "task_id": "task_intake_01",
+  "status": "completed",
+  "progress": 1.0,
+  "message": "Completed.",
+  "result_type": "intake",
+  "intake": {
+    "kind": "url",
+    "type": "url",
+    "title": "Shared link ready",
+    "summary": "Kaka received a link from Safari: https://example.com/article",
+    "metadata": {
+      "source_app": "Safari",
+      "url": "https://example.com/article"
+    },
+    "suggestions": [
+      {
+        "id": "summarize",
+        "label": "Summarize",
+        "requires_confirmation": false,
+        "is_available": true
+      },
+      {
+        "id": "remember",
+        "label": "Remember",
+        "requires_confirmation": true,
+        "is_available": true
+      }
+    ]
+  }
+}
+```
+
+The earlier image-only implementation specializes intake around images:
 
 - upload asset
 - start `POST /mobile/v1/tasks/image-intake`
 - receive summary plus suggested image skills
 - route the user's next action to photo-edit or vision tasks
 
-Pocket Agents should generalize this into a future universal intake family without breaking Phase 1 clients.
+Pocket Agents should continue generalizing this intake family without breaking Phase 1 clients.
 
-Recommended future capability shape:
+Forward-compatible capability shape:
 
 ```json
 {
   "tasks": {
     "intake": {
-      "accepted_kinds": ["image", "screenshot", "text", "url", "pdf", "audio"],
+      "accepted_types": ["image", "screenshot", "text", "url", "pdf", "audio"],
       "supports_context_snapshot": true,
       "supports_voice_followup": true,
       "supports_recall_actions": true,
@@ -175,7 +284,7 @@ Recommended future capability shape:
 }
 ```
 
-Recommended future request shape:
+Forward-compatible request shape:
 
 ```json
 {
@@ -198,7 +307,30 @@ Recommended future request shape:
 }
 ```
 
-Recommended future result shape:
+Current Context Snapshot contract:
+
+- The client omits `context_snapshot` unless the user opts in for that task.
+- The client also omits `context_snapshot` unless `GET /mobile/v1/capabilities` includes `"supports_context_snapshot": true` for `tasks.intake`.
+- Snapshot fields use snake_case and omit unavailable values.
+- The current iOS collector is minimal by design: timestamp, timezone, locale, and source surface. Future collectors may add coarse `network`, `battery`, `motion`, and `location_label` values after visible permission handling.
+- A snapshot is task-scoped input. It is not written to Recall unless the user separately confirms a Recall action.
+
+```json
+{
+  "context_snapshot": {
+    "timestamp": "2026-06-05T09:30:00Z",
+    "timezone": "Asia/Shanghai",
+    "locale": "zh-Hans",
+    "source_surface": "share_extension",
+    "network": "wifi",
+    "battery": "normal",
+    "motion": "stationary",
+    "location_label": "near home"
+  }
+}
+```
+
+Forward-compatible result shape:
 
 ```json
 {
@@ -232,13 +364,179 @@ Recommended future result shape:
 }
 ```
 
-Design rules for this future API:
+Design rules for this API:
 
 - `image_intake` remains valid for existing clients.
 - Universal intake must be user-initiated from camera, share sheet, paste, file picker, or visible voice UI.
 - Context snapshots are optional and task-scoped unless the user chooses a Recall action.
 - Recall actions must be explicit and reversible where the runtime controls storage.
 - Clients must tolerate unknown `kind`, `suggestions`, and context fields.
+
+## Recall Actions
+
+Recall D.0 is explicit-action only. The client must not automatically remember intake results, image conversations, or Context Snapshot payloads. `remember` and `forget` actions should be shown to the user and confirmed before submission; `use_once` may be submitted directly for current-task use and must not create a persisted Recall item. Search/retrieval, export, and retrieval-index deletion are future D.1 contract work.
+
+`POST /mobile/v1/recall/actions`
+
+Request:
+
+```json
+{
+  "action": "remember",
+  "source_task_id": "task_intake_01",
+  "source_inbox_item_id": "12345678-1234-1234-1234-1234567890AB",
+  "user_visible_summary": "Remember that launch summaries should be in Chinese."
+}
+```
+
+`action` is one of `remember`, `use_once`, or `forget`. `source_task_id` and `source_inbox_item_id` are optional provenance fields, but clients should include at least one when available. `user_visible_summary` is the exact summary shown to the user for the action.
+
+Remember response:
+
+```json
+{
+  "action": "remember",
+  "status": "remembered",
+  "item": {
+    "item_id": "recall_0001",
+    "summary": "Remember that launch summaries should be in Chinese.",
+    "created_at": "2026-06-05T00:00:00Z",
+    "provenance": {
+      "source_task_id": "task_intake_01",
+      "source_inbox_item_id": "12345678-1234-1234-1234-1234567890AB"
+    }
+  },
+  "deleted_item_ids": []
+}
+```
+
+Use-once response:
+
+```json
+{
+  "action": "use_once",
+  "status": "used_once",
+  "item": null,
+  "deleted_item_ids": []
+}
+```
+
+Forget by source response:
+
+```json
+{
+  "action": "forget",
+  "status": "forgotten",
+  "item": null,
+  "deleted_item_ids": ["recall_0001"]
+}
+```
+
+When both `source_task_id` and `source_inbox_item_id` are present on a `forget` request, runtimes should delete only items whose provenance matches all provided fields. Repeated forget calls should be deterministic and return an empty `deleted_item_ids` array once there is no matching item.
+
+`GET /mobile/v1/recall/items`
+
+Response:
+
+```json
+{
+  "items": [
+    {
+      "item_id": "recall_0001",
+      "summary": "Remember that launch summaries should be in Chinese.",
+      "created_at": "2026-06-05T00:00:00Z",
+      "provenance": {
+        "source_task_id": "task_intake_01"
+      }
+    }
+  ]
+}
+```
+
+`DELETE /mobile/v1/recall/items/{item_id}`
+
+Response:
+
+```json
+{
+  "status": "forgotten",
+  "deleted_item_ids": ["recall_0001"]
+}
+```
+
+Repeated delete calls should be deterministic and return an empty `deleted_item_ids` array once there is no matching item.
+
+## Runtime Task Inbox
+
+Task Inbox E.0 makes runtime work visible and controllable inside Kaka before App Intents or Live Activity are enabled.
+
+`GET /mobile/v1/tasks`
+
+Response:
+
+```json
+{
+  "tasks": [
+    {
+      "id": "task_waiting",
+      "title": "Approve Recall write",
+      "status": "waiting_for_approval",
+      "progress": 0.4,
+      "message": "Review memory write",
+      "updated_at": "2026-06-05T09:31:00Z"
+    }
+  ]
+}
+```
+
+`status` is one of `queued`, `running`, `waiting_for_approval`, `completed`, `failed`, or `cancelled`. Clients should show `waiting_for_approval` first, then active or recent tasks.
+
+`POST /mobile/v1/tasks/{task_id}/cancel`
+
+Response:
+
+```json
+{
+  "status": "cancelled",
+  "task": {
+    "id": "task_running",
+    "title": "Summarize PDF",
+    "status": "cancelled",
+    "progress": 1.0,
+    "message": "Cancelled.",
+    "updated_at": "2026-06-05T09:35:00Z"
+  }
+}
+```
+
+`POST /mobile/v1/tasks/{task_id}/approval`
+
+Request:
+
+```json
+{
+  "action": "approve",
+  "note": "Looks safe."
+}
+```
+
+Response:
+
+```json
+{
+  "status": "approved",
+  "task": {
+    "id": "task_waiting",
+    "title": "Approve Recall write",
+    "status": "running",
+    "progress": 0.5,
+    "message": "Approved.",
+    "updated_at": "2026-06-05T09:35:00Z"
+  }
+}
+```
+
+Task Inbox E.0 is in-app only. App Intents and Live Activity should wait until task state, approval semantics, and cancellation semantics are stable.
 
 ## Pairing QR Payload
 
@@ -298,8 +596,8 @@ Server requirements:
 Request:
 
 - `multipart/form-data`
-- Field `file`: JPEG, HEIC, or PNG image.
-- Field `metadata`: JSON string with width, height, local creation time, and EXIF-safe metadata.
+- Field `file`: JPEG, HEIC, PNG image, or a visible shared PDF payload for universal intake.
+- Field `metadata`: JSON string. Image uploads include width, height, local creation time, and EXIF-safe metadata. PDF uploads include source, original filename, and sensitive-metadata stripping intent.
 
 Response:
 

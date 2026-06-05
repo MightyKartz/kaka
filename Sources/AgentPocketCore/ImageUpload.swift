@@ -74,3 +74,22 @@ public struct ImageUploadMetadata: Codable, Equatable, Sendable {
         case stripSensitiveEXIF = "strip_sensitive_exif"
     }
 }
+
+public extension PreparedImageUpload {
+    var asPreparedAssetUpload: PreparedAssetUpload {
+        PreparedAssetUpload(
+            data: data,
+            mimeType: mimeType,
+            fileName: fileName,
+            metadata: AssetUploadMetadata(
+                source: "image_upload",
+                originalFileName: fileName,
+                stripSensitiveMetadata: metadata.stripSensitiveEXIF,
+                width: metadata.width,
+                height: metadata.height,
+                localCreationTime: metadata.localCreationTime,
+                stripSensitiveEXIF: metadata.stripSensitiveEXIF
+            )
+        )
+    }
+}

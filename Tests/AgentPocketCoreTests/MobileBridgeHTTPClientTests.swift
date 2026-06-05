@@ -129,6 +129,41 @@ final class MobileBridgeHTTPClientTests: XCTestCase {
         XCTAssertEqual(response.assetID, "asset_123")
     }
 
+    func testUploadGenericAssetSendsMultipartRequestAndDecodesResponse() async throws {
+        let client = try makeClient()
+        let upload = PreparedAssetUpload(
+            data: Data("%PDF-1.7".utf8),
+            mimeType: "application/pdf",
+            fileName: "brief.pdf",
+            metadata: AssetUploadMetadata(
+                source: "share_extension",
+                originalFileName: "brief.pdf",
+                stripSensitiveMetadata: true
+            )
+        )
+
+        MockURLProtocol.requestHandler = { request in
+            let body = String(data: request.httpBodyStreamData(), encoding: .utf8) ?? ""
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.url?.path, "/mobile/v1/assets")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer abc123")
+            XCTAssertTrue(request.value(forHTTPHeaderField: "Content-Type")?.contains("multipart/form-data") == true)
+            XCTAssertTrue(body.contains("\"source\":\"share_extension\""))
+            XCTAssertTrue(body.contains("\"original_file_name\":\"brief.pdf\""))
+            XCTAssertTrue(body.contains("name=\"file\"; filename=\"brief.pdf\""))
+            XCTAssertTrue(body.contains("Content-Type: application/pdf"))
+
+            let data = """
+            {"asset_id":"asset_pdf_123","mime_type":"application/pdf","size_bytes":8,"sha256":"def"}
+            """.data(using: .utf8)!
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
+        }
+
+        let response = try await client.uploadAsset(upload)
+
+        XCTAssertEqual(response.assetID, "asset_pdf_123")
+    }
+
     func testStartPhotoEditTaskSendsJSONAndDecodesResponse() async throws {
         let client = try makeClient()
         let task = PhotoEditTaskRequest(
@@ -216,6 +251,39 @@ final class MobileBridgeHTTPClientTests: XCTestCase {
 
         XCTAssertEqual(response.taskID, "task_intake_123")
         XCTAssertEqual(response.eventsURL, "/mobile/v1/tasks/task_intake_123/events")
+    }
+
+    func testStartUniversalIntakeTaskSendsJSONAndDecodesResponse() async throws {
+        let client = try makeClient()
+        let task = UniversalIntakeTaskRequest(
+            kind: .url,
+            url: "https://example.com",
+            note: "Summarize this",
+            preferredProfileID: "photo-agent",
+            sourceApp: "Safari"
+        )
+
+        MockURLProtocol.requestHandler = { request in
+            let body = String(data: request.httpBodyStreamData(), encoding: .utf8) ?? ""
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.url?.path, "/mobile/v1/tasks/intake")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer abc123")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            XCTAssertTrue(body.contains("\"kind\":\"url\""))
+            XCTAssertTrue(body.contains("\"url\":\"https://example.com\""))
+            XCTAssertTrue(body.contains("\"preferred_profile_id\":\"photo-agent\""))
+            XCTAssertTrue(body.contains("\"source_app\":\"Safari\""))
+
+            let data = """
+            {"task_id":"task_intake_1","status":"queued","events_url":"/mobile/v1/tasks/task_intake_1/events"}
+            """.data(using: .utf8)!
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
+        }
+
+        let response = try await client.startUniversalIntakeTask(task)
+
+        XCTAssertEqual(response.taskID, "task_intake_1")
+        XCTAssertEqual(response.eventsURL, "/mobile/v1/tasks/task_intake_1/events")
     }
 
     private func makeClient() throws -> MobileBridgeHTTPClient {
