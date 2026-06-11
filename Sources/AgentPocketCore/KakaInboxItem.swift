@@ -15,10 +15,13 @@ public enum KakaInboxRoute: String, Codable, Equatable, Sendable {
 }
 
 public struct KakaInboxItem: Codable, Equatable, Identifiable, Sendable {
+    private static let defaultSourceSurface = "share_extension"
+
     public let id: UUID
     public let kind: UniversalIntakeKind
     public let receivedAt: Date
     public let sourceApp: String?
+    public let sourceSurface: String
     public let note: String?
     public let locale: String?
     public let preferredProfileID: String?
@@ -36,6 +39,7 @@ public struct KakaInboxItem: Codable, Equatable, Identifiable, Sendable {
         kind: UniversalIntakeKind,
         receivedAt: Date = Date(),
         sourceApp: String? = nil,
+        sourceSurface: String = "share_extension",
         note: String? = nil,
         locale: String? = nil,
         preferredProfileID: String? = nil,
@@ -50,6 +54,7 @@ public struct KakaInboxItem: Codable, Equatable, Identifiable, Sendable {
         self.kind = kind
         self.receivedAt = receivedAt
         self.sourceApp = sourceApp
+        self.sourceSurface = Self.normalizedSourceSurface(sourceSurface)
         self.note = note
         self.locale = locale
         self.preferredProfileID = preferredProfileID
@@ -77,6 +82,7 @@ public struct KakaInboxItem: Codable, Equatable, Identifiable, Sendable {
             kind: kind,
             receivedAt: createdAt,
             sourceApp: source.hostApp,
+            sourceSurface: source.surface,
             text: text,
             url: url,
             fileName: fileName,
@@ -91,6 +97,7 @@ public struct KakaInboxItem: Codable, Equatable, Identifiable, Sendable {
         case receivedAt = "received_at"
         case createdAt = "created_at"
         case sourceApp = "source_app"
+        case sourceSurface = "source_surface"
         case source
         case note
         case locale
@@ -118,6 +125,9 @@ public struct KakaInboxItem: Codable, Equatable, Identifiable, Sendable {
 
         let source = try container.decodeIfPresent(IntakeSource.self, forKey: .source)
         sourceApp = try container.decodeIfPresent(String.self, forKey: .sourceApp) ?? source?.hostApp
+        sourceSurface = Self.normalizedSourceSurface(try container.decodeIfPresent(String.self, forKey: .sourceSurface)
+            ?? source?.surface
+            ?? Self.defaultSourceSurface)
         note = try container.decodeIfPresent(String.self, forKey: .note)
         locale = try container.decodeIfPresent(String.self, forKey: .locale)
         preferredProfileID = try container.decodeIfPresent(String.self, forKey: .preferredProfileID)
@@ -136,6 +146,7 @@ public struct KakaInboxItem: Codable, Equatable, Identifiable, Sendable {
         try container.encode(kind, forKey: .kind)
         try container.encode(MobileBridgeDateCoding.encode(receivedAt), forKey: .receivedAt)
         try container.encodeIfPresent(sourceApp, forKey: .sourceApp)
+        try container.encode(sourceSurface, forKey: .sourceSurface)
         try container.encodeIfPresent(note, forKey: .note)
         try container.encodeIfPresent(locale, forKey: .locale)
         try container.encodeIfPresent(preferredProfileID, forKey: .preferredProfileID)
@@ -145,5 +156,10 @@ public struct KakaInboxItem: Codable, Equatable, Identifiable, Sendable {
         try container.encodeIfPresent(mimeType, forKey: .mimeType)
         try container.encodeIfPresent(relativeFilePath, forKey: .relativeFilePath)
         try container.encode(route, forKey: .route)
+    }
+
+    private static func normalizedSourceSurface(_ sourceSurface: String) -> String {
+        let trimmed = sourceSurface.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? defaultSourceSurface : trimmed
     }
 }

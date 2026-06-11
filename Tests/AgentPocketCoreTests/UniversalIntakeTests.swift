@@ -89,7 +89,7 @@ final class UniversalIntakeTests: XCTestCase {
         {
           "profiles":[{"id":"photo-agent","display_name":"Photo Agent","capabilities":["photo_edit","vision","image_intake","intake"]}],
           "tasks":{
-            "photo_edit":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance"],"provider":"recipe_local","renderer":"local_parametric","supports_sse":true,"return_variants_max":3},
+            "photo_edit":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance"],"provider":"recipe_local","renderer":"local_parametric","supports_sse":true,"return_variants_max":2},
             "vision":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"modes":["scan"],"provider":"fixture_vision","supports_sse":true},
             "image_intake":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"provider":"heuristic_image_intake","supports_sse":true},
             "intake":{"accepted_types":["text","url","image","screenshot","pdf"],"supports_sse":true}

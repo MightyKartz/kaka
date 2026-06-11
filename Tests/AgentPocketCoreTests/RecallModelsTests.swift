@@ -137,7 +137,194 @@ final class RecallModelsTests: XCTestCase {
 
         XCTAssertEqual(items.map(\.itemID), ["recall_0001"])
         XCTAssertEqual(deletion.deletedItemIDs, ["recall_0001"])
+        XCTAssertEqual(deletion.deletedIndexIDs, [])
         XCTAssertEqual(seenPaths.value, ["/mobile/v1/recall/items", "/mobile/v1/recall/items/recall_0001"])
+    }
+
+    func testRecallItemsRequestEncodesQueryAndLimit() throws {
+        let endpoint = try AgentEndpoint(rawURL: "https://hermes.example.com")
+
+        let request = MobileBridgeClient.makeRecallItemsRequest(
+            endpoint: endpoint,
+            token: "abc123",
+            query: "Chinese summaries",
+            limit: 10
+        )
+        let components = URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)
+        let queryItems = Dictionary(
+            uniqueKeysWithValues: (components?.queryItems ?? []).map { ($0.name, $0.value ?? "") }
+        )
+
+        XCTAssertEqual(request.httpMethod, "GET")
+        XCTAssertEqual(request.url?.path, "/mobile/v1/recall/items")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer abc123")
+        XCTAssertEqual(queryItems["query"], "Chinese summaries")
+        XCTAssertEqual(queryItems["limit"], "10")
+    }
+
+    func testRecallDeleteResponseDecodesIndexDeletionReceipt() throws {
+        let data = """
+        {
+          "status": "forgotten",
+          "deleted_item_ids": ["recall_0001"],
+          "deleted_index_ids": ["embedding_recall_0001"]
+        }
+        """.data(using: .utf8)!
+
+        let response = try JSONDecoder.mobileBridge.decode(RecallDeleteResponse.self, from: data)
+
+        XCTAssertEqual(response.status, "forgotten")
+        XCTAssertEqual(response.deletedItemIDs, ["recall_0001"])
+        XCTAssertEqual(response.deletedIndexIDs, ["embedding_recall_0001"])
+    }
+
+    func testSemanticRecallSearchRequestEncodesQueryLimitAndContext() throws {
+        let request = RecallSearchRequest(
+            query: "launch summary language",
+            limit: 8,
+            context: RecallSearchContext(sourceSurface: "voice", sourceTaskID: "task_123")
+        )
+
+        let body = String(data: try JSONEncoder.mobileBridge.encode(request), encoding: .utf8) ?? ""
+
+        XCTAssertTrue(body.contains("\"query\":\"launch summary language\""))
+        XCTAssertTrue(body.contains("\"limit\":8"))
+        XCTAssertTrue(body.contains("\"source_surface\":\"voice\""))
+        XCTAssertTrue(body.contains("\"source_task_id\":\"task_123\""))
+    }
+
+    func testSemanticRecallSearchResponseDecodesScoresAndReasons() throws {
+        let data = """
+        {
+          "query": "launch summary language",
+          "mode": "semantic",
+          "items": [
+            {
+              "item": {
+                "item_id": "recall_0001",
+                "summary": "Answer launch summaries in Chinese.",
+                "created_at": "2026-06-05T09:30:00Z",
+                "provenance": {"source_task_id": "task_123"}
+              },
+              "score": 0.91,
+              "match_reason": "Matched language preference and launch-summary context."
+            }
+          ]
+        }
+        """.data(using: .utf8)!
+
+        let response = try JSONDecoder.mobileBridge.decode(RecallSearchResponse.self, from: data)
+
+        XCTAssertEqual(response.query, "launch summary language")
+        XCTAssertEqual(response.mode, "semantic")
+        XCTAssertEqual(response.items.first?.item.itemID, "recall_0001")
+        XCTAssertEqual(response.items.first?.score, 0.91)
+        XCTAssertEqual(response.items.first?.matchReason, "Matched language preference and launch-summary context.")
+    }
+
+    func testBuildsSemanticRecallSearchRequestWithBearerTokenAndJSONBody() throws {
+        let endpoint = try AgentEndpoint(rawURL: "https://hermes.example.com")
+        let search = RecallSearchRequest(query: "Chinese summaries", limit: 5)
+
+        let request = try MobileBridgeClient.makeRecallSearchRequest(
+            endpoint: endpoint,
+            token: "abc123",
+            search: search
+        )
+        let body = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
+
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.url?.absoluteString, "https://hermes.example.com/mobile/v1/recall/search")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer abc123")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertTrue(body.contains("\"query\":\"Chinese summaries\""))
+    }
+
+    func testHTTPClientSearchesSemanticRecallAndDecodesRankedResults() async throws {
+        let client = try makeClient()
+
+        RecallMockURLProtocol.state.setRequestHandler { request in
+            let body = String(data: request.httpBodyStreamData(), encoding: .utf8) ?? ""
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.url?.path, "/mobile/v1/recall/search")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer abc123")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+            XCTAssertTrue(body.contains("\"query\":\"launch summary language\""))
+
+            let data = """
+            {
+              "query": "launch summary language",
+              "mode": "semantic",
+              "items": [
+                {
+                  "item": {
+                    "item_id": "recall_0001",
+                    "summary": "Answer launch summaries in Chinese.",
+                    "created_at": "2026-06-05T09:30:00Z",
+                    "provenance": {"source_task_id": "task_123"}
+                  },
+                  "score": 0.91,
+                  "match_reason": "Matched language preference and launch-summary context."
+                }
+              ]
+            }
+            """.data(using: .utf8)!
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
+        }
+
+        let response = try await client.searchRecall(
+            RecallSearchRequest(query: "launch summary language", limit: 5)
+        )
+
+        XCTAssertEqual(response.mode, "semantic")
+        XCTAssertEqual(response.items.first?.item.itemID, "recall_0001")
+        XCTAssertEqual(response.items.first?.score, 0.91)
+    }
+
+    func testHTTPClientSearchesRecallItemsAndExportsRecallJSON() async throws {
+        let client = try makeClient()
+        let seen = LockedValue<[(method: String, path: String, query: String?)]>([])
+
+        RecallMockURLProtocol.state.setRequestHandler { request in
+            seen.update {
+                $0.append((request.httpMethod ?? "", request.url?.path ?? "", request.url?.query))
+            }
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer abc123")
+
+            if request.url?.path == "/mobile/v1/recall/export" {
+                let data = """
+                {
+                  "format": "json",
+                  "generated_at": "2026-06-05T10:00:00Z",
+                  "items": [
+                    {
+                      "item_id": "recall_0001",
+                      "summary": "Remember Chinese summaries.",
+                      "created_at": "2026-06-05T09:30:00Z",
+                      "provenance": {"source_task_id": "task_123"}
+                    }
+                  ]
+                }
+                """.data(using: .utf8)!
+                return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
+            }
+
+            let data = """
+            {"items":[{"item_id":"recall_0001","summary":"Remember Chinese summaries.","created_at":"2026-06-05T09:30:00Z","provenance":{"source_task_id":"task_123"}}]}
+            """.data(using: .utf8)!
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
+        }
+
+        let items = try await client.fetchRecallItems(query: "Chinese", limit: 5)
+        let export = try await client.exportRecallItems()
+
+        XCTAssertEqual(items.map(\.itemID), ["recall_0001"])
+        XCTAssertEqual(export.format, "json")
+        XCTAssertEqual(export.generatedAt, "2026-06-05T10:00:00Z")
+        XCTAssertEqual(export.items.map(\.itemID), ["recall_0001"])
+        XCTAssertEqual(seen.value.map(\.path), ["/mobile/v1/recall/items", "/mobile/v1/recall/export"])
+        XCTAssertTrue(seen.value[0].query?.contains("query=Chinese") == true)
+        XCTAssertTrue(seen.value[0].query?.contains("limit=5") == true)
     }
 
     func testDeleteRecallItemRequestEncodesPathSegment() throws {
