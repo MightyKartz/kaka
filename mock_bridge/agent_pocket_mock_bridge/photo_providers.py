@@ -273,3 +273,108 @@ def build_provider_preflight_report(
         "config": config_report,
         "commands": commands,
     }
+
+
+def build_renderer_readiness_report(
+    provider: str,
+    photo_pack_root: Path | str = "photo-pack",
+) -> Mapping[str, Any]:
+    safety = {
+        "runtime_side_only": True,
+        "no_phone_api_change": True,
+        "no_generative_pixels": True,
+        "no_cloud_provider_calls": True,
+        "no_asset_retention_change": True,
+        "forbidden_phone_safe_categories": [
+            "raw_source_image_payloads",
+            "rendered_variant_payloads",
+            "provider_credentials",
+            "temporary_asset_locations",
+        ],
+    }
+    base: Dict[str, Any] = {
+        "schema_version": "kaka.local_renderer_backend_probe.v1",
+        "surface": "hermes_openclaw_local_renderer_backend_probe",
+        "provider": provider,
+        "renderer": "",
+        "ok": False,
+        "status": "blocked",
+        "missing": [],
+        "probe": {
+            "mode": "synthetic_fixture_render",
+            "style": "natural_enhance",
+        },
+        "safety": safety,
+    }
+
+    if provider != "recipe_local":
+        return {
+            **base,
+            "missing": ["local recipe renderer"],
+        }
+
+    preflight = build_provider_preflight_report(provider, photo_pack_root=photo_pack_root, env={})
+    if not bool(preflight["ok"]):
+        return {
+            **base,
+            "missing": list(preflight.get("missing", [])),
+        }
+
+    try:
+        with tempfile.TemporaryDirectory(prefix="kaka-local-renderer-backend-probe-") as temp:
+            temp_dir = Path(temp)
+            input_path = temp_dir / "probe.jpg"
+            _write_renderer_probe_image(input_path)
+            provider_impl = build_photo_provider(provider, photo_pack_root=photo_pack_root)
+            variants = provider_impl.edit(
+                source_bytes=input_path.read_bytes(),
+                style="natural_enhance",
+                instruction="Renderer readiness probe. Keep edits local and parameterized.",
+                return_variants=2,
+            )
+    except Exception as error:
+        return {
+            **base,
+            "missing": [f"renderer probe failed: {type(error).__name__}"],
+        }
+
+    metadata = variants[0].get("recipe_metadata", {}) if variants else {}
+    qa = metadata.get("qa", {}) if isinstance(metadata, Mapping) else {}
+    readiness_probe = {
+        "mode": "synthetic_fixture_render",
+        "style": "natural_enhance",
+        "variant_count": len(variants),
+        "variant_ids": [str(variant.get("id", "")) for variant in variants],
+        "variant_labels": [str(variant.get("label", "")) for variant in variants],
+        "mime_types": [str(variant.get("mime_type", "")) for variant in variants],
+        "total_rendered_size": sum(len(variant.get("bytes", b"")) for variant in variants),
+        "qa": {
+            "master_difference_score": qa.get("master_difference_score"),
+            "social_difference_score": qa.get("social_difference_score"),
+            "variant_count": qa.get("variant_count", len(variants)),
+        },
+    }
+
+    return {
+        **base,
+        "renderer": str(metadata.get("renderer", "local_parametric")) if isinstance(metadata, Mapping) else "local_parametric",
+        "ok": bool(variants),
+        "status": "ready" if variants else "blocked",
+        "missing": [] if variants else ["rendered variants"],
+        "probe": readiness_probe,
+    }
+
+
+def _write_renderer_probe_image(path: Path) -> None:
+    from PIL import Image
+
+    image = Image.new("RGB", (96, 72), (32, 54, 68))
+    pixels = image.load()
+    for y in range(image.height):
+        for x in range(image.width):
+            pixels[x, y] = (
+                min(255, 30 + x),
+                min(255, 48 + y),
+                min(255, 72 + (x + y) // 3),
+            )
+    image.save(path, format="JPEG", quality=90)

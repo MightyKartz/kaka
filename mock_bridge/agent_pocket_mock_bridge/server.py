@@ -6,15 +6,32 @@ import json
 import os
 import socket
 import subprocess
+import ssl
+import sys
 from contextlib import contextmanager
 from email import policy
 from email.parser import BytesParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from ipaddress import ip_address
 from typing import Any, Callable, Dict, List, Mapping, Optional, Protocol
-from urllib.parse import urlparse
+from urllib.parse import urlsplit
 
-from agent_pocket_mock_bridge.app import MockBridgeApp, MockResponse, build_vision_provider, create_app
+from agent_pocket_mock_bridge.app import (
+    DEFAULT_INPUT_ASSETS_DAYS,
+    DEFAULT_OUTPUT_ASSETS_DAYS,
+    DEFAULT_TASK_HISTORY_DAYS,
+    MockBridgeApp,
+    MockResponse,
+    build_recall_search_provider,
+    build_vision_provider,
+    create_app,
+)
 from agent_pocket_mock_bridge.photo_providers import build_photo_provider
+from kaka_mobile_runtime_kit.pairing import (
+    InMemoryPairingStore,
+    PairingManager,
+    PairingSecurityConfig,
+)
 
 HERMES_PROVIDER_ENV_FORCE_PREFIX = "_HERMES_FORCE_"
 OPENAI_PROVIDER_ENV_KEYS = ("OPENAI_API_KEY", "OPENAI_BASE_URL")
@@ -44,6 +61,12 @@ class BonjourAdvertisement:
         port: int,
         pairing_code: str,
         runtime: str = "hermes",
+        scheme: str = "http",
+        pairing_page: str = "",
+        expires_at: str = "2099-01-01T00:00:00Z",
+        trusted_local_tls_required: bool = False,
+        tls_certificate_label: str = "",
+        tls_public_key_sha256: str = "",
         launcher: Optional[Callable[[List[str]], BonjourProcess]] = None,
     ) -> None:
         self.name = name
@@ -51,6 +74,12 @@ class BonjourAdvertisement:
         self.port = port
         self.pairing_code = pairing_code
         self.runtime = runtime
+        self.scheme = scheme
+        self.pairing_page = pairing_page
+        self.expires_at = expires_at
+        self.trusted_local_tls_required = bool(trusted_local_tls_required)
+        self.tls_certificate_label = tls_certificate_label.strip()
+        self.tls_public_key_sha256 = tls_public_key_sha256.strip().lower()
         self.launcher = launcher or _launch_dns_sd
         self.process: Optional[BonjourProcess] = None
 
@@ -68,7 +97,7 @@ class BonjourAdvertisement:
         process.wait(timeout=2)
 
     def command(self) -> List[str]:
-        return [
+        command = [
             "dns-sd",
             "-R",
             self.name,
@@ -77,11 +106,22 @@ class BonjourAdvertisement:
             str(self.port),
             f"display_name={self.name}",
             f"runtime={self.runtime}",
-            "scheme=http",
-            f"endpoint=http://{self.host}:{self.port}",
-            f"pairing_code={self.pairing_code}",
-            "expires_at=2099-01-01T00:00:00Z",
+            f"scheme={self.scheme}",
+            f"endpoint={self.scheme}://{self.host}:{self.port}",
         ]
+        if self.pairing_code:
+            command.append(f"pairing_code={self.pairing_code}")
+        if self.expires_at:
+            command.append(f"expires_at={self.expires_at}")
+        if self.pairing_page:
+            command.append(f"pairing_page={self.pairing_page}")
+        if self.trusted_local_tls_required:
+            command.append("trusted_local_tls_required=true")
+        if self.tls_certificate_label:
+            command.append(f"tls_certificate_label={self.tls_certificate_label}")
+        if self.tls_public_key_sha256:
+            command.append(f"tls_public_key_sha256={self.tls_public_key_sha256}")
+        return command
 
 
 class MockBridgeRequestHandler(BaseHTTPRequestHandler):
@@ -113,7 +153,7 @@ class MockBridgeRequestHandler(BaseHTTPRequestHandler):
 
         response = self.server.app.handle(
             method,
-            urlparse(self.path).path,
+            self.path,
             headers=dict(self.headers),
             json_body=json_body,
             form_data=form_data,
@@ -138,8 +178,19 @@ def create_http_server(
     host: str = "127.0.0.1",
     port: int = 8765,
     app: Optional[MockBridgeApp] = None,
+    tls_certificate_chain_path: str = "",
+    tls_private_key_path: str = "",
 ) -> MockBridgeHTTPServer:
-    return MockBridgeHTTPServer((host, port), MockBridgeRequestHandler, app or create_app())
+    server = MockBridgeHTTPServer((host, port), MockBridgeRequestHandler, app or create_app())
+    certificate_chain_path = tls_certificate_chain_path.strip()
+    private_key_path = tls_private_key_path.strip()
+    if certificate_chain_path or private_key_path:
+        if not certificate_chain_path or not private_key_path:
+            raise ValueError("Both TLS certificate chain path and private key path are required.")
+        context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        context.load_cert_chain(certfile=certificate_chain_path, keyfile=private_key_path)
+        server.socket = context.wrap_socket(server.socket, server_side=True)
+    return server
 
 
 def build_app_for_provider(
@@ -147,10 +198,38 @@ def build_app_for_provider(
     photo_pack_root: str = "photo-pack",
     vision_provider: str = "fixture",
     vision_endpoint: str = "",
+    runtime_id: str = "hermes",
+    runtime_display_name: str = "Agent Pocket Mock Hermes",
+    pairing_scheme: str = "http",
+    recall_search_provider: str = "local",
+    recall_search_endpoint: str = "",
+    runtime_store: Optional[Any] = None,
+    runtime_store_path: str = "",
+    pairing_manager: Optional[PairingManager] = None,
+    trusted_local_tls_required: bool = False,
+    tls_certificate_label: str = "",
+    tls_public_key_sha256: str = "",
+    input_assets_days: int = DEFAULT_INPUT_ASSETS_DAYS,
+    output_assets_days: int = DEFAULT_OUTPUT_ASSETS_DAYS,
+    task_history_days: int = DEFAULT_TASK_HISTORY_DAYS,
 ) -> MockBridgeApp:
     return create_app(
         photo_provider=build_photo_provider(photo_provider, photo_pack_root=photo_pack_root),
         vision_provider=build_vision_provider(vision_provider, endpoint=vision_endpoint),
+        runtime_id=runtime_id,
+        runtime_display_name=runtime_display_name,
+        pairing_scheme=pairing_scheme,
+        recall_search_provider=recall_search_provider,
+        recall_search_endpoint=recall_search_endpoint,
+        runtime_store=runtime_store,
+        runtime_store_path=runtime_store_path,
+        pairing_manager=pairing_manager,
+        trusted_local_tls_required=trusted_local_tls_required,
+        tls_certificate_label=tls_certificate_label,
+        tls_public_key_sha256=tls_public_key_sha256,
+        input_assets_days=input_assets_days,
+        output_assets_days=output_assets_days,
+        task_history_days=task_history_days,
     )
 
 
@@ -264,6 +343,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--bonjour-name", default="Agent Pocket Mock Hermes", help="Bonjour service display name.")
     parser.add_argument("--bonjour-host", default=None, help="Host or LAN IP to publish in the Bonjour endpoint TXT record.")
     parser.add_argument("--pairing-code", default="pair_dev", help="Development pairing code to publish through Bonjour.")
+    parser.add_argument("--pairing-mode", default="development", choices=["development", "production"])
+    parser.add_argument("--pairing-code-ttl-seconds", default=120, type=int)
+    parser.add_argument("--token-ttl-seconds", default=0, type=int)
+    parser.add_argument("--trusted-local-tls", action="store_true")
+    parser.add_argument("--tls-trust-state", default="not_configured")
+    parser.add_argument("--tls-certificate-label", default="")
+    parser.add_argument("--tls-public-key-sha256", default="")
+    parser.add_argument("--tls-certificate-chain-path", default="")
+    parser.add_argument("--tls-private-key-path", default="")
     parser.add_argument("--runtime", default="hermes", help="Runtime identifier published through Bonjour.")
     parser.add_argument(
         "--photo-provider",
@@ -288,6 +376,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Runtime-local HTTP endpoint for --vision-provider runtime_http.",
     )
     parser.add_argument(
+        "--recall-search-provider",
+        default="local",
+        choices=["local", "fixture", "runtime_http"],
+        help="Recall search provider used by /mobile/v1/recall/search.",
+    )
+    parser.add_argument(
+        "--recall-search-endpoint",
+        default="",
+        help="Runtime-local HTTP endpoint for --recall-search-provider runtime_http.",
+    )
+    parser.add_argument(
         "--env-file",
         default="",
         help="Optional server-side env file to load before creating the photo provider; secret values are never printed.",
@@ -302,41 +401,75 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Optional Hermes profile whose .env can provide server-side OPENAI_API_KEY.",
     )
+    parser.add_argument(
+        "--runtime-store-path",
+        default="",
+        help="Optional SQLite path for runtime-owned Recall and task persistence.",
+    )
+    parser.add_argument("--input-assets-days", default=DEFAULT_INPUT_ASSETS_DAYS, type=int)
+    parser.add_argument("--output-assets-days", default=DEFAULT_OUTPUT_ASSETS_DAYS, type=int)
+    parser.add_argument("--task-history-days", default=DEFAULT_TASK_HISTORY_DAYS, type=int)
     return parser
 
 
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
+    errors = validate_server_config(args)
+    if errors:
+        for error in errors:
+            print(f"error: {error}", file=sys.stderr)
+        return 2
     with _temporary_environ(_provider_env_overlay(
         env_file=args.env_file,
         hermes_home=args.hermes_home,
         hermes_profile=args.hermes_profile,
     )):
         app = _build_app_with_optional_vision(args)
-        server = create_http_server(host=args.host, port=args.port, app=app)
+        if args.trusted_local_tls:
+            server = create_http_server(
+                host=args.host,
+                port=args.port,
+                app=app,
+                tls_certificate_chain_path=args.tls_certificate_chain_path,
+                tls_private_key_path=args.tls_private_key_path,
+            )
+        else:
+            server = create_http_server(host=args.host, port=args.port, app=app)
         actual_port = int(server.server_address[1])
+        scheme = "https" if args.trusted_local_tls else "http"
         advertised_endpoint = resolve_pairing_advertised_endpoint(args, actual_port)
         if advertised_endpoint and hasattr(app, "advertised_endpoint"):
             app.advertised_endpoint = advertised_endpoint
         bonjour: Optional[BonjourAdvertisement] = None
         if args.bonjour:
             advertised_host = args.bonjour_host or resolve_advertised_host(args.host)
+            pairing_page = (
+                f"{scheme}://{advertised_host}:{actual_port}/mobile/v1/pairing/qr.html"
+                if args.pairing_mode == "production"
+                else ""
+            )
             bonjour = BonjourAdvertisement(
                 name=args.bonjour_name,
                 host=advertised_host,
                 port=actual_port,
-                pairing_code=args.pairing_code,
+                pairing_code=args.pairing_code if args.pairing_mode == "development" else "",
                 runtime=args.runtime,
+                scheme=scheme,
+                pairing_page=pairing_page,
+                expires_at="2099-01-01T00:00:00Z" if args.pairing_mode == "development" else "",
+                trusted_local_tls_required=bool(getattr(args, "trusted_local_tls", False)),
+                tls_certificate_label=str(getattr(args, "tls_certificate_label", "")),
+                tls_public_key_sha256=str(getattr(args, "tls_public_key_sha256", "")),
             )
             try:
                 bonjour.start()
                 print(
-                    f"Bonjour advertising {args.bonjour_name} at http://{advertised_host}:{actual_port}",
+                    f"Bonjour advertising {args.bonjour_name} at {scheme}://{advertised_host}:{actual_port}",
                     flush=True,
                 )
             except OSError as error:
                 print(f"Bonjour advertisement did not start: {error}", flush=True)
-        print(f"Agent Pocket mock bridge listening on http://{args.host}:{actual_port}", flush=True)
+        print(f"Agent Pocket mock bridge listening on {scheme}://{args.host}:{actual_port}", flush=True)
         try:
             server.serve_forever()
         except KeyboardInterrupt:
@@ -348,23 +481,162 @@ def main(argv=None) -> int:
     return 0
 
 
+def validate_server_config(args: argparse.Namespace) -> List[str]:
+    errors: List[str] = []
+    if (
+        str(getattr(args, "recall_search_provider", "")).strip() == "runtime_http"
+        and not str(getattr(args, "recall_search_endpoint", "")).strip()
+    ):
+        errors.append("--recall-search-endpoint is required when --recall-search-provider runtime_http.")
+    if str(getattr(args, "recall_search_provider", "")).strip() == "runtime_http":
+        endpoint = str(getattr(args, "recall_search_endpoint", "")).strip()
+        if endpoint and not _is_http_endpoint(endpoint):
+            errors.append("--recall-search-endpoint must be an http:// or https:// URL.")
+        elif endpoint and not _is_local_or_private_endpoint(endpoint):
+            errors.append("--recall-search-endpoint must point to localhost, Tailscale, or a private LAN endpoint.")
+    if bool(getattr(args, "trusted_local_tls", False)):
+        if not str(getattr(args, "tls_certificate_chain_path", "")).strip():
+            errors.append("--tls-certificate-chain-path is required when --trusted-local-tls starts the bridge.")
+        if not str(getattr(args, "tls_private_key_path", "")).strip():
+            errors.append("--tls-private-key-path is required when --trusted-local-tls starts the bridge.")
+    for flag, attr, default in (
+        ("--input-assets-days", "input_assets_days", DEFAULT_INPUT_ASSETS_DAYS),
+        ("--output-assets-days", "output_assets_days", DEFAULT_OUTPUT_ASSETS_DAYS),
+        ("--task-history-days", "task_history_days", DEFAULT_TASK_HISTORY_DAYS),
+    ):
+        value = int(getattr(args, attr, default))
+        if value < 1 or value > 3650:
+            errors.append(f"{flag} must be between 1 and 3650.")
+    return errors
+
+
+def _is_http_endpoint(value: str) -> bool:
+    parsed = urlsplit(value.strip())
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+
+
+def _is_local_or_private_endpoint(value: str) -> bool:
+    parsed = urlsplit(value.strip())
+    host = (parsed.hostname or "").lower()
+    if host in {"localhost"} or host.endswith(".local"):
+        return True
+    try:
+        address = ip_address(host)
+    except ValueError:
+        return False
+    return (
+        address.is_loopback
+        or address.is_private
+        or address.is_link_local
+        or address.is_reserved
+        or _is_tailscale_cgnat(address)
+    )
+
+
+def _is_tailscale_cgnat(address) -> bool:
+    return address.version == 4 and int(ip_address("100.64.0.0")) <= int(address) <= int(ip_address("100.127.255.255"))
+
+
 def resolve_pairing_advertised_endpoint(args: argparse.Namespace, actual_port: int) -> str:
     should_publish_lan_endpoint = args.bonjour or args.host in {"0.0.0.0", "::"}
     if not should_publish_lan_endpoint:
         return ""
     advertised_host = args.bonjour_host or resolve_advertised_host(args.host)
-    return f"http://{advertised_host}:{actual_port}"
+    scheme = "https" if bool(getattr(args, "trusted_local_tls", False)) else "http"
+    return f"{scheme}://{advertised_host}:{actual_port}"
 
 
 def _build_app_with_optional_vision(args: argparse.Namespace) -> MockBridgeApp:
+    runtime_store = _runtime_store_from_args(args)
+    store_kwargs = {
+        "runtime_store": runtime_store,
+        "runtime_store_path": str(getattr(args, "runtime_store_path", "")).strip(),
+    } if runtime_store is not None else {}
+    pairing_manager = _pairing_manager_from_args(args, runtime_store)
+    pairing_kwargs = {"pairing_manager": pairing_manager} if pairing_manager is not None else {}
+    runtime_kwargs = {
+        "runtime_id": str(getattr(args, "runtime", "hermes")).strip() or "hermes",
+        "runtime_display_name": str(getattr(args, "bonjour_name", "Agent Pocket Mock Hermes")).strip()
+        or "Agent Pocket Mock Hermes",
+        "pairing_scheme": "https" if bool(getattr(args, "trusted_local_tls", False)) else "http",
+        "trusted_local_tls_required": bool(getattr(args, "trusted_local_tls", False)),
+        "tls_certificate_label": str(getattr(args, "tls_certificate_label", "")),
+        "tls_public_key_sha256": str(getattr(args, "tls_public_key_sha256", "")),
+    }
+    retention_kwargs = {
+        "input_assets_days": int(getattr(args, "input_assets_days", DEFAULT_INPUT_ASSETS_DAYS)),
+        "output_assets_days": int(getattr(args, "output_assets_days", DEFAULT_OUTPUT_ASSETS_DAYS)),
+        "task_history_days": int(getattr(args, "task_history_days", DEFAULT_TASK_HISTORY_DAYS)),
+    }
+    recall_kwargs = _recall_search_kwargs_from_args(args)
     if args.vision_provider == "fixture" and not args.vision_endpoint:
-        return build_app_for_provider(args.photo_provider, photo_pack_root=args.photo_pack_root)
+        return build_app_for_provider(
+            args.photo_provider,
+            photo_pack_root=args.photo_pack_root,
+            **runtime_kwargs,
+            **retention_kwargs,
+            **recall_kwargs,
+            **store_kwargs,
+            **pairing_kwargs,
+        )
     return build_app_for_provider(
         args.photo_provider,
         photo_pack_root=args.photo_pack_root,
         vision_provider=args.vision_provider,
         vision_endpoint=args.vision_endpoint,
+        **runtime_kwargs,
+        **retention_kwargs,
+        **recall_kwargs,
+        **store_kwargs,
+        **pairing_kwargs,
     )
+
+
+def _pairing_manager_from_args(args: argparse.Namespace, runtime_store: Optional[Any]) -> Optional[PairingManager]:
+    if str(getattr(args, "pairing_mode", "development")) != "production":
+        return None
+    token_ttl_seconds = int(getattr(args, "token_ttl_seconds", 0))
+    store = runtime_store or InMemoryPairingStore()
+    return PairingManager(
+        store=store,
+        config=PairingSecurityConfig(
+            code_ttl_seconds=int(getattr(args, "pairing_code_ttl_seconds", 120)),
+            token_ttl_seconds=token_ttl_seconds if token_ttl_seconds > 0 else None,
+            trusted_local_tls_required=bool(getattr(args, "trusted_local_tls", False)),
+            tls_trust_state=str(getattr(args, "tls_trust_state", "not_configured")),
+            tls_certificate_label=str(getattr(args, "tls_certificate_label", "")),
+            tls_public_key_sha256=str(getattr(args, "tls_public_key_sha256", "")),
+            tls_private_key_path=str(getattr(args, "tls_private_key_path", "")),
+        ),
+    )
+
+
+def _recall_search_kwargs_from_args(args: argparse.Namespace) -> Dict[str, str]:
+    provider = str(getattr(args, "recall_search_provider", "local")).strip()
+    endpoint = str(getattr(args, "recall_search_endpoint", "")).strip()
+    if provider == "local" and not endpoint:
+        return {}
+    return {
+        "recall_search_provider": provider,
+        "recall_search_endpoint": endpoint,
+    }
+
+
+def _runtime_store_from_args(args: argparse.Namespace):
+    runtime_store_path = str(getattr(args, "runtime_store_path", "")).strip()
+    if not runtime_store_path:
+        return None
+    from kaka_mobile_runtime_kit.runtime_store import SQLiteRuntimeStore
+
+    store = SQLiteRuntimeStore(
+        runtime_store_path,
+        recall_search_provider=build_recall_search_provider(
+            str(getattr(args, "recall_search_provider", "local")),
+            endpoint=str(getattr(args, "recall_search_endpoint", "")),
+        ),
+    )
+    store.initialize()
+    return store
 
 
 def _parse_env_file(path: str) -> Dict[str, str]:

@@ -1,10 +1,19 @@
 import io
 import html as html_lib
+import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta, timezone
 
 from agent_pocket_mock_bridge import app as app_module
 from agent_pocket_mock_bridge.app import RuntimeHTTPVisionProvider, create_app
+from kaka_mobile_runtime_kit.pairing import (
+    InMemoryPairingStore,
+    PairingManager,
+    PairingSecurityConfig,
+    StaticPairingClock,
+)
+from kaka_mobile_runtime_kit.recall_search import RecallSearchResult
 
 
 def test_health_reports_hermes_runtime():
@@ -44,6 +53,490 @@ def test_capabilities_advertise_photo_edit_and_sse():
     assert body["retention"]["input_assets_days"] == 7
 
 
+def test_runtime_settings_and_capabilities_use_configured_retention_policy():
+    client = create_app(
+        input_assets_days=3,
+        output_assets_days=14,
+        task_history_days=60,
+    ).test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    capabilities = client.get("/mobile/v1/capabilities", headers=headers).get_json()
+    settings = client.get("/mobile/v1/runtime/settings", headers=headers).get_json()
+
+    expected = {
+        "input_assets_days": 3,
+        "output_assets_days": 14,
+        "task_history_days": 60,
+    }
+    assert capabilities["retention"] == expected
+    assert settings["retention"] == expected
+    assert set(settings["retention"]) == set(expected)
+
+
+def test_mock_bridge_retention_purge_helper_skips_untimestamped_assets_and_has_no_mobile_route():
+    app = app_module.MockBridgeApp(input_assets_days=7, output_assets_days=30, task_history_days=30)
+    app.assets["asset_old_input"] = {
+        "id": "asset_old_input",
+        "role": "input",
+        "bytes": b"input",
+        "mime_type": "image/png",
+    }
+    app.assets["asset_result_old_output"] = {
+        "id": "asset_result_old_output",
+        "role": "output",
+        "bytes": b"output",
+        "mime_type": "image/png",
+    }
+
+    dry_run = app.purge_retention(now_iso="2026-06-07T00:00:00Z", dry_run=True)
+    apply_receipt = app.purge_retention(now_iso="2026-06-07T00:00:00Z", dry_run=False)
+    mobile_route = app.test_client().post(
+        "/mobile/v1/runtime/purge",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+    )
+
+    assert dry_run["mode"] == "dry_run"
+    assert apply_receipt["mode"] == "apply"
+    assert apply_receipt["applied"] is True
+    assert apply_receipt["deleted"]["input_asset_ids"] == []
+    assert apply_receipt["deleted"]["output_asset_ids"] == []
+    assert apply_receipt["preserved"]["asset_purge_status"] == "skipped_missing_asset_timestamps"
+    assert apply_receipt["preserved"]["untracked_asset_ids"] == ["asset_old_input", "asset_result_old_output"]
+    assert sorted(app.assets) == ["asset_old_input", "asset_result_old_output"]
+    assert mobile_route.status_code == 404
+
+
+def test_mock_bridge_asset_retention_metadata_enables_explicit_purge():
+    app = app_module.create_app()
+    client = app.test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={
+            "file": (io.BytesIO(b"source-image"), "photo.jpg", "image/jpeg"),
+        },
+    )
+    created = client.post(
+        "/mobile/v1/tasks/photo-edit",
+        headers=headers,
+        json={
+            "asset_id": upload.get_json()["asset_id"],
+            "style": "natural_enhance",
+            "instruction": "Keep it realistic.",
+            "return_variants": 1,
+        },
+    )
+    status = client.get(f"/mobile/v1/tasks/{created.get_json()['task_id']}", headers=headers)
+    source_asset_id = upload.get_json()["asset_id"]
+    result_asset_id = status.get_json()["variants"][0]["asset_id"]
+
+    assert app.assets[source_asset_id]["role"] == "input"
+    assert app.assets[result_asset_id]["role"] == "output"
+    assert app.assets[source_asset_id]["created_at"].endswith("Z")
+    assert app.assets[result_asset_id]["created_at"].endswith("Z")
+
+    qa_status = client.get("/mobile/v1/qa/status", headers=headers).get_json()
+    rendered_qa = json.dumps(qa_status, sort_keys=True)
+    assert "source-image" not in rendered_qa
+    assert "iVBOR" not in rendered_qa
+
+    app.assets[source_asset_id]["created_at"] = "2026-05-01T00:00:00Z"
+    app.assets[result_asset_id]["created_at"] = "2026-05-01T00:00:00Z"
+    apply_receipt = app.purge_retention(now_iso="2026-06-07T00:00:00Z", dry_run=False)
+    mobile_route = client.post("/mobile/v1/runtime/purge", headers=headers)
+
+    assert apply_receipt["deleted"]["input_asset_ids"] == [source_asset_id]
+    assert apply_receipt["deleted"]["output_asset_ids"] == [result_asset_id]
+    assert apply_receipt["preserved"]["asset_purge_status"] == "complete"
+    assert source_asset_id not in app.assets
+    assert result_asset_id not in app.assets
+    assert mobile_route.status_code == 404
+
+
+def test_assets_persist_download_and_purge_when_app_uses_runtime_store(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import RuntimeAssetRecord, SQLiteRuntimeStore
+
+    db_path = tmp_path / "kaka-runtime.sqlite3"
+    store = SQLiteRuntimeStore(db_path)
+    store.initialize()
+    app = app_module.create_app(runtime_store=store, runtime_store_path=str(db_path))
+    client = app.test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={"file": (io.BytesIO(b"source-image"), "photo.jpg", "image/jpeg")},
+    )
+    assert upload.status_code == 200
+    source_asset_id = upload.get_json()["asset_id"]
+    assert source_asset_id not in app.assets
+
+    created = client.post(
+        "/mobile/v1/tasks/photo-edit",
+        headers=headers,
+        json={
+            "asset_id": source_asset_id,
+            "style": "natural_enhance",
+            "instruction": "Keep it realistic.",
+            "return_variants": 1,
+        },
+    )
+    assert created.status_code == 200
+    task_id = created.get_json()["task_id"]
+    result_asset_id = f"asset_result_{task_id.removeprefix('task_')}_1"
+    assert result_asset_id not in app.assets
+
+    stored_status = client.get(f"/mobile/v1/tasks/{task_id}", headers=headers)
+    assert stored_status.status_code == 200
+    stored_body = stored_status.get_json()
+    assert stored_body["status"] == "completed"
+    assert stored_body["variants"][0]["asset_id"] == result_asset_id
+    assert stored_body["variants"][0]["download_url"].endswith("/download")
+
+    source_download = client.get(f"/mobile/v1/assets/{source_asset_id}/download", headers=headers)
+    result_download = client.get(f"/mobile/v1/assets/{result_asset_id}/download", headers=headers)
+    assert source_download.status_code == 200
+    assert source_download.data == b"source-image"
+    assert result_download.status_code == 200
+    assert result_download.content_type == "image/png"
+    assert result_download.data.startswith(b"\x89PNG")
+
+    reopened = SQLiteRuntimeStore(db_path)
+    reopened.initialize()
+    reopened_app = app_module.create_app(runtime_store=reopened, runtime_store_path=str(db_path))
+    reopened_client = reopened_app.test_client()
+    reopened_source_download = reopened_client.get(
+        f"/mobile/v1/assets/{source_asset_id}/download",
+        headers=headers,
+    )
+    reopened_result_download = reopened_client.get(
+        f"/mobile/v1/assets/{result_asset_id}/download",
+        headers=headers,
+    )
+    assert reopened_source_download.status_code == 200
+    assert reopened_source_download.data == b"source-image"
+    assert reopened_result_download.status_code == 200
+    assert reopened_result_download.data.startswith(b"\x89PNG")
+
+    for asset_id in (source_asset_id, result_asset_id):
+        existing = reopened.get_asset(asset_id)
+        assert existing is not None
+        reopened.upsert_asset(
+            RuntimeAssetRecord(
+                asset_id=existing.asset_id,
+                role=existing.role,
+                created_at="2026-05-01T00:00:00Z",
+                filename=existing.filename,
+                mime_type=existing.mime_type,
+                size_bytes=existing.size_bytes,
+                sha256=existing.sha256,
+                body=existing.body,
+                metadata=existing.metadata,
+            )
+        )
+
+    apply_receipt = reopened_app.purge_retention(now_iso="2026-06-07T00:00:00Z", dry_run=False)
+    mobile_route = reopened_client.post("/mobile/v1/runtime/purge", headers=headers)
+    assert apply_receipt["deleted"]["input_asset_ids"] == [source_asset_id]
+    assert apply_receipt["deleted"]["output_asset_ids"] == [result_asset_id]
+    assert apply_receipt["preserved"]["asset_purge_status"] == "complete"
+    assert reopened.get_asset(source_asset_id) is None
+    assert reopened.get_asset(result_asset_id) is None
+    assert mobile_route.status_code == 404
+
+
+def test_store_backed_photo_task_status_preserves_variants_after_reopen(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import SQLiteRuntimeStore
+
+    db_path = tmp_path / "kaka-runtime.sqlite3"
+    store = SQLiteRuntimeStore(db_path)
+    store.initialize()
+    app = app_module.create_app(runtime_store=store, runtime_store_path=str(db_path))
+    client = app.test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={"file": (io.BytesIO(b"source-image"), "photo.jpg", "image/jpeg")},
+    )
+    created = client.post(
+        "/mobile/v1/tasks/photo-edit",
+        headers=headers,
+        json={
+            "asset_id": upload.get_json()["asset_id"],
+            "style": "natural_enhance",
+            "instruction": "Keep it realistic.",
+            "return_variants": 2,
+        },
+    )
+    task_id = created.get_json()["task_id"]
+
+    reopened = SQLiteRuntimeStore(db_path)
+    reopened.initialize()
+    reopened_client = app_module.create_app(runtime_store=reopened, runtime_store_path=str(db_path)).test_client()
+
+    status = reopened_client.get(f"/mobile/v1/tasks/{task_id}", headers=headers)
+
+    assert status.status_code == 200
+    body = status.get_json()
+    assert body["task_id"] == task_id
+    assert body["status"] == "completed"
+    assert [variant["label"] for variant in body["variants"]] == ["Master", "Social"]
+    assert body["variants"][0]["asset_id"].startswith("asset_result_")
+    assert body["variants"][0]["download_url"].endswith("/download")
+    assert body["explanation"]
+
+    stored_task = reopened.get_task(task_id)
+    assert stored_task is not None
+    stored_variants = stored_task.metadata["variants"]
+    assert [set(variant) for variant in stored_variants] == [
+        {"id", "label", "asset_id"},
+        {"id", "label", "asset_id"},
+    ]
+    assert "download_url" not in json.dumps(stored_task.metadata, sort_keys=True)
+
+    rendered = json.dumps(body, sort_keys=True)
+    assert "source-image" not in rendered
+    assert str(db_path) not in rendered
+    assert "runtime_store_path" not in rendered
+    assert "provider_endpoint" not in rendered
+    assert "mobile_token" not in rendered
+
+    download = reopened_client.get(body["variants"][0]["download_url"], headers=headers)
+    assert download.status_code == 200
+    assert download.content_type == "image/png"
+
+
+def test_store_backed_task_list_and_events_keep_result_detail_scoped_to_status(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import SQLiteRuntimeStore
+
+    db_path = tmp_path / "kaka-runtime.sqlite3"
+    store = SQLiteRuntimeStore(db_path)
+    store.initialize()
+    client = app_module.create_app(runtime_store=store, runtime_store_path=str(db_path)).test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={"file": (io.BytesIO(b"source-image"), "photo.jpg", "image/jpeg")},
+    )
+    created = client.post(
+        "/mobile/v1/tasks/photo-edit",
+        headers=headers,
+        json={
+            "asset_id": upload.get_json()["asset_id"],
+            "style": "natural_enhance",
+            "instruction": "Keep it realistic.",
+            "return_variants": 2,
+        },
+    )
+    task_id = created.get_json()["task_id"]
+
+    task_list = client.get("/mobile/v1/tasks", headers=headers).get_json()
+    events = client.get(f"/mobile/v1/tasks/{task_id}/events", headers=headers)
+
+    rendered_list = json.dumps(task_list, sort_keys=True)
+    assert [set(task) for task in task_list["tasks"]] == [
+        {"id", "title", "status", "progress", "message", "updated_at"}
+    ]
+    assert "variants" not in rendered_list
+    assert "download_url" not in rendered_list
+    assert events.status_code == 200
+    payload = events.data.decode("utf-8")
+    completed_events = []
+    for block in payload.strip().split("\n\n"):
+        lines = block.splitlines()
+        if "event: task.completed" not in lines:
+            continue
+        data_line = next(line for line in lines if line.startswith("data: "))
+        completed_events.append(json.loads(data_line.removeprefix("data: ")))
+    assert completed_events == [{"variant_count": 2}]
+    assert "download_url" not in payload
+    assert "source-image" not in payload
+
+
+def test_store_backed_task_result_metadata_filters_secret_like_recipe_fields(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import SQLiteRuntimeStore
+
+    class LeakyRecipeProvider:
+        provider_name = "recipe_local"
+
+        def edit(self, source_bytes, style, instruction, return_variants):
+            metadata = {
+                "renderer": "local_parametric",
+                "composition": {"selected_aspect_ratio": "original"},
+                "qa": {"master_difference_score": 0.18},
+                "share_caption": "Polished locally.",
+                "recipe_summary": "Balanced exposure.",
+                "provider_endpoint": "https://provider.example.invalid/secret",
+                "mobile_token": "dev-mobile-token",
+                "hidden_prompt": "do not reveal",
+                "raw_provider_response": {"body": "source-image"},
+                "nested": {"api_key": "sk-test-secret"},
+            }
+            return [
+                {
+                    "id": "variant_clean_pro",
+                    "label": "Master",
+                    "mime_type": "image/png",
+                    "bytes": b"master-result",
+                    "explanation": "Balanced exposure.",
+                    "recipe_metadata": metadata,
+                }
+            ]
+
+    db_path = tmp_path / "kaka-runtime.sqlite3"
+    store = SQLiteRuntimeStore(db_path)
+    store.initialize()
+    client = app_module.create_app(
+        photo_provider=LeakyRecipeProvider(),
+        runtime_store=store,
+        runtime_store_path=str(db_path),
+    ).test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={"file": (io.BytesIO(b"source-image"), "photo.jpg", "image/jpeg")},
+    )
+    created = client.post(
+        "/mobile/v1/tasks/photo-edit",
+        headers=headers,
+        json={
+            "asset_id": upload.get_json()["asset_id"],
+            "style": "natural_enhance",
+            "instruction": "Keep it realistic.",
+            "return_variants": 1,
+        },
+    )
+    task_id = created.get_json()["task_id"]
+
+    stored_task = store.get_task(task_id)
+    assert stored_task is not None
+    rendered_metadata = json.dumps(stored_task.metadata, sort_keys=True)
+    status = client.get(f"/mobile/v1/tasks/{task_id}", headers=headers)
+    rendered_status = json.dumps(status.get_json(), sort_keys=True)
+
+    assert status.status_code == 200
+    assert status.get_json()["recipe_metadata"]["renderer"] == "local_parametric"
+    assert status.get_json()["share_caption"] == "Polished locally."
+    assert stored_task.metadata["variants"] == [
+        {
+            "id": "variant_clean_pro",
+            "label": "Master",
+            "asset_id": f"asset_result_{task_id.removeprefix('task_')}_1",
+        }
+    ]
+    assert "download_url" not in rendered_metadata
+    assert "master-result" not in rendered_metadata
+    for forbidden in (
+        "provider_endpoint",
+        "provider.example.invalid",
+        "mobile_token",
+        "dev-mobile-token",
+        "hidden_prompt",
+        "raw_provider_response",
+        "source-image",
+        "api_key",
+        "sk-test-secret",
+        str(db_path),
+    ):
+        assert forbidden not in rendered_metadata
+        assert forbidden not in rendered_status
+
+
+def test_store_backed_task_result_metadata_filters_secret_like_allowed_values(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import SQLiteRuntimeStore
+
+    class LeakyValueProvider:
+        provider_name = "https://provider.example.invalid?token=dev-mobile-token"
+
+        def edit(self, source_bytes, style, instruction, return_variants):
+            metadata = {
+                "renderer": "local_parametric",
+                "composition": {
+                    "selected_aspect_ratio": "original",
+                    "note": "data:image/png;base64,iVBORw0KGgo=",
+                },
+                "qa": {"diagnostic": "/Users/kartz/.kaka/mobile-runtime.sqlite3"},
+                "share_caption": "token=dev-mobile-token",
+                "recipe_summary": "https://provider.example.invalid/raw",
+            }
+            return [
+                {
+                    "id": "variant_clean_pro",
+                    "label": "Master",
+                    "mime_type": "image/png",
+                    "bytes": b"master-result",
+                    "explanation": "Bearer dev-mobile-token",
+                    "recipe_metadata": metadata,
+                }
+            ]
+
+    db_path = tmp_path / "kaka-runtime.sqlite3"
+    store = SQLiteRuntimeStore(db_path)
+    store.initialize()
+    client = app_module.create_app(
+        photo_provider=LeakyValueProvider(),
+        runtime_store=store,
+        runtime_store_path=str(db_path),
+    ).test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={"file": (io.BytesIO(b"source-image"), "photo.jpg", "image/jpeg")},
+    )
+    created = client.post(
+        "/mobile/v1/tasks/photo-edit",
+        headers=headers,
+        json={
+            "asset_id": upload.get_json()["asset_id"],
+            "style": "natural_enhance",
+            "instruction": "Keep it realistic.",
+            "return_variants": 1,
+        },
+    )
+    task_id = created.get_json()["task_id"]
+
+    stored_task = store.get_task(task_id)
+    assert stored_task is not None
+    status = client.get(f"/mobile/v1/tasks/{task_id}", headers=headers)
+    rendered_metadata = json.dumps(stored_task.metadata, sort_keys=True)
+    rendered_status = json.dumps(status.get_json(), sort_keys=True)
+
+    assert status.status_code == 200
+    assert stored_task.metadata["recipe_metadata"]["renderer"] == "local_parametric"
+    assert stored_task.metadata["variants"] == [
+        {
+            "id": "variant_clean_pro",
+            "label": "Master",
+            "asset_id": f"asset_result_{task_id.removeprefix('task_')}_1",
+        }
+    ]
+    for forbidden in (
+        "https://provider.example.invalid",
+        "token=",
+        "dev-mobile-token",
+        "Bearer",
+        "/Users/",
+        ".sqlite3",
+        "data:image",
+        "iVBOR",
+        "source-image",
+        str(db_path),
+    ):
+        assert forbidden not in rendered_metadata
+        assert forbidden not in rendered_status
+
+
 def test_capabilities_advertise_vision_modes():
     client = create_app().test_client()
 
@@ -71,7 +564,283 @@ def test_capabilities_advertise_universal_intake_contract():
     assert response.status_code == 200
     assert intake["accepted_types"] == ["text", "url", "image", "pdf"]
     assert intake["supports_context_snapshot"] is True
+    assert intake["supports_voice_followup"] is True
     assert intake["supports_sse"] is False
+
+
+def test_recall_semantic_search_returns_ranked_results_without_raw_index_ids():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_task_id": "task_launch",
+            "user_visible_summary": "Launch summary language should prefer concise Chinese answers.",
+        },
+    )
+
+    response = client.post(
+        "/mobile/v1/recall/search",
+        headers=headers,
+        json={"query": "launch summary language", "limit": 5},
+    )
+
+    payload = response.get_json()
+    rendered = str(payload)
+    assert response.status_code == 200
+    assert payload["query"] == "launch summary language"
+    assert payload["mode"] == "semantic"
+    assert payload["items"][0]["item"]["summary"] == "Launch summary language should prefer concise Chinese answers."
+    assert payload["items"][0]["score"] > 0
+    assert "embedding_" not in rendered
+
+
+def test_runtime_settings_advertise_store_and_semantic_recall_status(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import SQLiteRuntimeStore
+
+    store_path = tmp_path / "kaka-runtime.sqlite3"
+    store = SQLiteRuntimeStore(store_path)
+    store.initialize()
+    client = create_app(runtime_store=store, runtime_store_path=str(store_path)).test_client()
+
+    response = client.get(
+        "/mobile/v1/runtime/settings",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+    )
+
+    payload = response.get_json()
+    rendered = str(payload)
+    assert response.status_code == 200
+    assert payload["recall_store"]["enabled"] is True
+    assert payload["recall_store"]["owner"] == "runtime"
+    assert payload["recall_store"]["label"] == "Local Kaka Recall and task store"
+    assert payload["recall_store"]["phone_can_change"] is False
+    assert payload["semantic_recall"]["available"] is True
+    assert payload["semantic_recall"]["mode"] == "local_deterministic"
+    assert payload["retention"]["task_history_days"] == 30
+    assert "provider_keys" not in rendered
+    assert "kaka-runtime.sqlite3" not in rendered
+
+
+def test_runtime_settings_advertise_provider_backed_recall_without_endpoint_leak():
+    client = create_app(
+        recall_search_provider="runtime_http",
+        recall_search_endpoint="http://127.0.0.1:8788/kaka/recall/search",
+    ).test_client()
+
+    response = client.get(
+        "/mobile/v1/runtime/settings",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+    )
+
+    payload = response.get_json()
+    rendered = str(payload)
+    assert response.status_code == 200
+    assert payload["semantic_recall"]["available"] is True
+    assert payload["semantic_recall"]["owner"] == "runtime"
+    assert payload["semantic_recall"]["mode"] == "provider_backed"
+    assert payload["semantic_recall"]["provider_label"] == "Runtime provider"
+    assert "127.0.0.1:8788" not in rendered
+    assert "kaka-runtime.sqlite3" not in rendered
+    assert "provider_keys" not in rendered
+
+
+def test_runtime_settings_do_not_expose_runtime_side_ui_values(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import SQLiteRuntimeStore
+
+    store_path = tmp_path / "runtime_store_path-openai_api_key.sqlite3"
+    store = SQLiteRuntimeStore(store_path)
+    store.initialize()
+    endpoint = "http://127.0.0.1:8788/kaka/recall/search?hidden_prompt=never"
+    client = create_app(
+        runtime_store=store,
+        runtime_store_path=str(store_path),
+        recall_search_provider="runtime_http",
+        recall_search_endpoint=endpoint,
+    ).test_client()
+
+    response = client.get(
+        "/mobile/v1/runtime/settings",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+    )
+
+    payload = response.get_json()
+    rendered = str(payload)
+    assert response.status_code == 200
+    assert set(payload.keys()) == {"recall_store", "semantic_recall", "retention", "connection_security"}
+    assert set(payload["recall_store"].keys()) == {"enabled", "owner", "label", "phone_can_change"}
+    assert set(payload["semantic_recall"].keys()) == {"available", "owner", "mode", "provider_label"}
+    assert set(payload["retention"].keys()) == {"input_assets_days", "output_assets_days", "task_history_days"}
+    assert set(payload["connection_security"].keys()) == {
+        "pairing_code_ttl_seconds",
+        "mobile_token_ttl_seconds",
+        "mobile_token_revocation_supported",
+        "trusted_local_tls_required",
+        "tls_trust_state",
+        "tls_certificate_label",
+    }
+    assert payload["recall_store"]["enabled"] is True
+    assert payload["semantic_recall"]["mode"] == "provider_backed"
+    assert payload["connection_security"]["mobile_token_revocation_supported"] is False
+    assert payload["connection_security"]["tls_trust_state"] == "development_http"
+    for forbidden in (
+        str(store_path),
+        "runtime_store_path",
+        "openai_api_key",
+        "127.0.0.1:8788",
+        "hidden_prompt",
+        "recall_search_endpoint",
+    ):
+        assert forbidden not in rendered
+
+
+def test_provider_backed_recall_search_keeps_semantic_response_shape():
+    client = create_app(recall_search_provider="fixture").test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_task_id": "task_provider_search",
+            "user_visible_summary": "Provider launch summary language preference.",
+        },
+    )
+
+    response = client.post(
+        "/mobile/v1/recall/search",
+        headers=headers,
+        json={"query": "launch summary language", "limit": 5},
+    )
+
+    payload = response.get_json()
+    rendered = str(payload)
+    assert response.status_code == 200
+    assert payload["query"] == "launch summary language"
+    assert payload["mode"] == "semantic"
+    assert payload["retrieval_mode"] == "provider_backed"
+    assert payload["items"][0]["item"]["summary"] == "Provider launch summary language preference."
+    assert "embedding_" not in rendered
+
+
+def test_recall_search_allowlists_runtime_store_results():
+    class LeakyRuntimeStore:
+        recall_search_provider = type("Provider", (), {"provider_mode": "provider_backed"})()
+
+        def search_recall_semantic(self, query, limit):
+            return [
+                {
+                    "item": {
+                        "item_id": "recall_0001",
+                        "summary": "Provider launch summary language preference.",
+                        "created_at": "2026-06-05T09:30:00Z",
+                        "provenance": {
+                            "source_surface": "voice",
+                            "provider_endpoint": "http://127.0.0.1:8788/kaka/recall/search",
+                            "raw_provider_response": "never leak",
+                        },
+                        "provider_key": "secret-provider-key",
+                        "sqlite_path": "/tmp/kaka-runtime.sqlite3",
+                        "raw_embedding": [0.1, 0.2],
+                    },
+                    "score": 0.91,
+                    "match_reason": "Matched http://127.0.0.1:8788 hidden_prompt raw_embedding.",
+                    "provider_endpoint": "http://127.0.0.1:8788/kaka/recall/search",
+                    "raw_provider_response": {"hidden_prompt": "never leak"},
+                    "index_rows": ["embedding_recall_0001"],
+                }
+            ]
+
+    client = create_app(runtime_store=LeakyRuntimeStore()).test_client()
+
+    response = client.post(
+        "/mobile/v1/recall/search",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+        json={"query": "launch summary language", "limit": 5},
+    )
+
+    payload = response.get_json()
+    rendered = str(payload)
+    assert response.status_code == 200
+    assert payload["items"] == [
+        {
+            "item": {
+                "item_id": "recall_0001",
+                "summary": "Provider launch summary language preference.",
+                "created_at": "2026-06-05T09:30:00Z",
+                "provenance": {"source_surface": "voice"},
+            },
+            "score": 0.91,
+            "match_reason": "Matched runtime Recall provider.",
+        }
+    ]
+    for forbidden in (
+        "secret-provider-key",
+        "127.0.0.1:8788",
+        "kaka-runtime.sqlite3",
+        "raw_embedding",
+        "hidden_prompt",
+        "embedding_recall_0001",
+        "index_rows",
+    ):
+        assert forbidden not in rendered
+
+
+def test_recall_search_allowlists_in_memory_provider_results():
+    class LeakyProvider:
+        provider_mode = "provider_backed"
+
+        def search(self, query, items, limit):
+            return [
+                RecallSearchResult(
+                    item=items[0],
+                    score=0.87,
+                    match_reason="Matched provider_endpoint http://127.0.0.1:8788 hidden_prompt.",
+                    provider_mode="provider_backed",
+                )
+            ]
+
+    client = create_app(recall_search_provider=LeakyProvider()).test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_task_id": "task_safe",
+            "user_visible_summary": "Safe visible summary.",
+        },
+    )
+
+    response = client.post(
+        "/mobile/v1/recall/search",
+        headers=headers,
+        json={"query": "safe", "limit": 5},
+    )
+
+    payload = response.get_json()
+    rendered = str(payload)
+    assert response.status_code == 200
+    assert payload["items"][0]["match_reason"] == "Matched runtime Recall provider."
+    assert payload["items"][0]["item"]["provenance"] == {"source_task_id": "task_safe"}
+    assert "127.0.0.1:8788" not in rendered
+    assert "hidden_prompt" not in rendered
+
+
+def test_recall_semantic_search_requires_non_empty_query():
+    client = create_app().test_client()
+
+    response = client.post(
+        "/mobile/v1/recall/search",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+        json={"query": "   ", "limit": 5},
+    )
+
+    payload = response.get_json()
+    assert response.status_code == 400
+    assert payload["error"]["code"] == "invalid_recall_payload"
 
 
 def test_capabilities_advertise_runtime_neutral_local_recipe_contract():
@@ -82,15 +851,26 @@ def test_capabilities_advertise_runtime_neutral_local_recipe_contract():
         headers={"Authorization": "Bearer dev-mobile-token"},
     )
 
-    photo_edit = response.get_json()["tasks"]["photo_edit"]
+    tasks = response.get_json()["tasks"]
+    photo_edit = tasks["photo_edit"]
+    vision = tasks["vision"]
+    image_intake = tasks["image_intake"]
     assert response.status_code == 200
     assert photo_edit["provider"] == "recipe_local"
     assert photo_edit["renderer"] == "local_parametric"
+    assert photo_edit["accepted_mime_types"] == ["image/jpeg"]
+    assert vision["accepted_mime_types"] == ["image/jpeg", "image/heic", "image/png"]
+    assert image_intake["accepted_mime_types"] == [
+        "image/jpeg",
+        "image/heic",
+        "image/png",
+    ]
     assert photo_edit["variant_labels"] == ["Master", "Social"]
     assert photo_edit["variant_ids"] == ["variant_clean_pro", "variant_social_pop"]
     assert photo_edit["crop_aspects"] == ["original"]
     assert photo_edit["supports_crop_candidates"] is False
     assert photo_edit["supports_upscale_policy"] is True
+    assert photo_edit["return_variants_max"] == 2
 
 
 def test_pairing_exchange_returns_mobile_token_once():
@@ -168,6 +948,24 @@ def test_development_pairing_payload_prefers_advertised_endpoint_for_real_device
     body = response.get_json()
     assert response.status_code == 200
     assert body["endpoint"] == "http://192.168.1.104:8765"
+
+
+def test_development_pairing_payload_includes_configured_tls_pin_metadata():
+    client = create_app(
+        advertised_endpoint="https://macbook-pro.local:8765",
+        trusted_local_tls_required=True,
+        tls_certificate_label="Kaka Local Runtime",
+        tls_public_key_sha256="a" * 64,
+    ).test_client()
+
+    payload = client.get("/mobile/v1/pairing/dev").get_json()
+    rendered = str(payload)
+
+    assert payload["endpoint"] == "https://macbook-pro.local:8765"
+    assert payload["trusted_local_tls_required"] is True
+    assert payload["tls_certificate_label"] == "Kaka Local Runtime"
+    assert payload["tls_public_key_sha256"] == "a" * 64
+    assert "private_key" not in rendered
 
 
 def test_development_pairing_payload_refreshes_after_default_code_is_used():
@@ -278,6 +1076,183 @@ def test_development_pairing_page_embeds_scannable_qr_without_external_service()
     assert '"endpoint": "http://192.168.1.42:8765"' in visible_text
     assert "api.qrserver.com" not in html
     assert "chart.googleapis.com" not in html
+
+
+def _production_pairing_manager() -> tuple[PairingManager, StaticPairingClock]:
+    clock = StaticPairingClock(datetime(2026, 6, 5, 8, 0, 0, tzinfo=timezone.utc))
+    manager = PairingManager(
+        store=InMemoryPairingStore(),
+        clock=clock,
+        config=PairingSecurityConfig(code_ttl_seconds=120),
+    )
+    return manager, clock
+
+
+def test_production_pairing_payload_exchanges_once_and_authorizes_capabilities():
+    manager, _ = _production_pairing_manager()
+    app = create_app(pairing_manager=manager, advertised_endpoint="https://macbook-pro.local:8765")
+    client = app.test_client()
+
+    payload_response = client.get("/mobile/v1/pairing/qr")
+    payload = payload_response.get_json()
+    first = client.post(
+        "/mobile/v1/pairing/exchange",
+        json={
+            "pairing_code": payload["pairing_code"],
+            "device_name": "Kartz iPhone",
+            "device_public_id": "device_abc",
+        },
+    )
+    replay = client.post(
+        "/mobile/v1/pairing/exchange",
+        json={
+            "pairing_code": payload["pairing_code"],
+            "device_name": "Kartz iPhone",
+            "device_public_id": "device_abc",
+        },
+    )
+    capabilities = client.get(
+        "/mobile/v1/capabilities",
+        headers={"Authorization": f"Bearer {first.get_json()['mobile_token']}"},
+    )
+
+    assert payload_response.status_code == 200
+    assert payload["endpoint"] == "https://macbook-pro.local:8765"
+    assert payload["expires_at"] == "2026-06-05T08:02:00Z"
+    assert first.status_code == 200
+    assert first.get_json()["mobile_token"].startswith("mobile_")
+    assert replay.status_code == 409
+    assert replay.get_json()["error"]["code"] == "pairing_already_used"
+    assert capabilities.status_code == 200
+
+
+def test_production_pairing_payload_includes_configured_tls_pin_metadata():
+    manager, _ = _production_pairing_manager()
+    manager.config = PairingSecurityConfig(
+        code_ttl_seconds=120,
+        trusted_local_tls_required=True,
+        tls_trust_state="configured",
+        tls_certificate_label="Kaka Local Runtime",
+        tls_public_key_sha256="b" * 64,
+        tls_private_key_path="/Users/kartz/.kaka/private/key.pem",
+    )
+    client = create_app(pairing_manager=manager, advertised_endpoint="https://macbook-pro.local:8765").test_client()
+
+    payload = client.get("/mobile/v1/pairing/qr").get_json()
+    rendered = str(payload)
+
+    assert payload["trusted_local_tls_required"] is True
+    assert payload["tls_certificate_label"] == "Kaka Local Runtime"
+    assert payload["tls_public_key_sha256"] == "b" * 64
+    assert "key.pem" not in rendered
+
+
+def test_production_pairing_payload_uses_configured_runtime_display_name_and_scheme():
+    manager, _ = _production_pairing_manager()
+    client = create_app(
+        pairing_manager=manager,
+        runtime_id="openclaw",
+        runtime_display_name="Agent Pocket Mock OpenClaw",
+        pairing_scheme="http",
+    ).test_client()
+
+    payload = client.get(
+        "/mobile/v1/pairing/qr",
+        headers={"Host": "192.168.1.10:8765"},
+    ).get_json()
+
+    assert payload["endpoint"] == "http://192.168.1.10:8765"
+    assert payload["runtime"] == "openclaw"
+    assert payload["display_name"] == "Agent Pocket Mock OpenClaw"
+
+
+def test_production_pairing_rejects_expired_code():
+    manager, clock = _production_pairing_manager()
+    client = create_app(pairing_manager=manager, advertised_endpoint="https://macbook-pro.local:8765").test_client()
+    payload = client.get("/mobile/v1/pairing/qr").get_json()
+
+    clock.advance(timedelta(seconds=121))
+    response = client.post(
+        "/mobile/v1/pairing/exchange",
+        json={
+            "pairing_code": payload["pairing_code"],
+            "device_name": "Kartz iPhone",
+            "device_public_id": "device_abc",
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.get_json()["error"]["code"] == "pairing_expired"
+
+
+def test_revoked_mobile_token_is_rejected_by_every_protected_endpoint():
+    manager, _ = _production_pairing_manager()
+    client = create_app(pairing_manager=manager, advertised_endpoint="https://macbook-pro.local:8765").test_client()
+    payload = client.get("/mobile/v1/pairing/qr").get_json()
+    exchange = client.post(
+        "/mobile/v1/pairing/exchange",
+        json={
+            "pairing_code": payload["pairing_code"],
+            "device_name": "Kartz iPhone",
+            "device_public_id": "device_abc",
+        },
+    ).get_json()
+    token = exchange["mobile_token"]
+
+    revoke = client.post(
+        "/mobile/v1/pairing/revoke",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    capabilities = client.get(
+        "/mobile/v1/capabilities",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    tasks = client.get(
+        "/mobile/v1/tasks",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert revoke.status_code == 200
+    assert revoke.get_json() == {"status": "revoked"}
+    assert capabilities.status_code == 401
+    assert tasks.status_code == 401
+
+
+def test_runtime_settings_security_summary_does_not_expose_raw_tokens_or_private_paths():
+    manager, _ = _production_pairing_manager()
+    manager.config = PairingSecurityConfig(
+        code_ttl_seconds=120,
+        trusted_local_tls_required=True,
+        tls_trust_state="configured",
+        tls_certificate_label="Kaka Local Runtime",
+        tls_private_key_path="/Users/kartz/.kaka/private/key.pem",
+    )
+    client = create_app(pairing_manager=manager, advertised_endpoint="https://macbook-pro.local:8765").test_client()
+    payload = client.get("/mobile/v1/pairing/qr").get_json()
+    token = client.post(
+        "/mobile/v1/pairing/exchange",
+        json={
+            "pairing_code": payload["pairing_code"],
+            "device_name": "Kartz iPhone",
+            "device_public_id": "device_abc",
+        },
+    ).get_json()["mobile_token"]
+
+    response = client.get(
+        "/mobile/v1/runtime/settings",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    body = response.get_json()
+    rendered = str(body)
+
+    assert response.status_code == 200
+    assert body["connection_security"]["pairing_code_ttl_seconds"] == 120
+    assert body["connection_security"]["mobile_token_revocation_supported"] is True
+    assert body["connection_security"]["trusted_local_tls_required"] is True
+    assert body["connection_security"]["tls_trust_state"] == "configured"
+    assert body["connection_security"]["tls_certificate_label"] == "Kaka Local Runtime"
+    assert token not in rendered
+    assert "key.pem" not in rendered
 
 
 def test_photo_edit_lifecycle_returns_downloadable_variant():
@@ -507,6 +1482,104 @@ def test_universal_text_intake_lifecycle_returns_status_url_and_suggestions():
     assert suggestions["extract_tasks"]["requires_confirmation"] is False
 
 
+def test_universal_intake_context_snapshot_allows_motion_calendar_busy_labels():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    created = client.post(
+        "/mobile/v1/tasks/intake",
+        headers=headers,
+        json={
+            "type": "text",
+            "text": "Prep a short note before the next meeting.",
+            "context_snapshot": {
+                "timestamp": "2026-06-05T09:30:00Z",
+                "timezone": "Asia/Shanghai",
+                "source_surface": "share_extension",
+                "network": "wifi",
+                "motion": "walking",
+                "calendar_availability": "busy_soon",
+            },
+        },
+    )
+    status = client.get(created.get_json()["status_url"], headers=headers)
+
+    snapshot = status.get_json()["intake"]["metadata"]["context_snapshot"]
+    assert created.status_code == 200
+    assert snapshot == {
+        "timestamp": "2026-06-05T09:30:00Z",
+        "timezone": "Asia/Shanghai",
+        "source_surface": "share_extension",
+        "network": "wifi",
+        "motion": "walking",
+        "calendar_availability": "busy_soon",
+    }
+
+
+def test_universal_intake_context_snapshot_filters_private_fields():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    created = client.post(
+        "/mobile/v1/tasks/intake",
+        headers=headers,
+        json={
+            "type": "text",
+            "text": "Summarize this without keeping private context.",
+            "context_snapshot": {
+                "timestamp": "2026-06-05T09:30:00Z",
+                "timezone": "Asia/Shanghai",
+                "source_surface": "share_extension",
+                "motion": "driving",
+                "calendar_availability": "busy",
+                "ssid": "HomeWiFiSecret",
+                "bssid": "aa:bb:cc:dd:ee:ff",
+                "ip_address": "192.168.1.44",
+                "latitude": "31.2304",
+                "longitude": "121.4737",
+                "calendar_event_title": "Private board review",
+                "attendees": ["ceo@example.com"],
+                "calendar_notes": "Do not leak this note.",
+                "calendar_body": "Sensitive event body.",
+            },
+        },
+    )
+    status = client.get(created.get_json()["status_url"], headers=headers)
+    task_list = client.get("/mobile/v1/tasks", headers=headers)
+
+    snapshot = status.get_json()["intake"]["metadata"]["context_snapshot"]
+    rendered = json.dumps([status.get_json(), task_list.get_json()], sort_keys=True)
+    assert created.status_code == 200
+    assert snapshot == {
+        "timestamp": "2026-06-05T09:30:00Z",
+        "timezone": "Asia/Shanghai",
+        "source_surface": "share_extension",
+        "motion": "driving",
+        "calendar_availability": "busy",
+    }
+    for forbidden in (
+        "ssid",
+        "HomeWiFiSecret",
+        "bssid",
+        "aa:bb:cc:dd:ee:ff",
+        "ip_address",
+        "192.168.1.44",
+        "latitude",
+        "31.2304",
+        "longitude",
+        "121.4737",
+        "calendar_event_title",
+        "Private board review",
+        "attendees",
+        "ceo@example.com",
+        "calendar_notes",
+        "Do not leak this note.",
+        "calendar_body",
+        "Sensitive event body.",
+    ):
+        assert forbidden not in rendered
+
+
 def test_universal_url_intake_lifecycle_returns_link_summary():
     client = create_app().test_client()
     headers = {"Authorization": "Bearer dev-mobile-token"}
@@ -725,6 +1798,77 @@ def test_vision_task_uses_injected_fake_provider():
     ]
     assert status.get_json()["provider"] == "recording_vision"
     assert status.get_json()["vision"]["items"][0]["value"] == "Notebook"
+
+
+def test_vision_task_sanitizes_runtime_provider_payload_before_mobile_status():
+    class LeakyVisionProvider:
+        provider_name = "leaky_vision"
+
+        def analyze(self, source_bytes, mode, instruction, locale):
+            return {
+                "mode": mode,
+                "title": "Recorded",
+                "summary": "Provider handled vision.",
+                "items": [
+                    {
+                        "title": "Object",
+                        "value": "Notebook",
+                        "provider_endpoint": "http://127.0.0.1:7788/vision",
+                        "raw_provider_response": {"OPENAI_API_KEY": "sk-vision-secret"},
+                    }
+                ],
+                "sections": [
+                    {
+                        "title": "Findings",
+                        "kind": "candidates",
+                        "hidden_prompt": "never expose hidden prompt",
+                        "items": [
+                            {
+                                "title": "Subject",
+                                "value": "Desk",
+                                "subtitle": "hidden_prompt raw_provider_response task_logs",
+                                "task_logs": ["OPENAI_API_KEY=sk-vision-secret"],
+                            }
+                        ],
+                    }
+                ],
+                "provider_endpoint": "http://127.0.0.1:7788/vision",
+                "raw_provider_response": {"hidden_prompt": "never expose", "token": "sk-vision-secret"},
+                "hidden_prompt": "never expose hidden prompt",
+                "task_logs": ["OPENAI_API_KEY=sk-vision-secret"],
+            }
+
+    client = create_app(vision_provider=LeakyVisionProvider()).test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    upload = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={"file": (io.BytesIO(b"source-image"), "photo.jpg", "image/jpeg")},
+    )
+    created = client.post(
+        "/mobile/v1/tasks/vision",
+        headers=headers,
+        json={
+            "profile_id": "photo-agent",
+            "asset_id": upload.get_json()["asset_id"],
+            "mode": "scan",
+            "instruction": "Extract text.",
+            "locale": "en",
+        },
+    )
+
+    status = client.get(f"/mobile/v1/tasks/{created.get_json()['task_id']}", headers=headers)
+    body = status.get_json()
+    rendered = str(body)
+
+    assert body["vision"]["items"][0]["value"] == "Notebook"
+    assert body["vision"]["sections"][0]["items"][0]["value"] == "Desk"
+    assert "provider_endpoint" not in rendered
+    assert "raw_provider_response" not in rendered
+    assert "hidden_prompt" not in rendered
+    assert "task_logs" not in rendered
+    assert "OPENAI_API_KEY" not in rendered
+    assert "sk-vision-secret" not in rendered
 
 
 def test_concurrent_vision_tasks_receive_unique_task_ids():
@@ -1138,6 +2282,7 @@ def test_recall_use_once_succeeds_without_persisting_item():
         "status": "used_once",
         "item": None,
         "deleted_item_ids": [],
+        "deleted_index_ids": [],
     }
     assert listed.status_code == 200
     assert listed.get_json()["items"] == []
@@ -1182,6 +2327,7 @@ def test_recall_forget_by_source_is_deterministic():
         "status": "forgotten",
         "item": None,
         "deleted_item_ids": ["recall_0001"],
+        "deleted_index_ids": ["embedding_recall_0001"],
     }
     assert second.status_code == 200
     assert second.get_json() == {
@@ -1189,6 +2335,7 @@ def test_recall_forget_by_source_is_deterministic():
         "status": "forgotten",
         "item": None,
         "deleted_item_ids": [],
+        "deleted_index_ids": [],
     }
 
 
@@ -1254,6 +2401,121 @@ def test_recall_items_are_returned_newest_first():
     assert [item["item_id"] for item in listed.get_json()["items"]] == ["recall_0002", "recall_0001"]
 
 
+def test_recall_items_supports_query_and_limit():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    for summary in [
+        "Remember Chinese summaries.",
+        "Keep the PDF upload limit visible.",
+        "Prefer concise Chinese answers.",
+    ]:
+        client.post(
+            "/mobile/v1/recall/actions",
+            headers=headers,
+            json={
+                "action": "remember",
+                "source_task_id": f"task_{summary[:4].lower()}",
+                "user_visible_summary": summary,
+            },
+        )
+
+    listed = client.get("/mobile/v1/recall/items?query=Chinese&limit=1", headers=headers)
+
+    assert listed.status_code == 200
+    assert [item["item_id"] for item in listed.get_json()["items"]] == ["recall_0003"]
+
+
+def test_recall_items_clips_negative_limit_to_zero():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_task_id": "task_123",
+            "user_visible_summary": "Remember the launch preference.",
+        },
+    )
+
+    listed = client.get("/mobile/v1/recall/items?limit=-5", headers=headers)
+
+    assert listed.status_code == 200
+    assert listed.get_json()["items"] == []
+
+
+def test_recall_export_returns_json_items_with_generated_at():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    remembered = client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_task_id": "task_123",
+            "user_visible_summary": "Remember Chinese summaries.",
+        },
+    )
+
+    exported = client.get("/mobile/v1/recall/export", headers=headers)
+
+    assert exported.status_code == 200
+    payload = exported.get_json()
+    assert payload == {
+        "schema_version": "kaka.recall_export.v1",
+        "format": "json",
+        "generated_at": "2026-06-05T00:00:00Z",
+        "artifact_policy": {
+            "classification": "user_recall_export",
+            "artifact_kind": "recall_export_json",
+            "runtime_owned_source": True,
+            "database_dump": False,
+            "phone_safe": True,
+            "item_fields": ["item_id", "summary", "created_at", "provenance"],
+            "provenance_fields": ["source_task_id", "source_inbox_item_id", "source_surface"],
+            "forbidden_fields": [
+                "raw_embeddings",
+                "embeddings",
+                "retrieval_index_rows",
+                "provider_keys",
+                "provider_endpoints",
+                "bearer_tokens",
+                "mobile_tokens",
+                "runtime_store_path",
+                "sqlite_path",
+                "hidden_prompts",
+                "raw_provider_responses",
+                "unrelated_task_logs",
+            ],
+        },
+        "items": [remembered.get_json()["item"]],
+    }
+    rendered_items = json.dumps(payload["items"], ensure_ascii=False, sort_keys=True)
+    assert "embedding_" not in rendered_items
+    assert "runtime_store_path" not in rendered_items
+
+
+def test_recall_delete_returns_index_deletion_receipt():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    remembered = client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_task_id": "task_123",
+            "user_visible_summary": "Remember Chinese summaries.",
+        },
+    )
+    item_id = remembered.get_json()["item"]["item_id"]
+
+    deleted = client.delete(f"/mobile/v1/recall/items/{item_id}", headers=headers)
+
+    assert deleted.status_code == 200
+    assert deleted.get_json()["deleted_item_ids"] == [item_id]
+    assert deleted.get_json()["deleted_index_ids"] == [f"embedding_{item_id}"]
+
+
 def test_recall_delete_item_by_id_is_deterministic():
     client = create_app().test_client()
     headers = {"Authorization": "Bearer dev-mobile-token"}
@@ -1273,10 +2535,115 @@ def test_recall_delete_item_by_id_is_deterministic():
     listed = client.get("/mobile/v1/recall/items", headers=headers)
 
     assert first.status_code == 200
-    assert first.get_json() == {"status": "forgotten", "deleted_item_ids": [item_id]}
+    assert first.get_json() == {
+        "status": "forgotten",
+        "deleted_item_ids": [item_id],
+        "deleted_index_ids": [f"embedding_{item_id}"],
+    }
     assert second.status_code == 200
-    assert second.get_json() == {"status": "forgotten", "deleted_item_ids": []}
+    assert second.get_json() == {
+        "status": "forgotten",
+        "deleted_item_ids": [],
+        "deleted_index_ids": [],
+    }
     assert listed.get_json()["items"] == []
+
+
+def test_recall_persists_when_app_uses_runtime_store(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import SQLiteRuntimeStore
+
+    db_path = tmp_path / "runtime.sqlite3"
+    first_store = SQLiteRuntimeStore(db_path)
+    first_store.initialize()
+    first_client = create_app(runtime_store=first_store).test_client()
+
+    response = first_client.post(
+        "/mobile/v1/recall/actions",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+        json={
+            "action": "remember",
+            "source_task_id": "task_0001",
+            "user_visible_summary": "Keep restart-safe Recall.",
+        },
+    )
+    assert response.status_code == 200
+
+    second_store = SQLiteRuntimeStore(db_path)
+    second_store.initialize()
+    second_client = create_app(runtime_store=second_store).test_client()
+
+    items = second_client.get(
+        "/mobile/v1/recall/items?query=restart",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+    ).get_json()
+
+    assert [item["summary"] for item in items["items"]] == ["Keep restart-safe Recall."]
+
+
+def test_persistent_recall_export_forget_and_delete_receipts_survive_reopen(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import SQLiteRuntimeStore
+
+    db_path = tmp_path / "runtime.sqlite3"
+    inbox_a = "12345678-1234-1234-1234-1234567890AB"
+    inbox_b = "12345678-1234-1234-1234-1234567890AC"
+    store = SQLiteRuntimeStore(db_path)
+    store.initialize()
+    client = create_app(runtime_store=store).test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    first = client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_task_id": "task_123",
+            "source_inbox_item_id": inbox_a,
+            "user_visible_summary": "Forget only this stored item.",
+        },
+    ).get_json()
+    second = client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "remember",
+            "source_task_id": "task_123",
+            "source_inbox_item_id": inbox_b,
+            "user_visible_summary": "Keep this stored item.",
+        },
+    ).get_json()
+
+    exported = client.get("/mobile/v1/recall/export", headers=headers).get_json()
+    forgotten = client.post(
+        "/mobile/v1/recall/actions",
+        headers=headers,
+        json={
+            "action": "forget",
+            "source_task_id": "task_123",
+            "source_inbox_item_id": inbox_a,
+            "user_visible_summary": "Forget exact source.",
+        },
+    ).get_json()
+
+    reopened = SQLiteRuntimeStore(db_path)
+    reopened.initialize()
+    reopened_client = create_app(runtime_store=reopened).test_client()
+    listed = reopened_client.get("/mobile/v1/recall/items", headers=headers).get_json()
+    deleted = reopened_client.delete(
+        f"/mobile/v1/recall/items/{second['item']['item_id']}",
+        headers=headers,
+    ).get_json()
+
+    assert exported["format"] == "json"
+    assert [item["item_id"] for item in exported["items"]] == [second["item"]["item_id"], first["item"]["item_id"]]
+    assert forgotten["deleted_item_ids"] == [first["item"]["item_id"]]
+    assert forgotten["deleted_index_ids"] == [f"embedding_{first['item']['item_id']}"]
+    assert [item["item_id"] for item in listed["items"]] == [second["item"]["item_id"]]
+    assert deleted == {
+        "status": "forgotten",
+        "deleted_item_ids": [second["item"]["item_id"]],
+        "deleted_index_ids": [f"embedding_{second['item']['item_id']}"],
+    }
+    assert reopened_client.get("/mobile/v1/recall/items", headers=headers).get_json()["items"] == []
 
 
 def test_runtime_task_list_returns_waiting_tasks_first():
@@ -1375,3 +2742,86 @@ def test_runtime_task_approval_requires_explicit_valid_action():
     assert invalid.status_code == 400
     assert invalid.get_json()["error"]["code"] == "invalid_task_approval"
     assert app.tasks["task_waiting"]["status"] == "waiting_for_approval"
+
+
+def test_runtime_tasks_persist_when_app_uses_runtime_store(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import SQLiteRuntimeStore
+
+    db_path = tmp_path / "runtime.sqlite3"
+    first_store = SQLiteRuntimeStore(db_path)
+    first_store.initialize()
+    first_client = create_app(runtime_store=first_store).test_client()
+
+    created = first_client.post(
+        "/mobile/v1/tasks/intake",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+        json={"type": "text", "text": "Summarize this note."},
+    )
+    assert created.status_code == 200
+
+    reopened_store = SQLiteRuntimeStore(db_path)
+    reopened_store.initialize()
+    second_client = create_app(runtime_store=reopened_store).test_client()
+    tasks = second_client.get(
+        "/mobile/v1/tasks",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+    ).get_json()
+
+    assert len(tasks["tasks"]) == 1
+    assert tasks["tasks"][0]["status"] in {"completed", "waiting_for_approval", "running"}
+
+
+def test_runtime_task_approval_cancel_and_events_persist_when_app_uses_runtime_store(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import RuntimeTaskEvent, RuntimeTaskRecord, SQLiteRuntimeStore
+
+    db_path = tmp_path / "runtime.sqlite3"
+    store = SQLiteRuntimeStore(db_path)
+    store.initialize()
+    store.upsert_task(
+        RuntimeTaskRecord(
+            task_id="task_waiting",
+            title="Approve PDF summary",
+            status="waiting_for_approval",
+            updated_at="2026-06-05T09:32:00Z",
+            detail="Needs approval.",
+            approval_required=True,
+            metadata={"progress": 0.0, "message": "Needs approval."},
+        )
+    )
+    store.append_task_event(
+        RuntimeTaskEvent(
+            event_id="event_task_waiting_requested",
+            task_id="task_waiting",
+            type="approval_requested",
+            message="Approve PDF summary.",
+            created_at="2026-06-05T09:32:01Z",
+        )
+    )
+    client = create_app(runtime_store=store).test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+
+    approved = client.post(
+        "/mobile/v1/tasks/task_waiting/approval",
+        headers=headers,
+        json={"action": "approve", "note": "Yes"},
+    ).get_json()
+    cancelled = client.post("/mobile/v1/tasks/task_waiting/cancel", headers=headers).get_json()
+    events = client.get("/mobile/v1/tasks/task_waiting/events", headers=headers)
+    events_text = events.data.decode("utf-8")
+
+    reopened = SQLiteRuntimeStore(db_path)
+    reopened.initialize()
+    reopened_task = reopened.get_task("task_waiting")
+    reopened_events = reopened.list_task_events("task_waiting")
+
+    assert approved["status"] == "approved"
+    assert approved["task"]["status"] == "running"
+    assert cancelled["status"] == "cancelled"
+    assert cancelled["task"]["status"] == "cancelled"
+    assert reopened_task is not None
+    assert reopened_task.status == "cancelled"
+    assert {event.type for event in reopened_events} >= {"approval_requested", "task_approved", "task_cancelled"}
+    assert events.content_type == "text/event-stream"
+    assert "event: task.progress" in events_text
+    assert "event: task.completed" in events_text
+    assert "event: task_approved" not in events_text

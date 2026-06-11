@@ -6,17 +6,113 @@ import html
 import json
 import threading
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Mapping, MutableMapping, Optional, Protocol
 from urllib import error as urllib_error
 from urllib import request as urllib_request
-from urllib.parse import unquote
+from urllib.parse import parse_qs, unquote, urlsplit
 
 from kaka_mobile_runtime_kit.image_intake import build_image_intake_result
+from kaka_mobile_runtime_kit.pairing import PairingManager
+from kaka_mobile_runtime_kit.recall_export import build_recall_export_artifact
+from kaka_mobile_runtime_kit.recall_search import (
+    RecallSearchProvider,
+    build_recall_search_provider,
+)
+from kaka_mobile_runtime_kit.retention_purge import build_runtime_retention_purge_receipt
+
+try:
+    from kaka_mobile_runtime_kit.runtime_store import (
+        RuntimeAssetRecord,
+        RuntimeRecallItem,
+        RuntimeTaskEvent,
+        RuntimeTaskRecord,
+    )
+except Exception:
+    RuntimeAssetRecord = None
+    RuntimeRecallItem = None
+    RuntimeTaskEvent = None
+    RuntimeTaskRecord = None
 
 
 DEV_MOBILE_TOKEN = "dev-mobile-token"
 DEV_PAIRING_CODE = "pair_dev"
 DEV_DISPLAY_NAME = "Agent Pocket Mock Hermes"
+DEFAULT_INPUT_ASSETS_DAYS = 7
+DEFAULT_OUTPUT_ASSETS_DAYS = 30
+DEFAULT_TASK_HISTORY_DAYS = 30
+UNSAFE_TASK_METADATA_KEY_MARKERS = (
+    "endpoint",
+    "token",
+    "api_key",
+    "apikey",
+    "secret",
+    "credential",
+    "password",
+    "hidden_prompt",
+    "raw_provider",
+    "raw_response",
+    "private_key",
+    "runtime_store_path",
+    "sqlite",
+    "path",
+)
+UNSAFE_TASK_METADATA_VALUE_MARKERS = (
+    "://",
+    "bearer ",
+    "data:image",
+    "dev-mobile-token",
+    ".sqlite",
+    "ivbor",
+    "mobile_token",
+    "/users/",
+    "provider_endpoint",
+    "runtime_store_path",
+    "source-image",
+    "token=",
+    "sk-",
+)
+
+
+def _normalized_public_key_sha256(value: str) -> str:
+    normalized = value.strip().lower()
+    if len(normalized) != 64:
+        return ""
+    if any(char not in "0123456789abcdef" for char in normalized):
+        return ""
+    return normalized
+
+
+def _unsafe_task_metadata_key(key: Any) -> bool:
+    normalized = str(key).strip().replace("-", "_").lower()
+    return any(marker in normalized for marker in UNSAFE_TASK_METADATA_KEY_MARKERS)
+
+
+def _unsafe_task_metadata_string(value: str) -> bool:
+    normalized = value.strip().lower()
+    return any(marker in normalized for marker in UNSAFE_TASK_METADATA_VALUE_MARKERS)
+
+
+def _safe_json_value(value: Any) -> Any:
+    if value is None:
+        return value
+    if isinstance(value, str):
+        return None if _unsafe_task_metadata_string(value) else value
+    if isinstance(value, (int, float, bool)):
+        return value
+    if isinstance(value, Mapping):
+        safe_mapping: Dict[str, Any] = {}
+        for key, raw_child in value.items():
+            if _unsafe_task_metadata_key(key):
+                continue
+            child = _safe_json_value(raw_child)
+            if child is not None:
+                safe_mapping[str(key)] = child
+        return safe_mapping
+    if isinstance(value, list):
+        return [child for raw_child in value if (child := _safe_json_value(raw_child)) is not None]
+    return None
+
 
 TINY_PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="
@@ -55,15 +151,24 @@ class FixturePhotoProvider:
         instruction: str,
         return_variants: int,
     ) -> List[Mapping[str, Any]]:
-        return [
+        variants = [
             {
-                "id": "variant_mock",
-                "label": "Mock Natural",
+                "id": "variant_clean_pro",
+                "label": "Master",
                 "mime_type": "image/png",
                 "bytes": TINY_PNG,
-                "explanation": "Mock bridge returned a deterministic fixture image.",
-            }
-        ][: max(return_variants, 1)]
+                "explanation": "Mock bridge returned a deterministic master fixture image.",
+            },
+            {
+                "id": "variant_social_pop",
+                "label": "Social",
+                "mime_type": "image/png",
+                "bytes": TINY_PNG,
+                "explanation": "Mock bridge returned a deterministic social fixture image.",
+            },
+        ]
+        requested = max(1, min(int(return_variants), len(variants)))
+        return variants[:requested]
 
 
 class FixtureVisionProvider:
@@ -370,6 +475,21 @@ class MockClient:
 
 
 class MockBridgeApp:
+    CONTEXT_SNAPSHOT_ALLOWED_FIELDS = frozenset(
+        (
+            "timestamp",
+            "timezone",
+            "locale",
+            "source_surface",
+            "network",
+            "battery",
+            "motion",
+            "location_label",
+            "location_precision",
+            "calendar_availability",
+        )
+    )
+
     def __init__(
         self,
         pairing_codes: Optional[Mapping[str, str]] = None,
@@ -377,12 +497,45 @@ class MockBridgeApp:
         photo_provider: Optional[PhotoProvider] = None,
         vision_provider: Optional[VisionProvider] = None,
         advertised_endpoint: str = "",
+        runtime_id: str = "hermes",
+        runtime_display_name: str = DEV_DISPLAY_NAME,
+        pairing_scheme: str = "http",
+        recall_search_provider: str | RecallSearchProvider = "local",
+        recall_search_endpoint: str = "",
+        runtime_store: Optional[Any] = None,
+        runtime_store_path: str = "",
+        pairing_manager: Optional[PairingManager] = None,
+        trusted_local_tls_required: bool = False,
+        tls_certificate_label: str = "",
+        tls_public_key_sha256: str = "",
+        input_assets_days: int = DEFAULT_INPUT_ASSETS_DAYS,
+        output_assets_days: int = DEFAULT_OUTPUT_ASSETS_DAYS,
+        task_history_days: int = DEFAULT_TASK_HISTORY_DAYS,
     ) -> None:
         self.mobile_token = mobile_token
         self.photo_provider = photo_provider or FixturePhotoProvider()
         self.vision_provider = vision_provider or FixtureVisionProvider()
         self.advertised_endpoint = advertised_endpoint.strip().rstrip("/")
-        self.pairing_codes: Dict[str, str] = dict(pairing_codes or {DEV_PAIRING_CODE: DEV_DISPLAY_NAME})
+        self.runtime_id = runtime_id.strip() or "hermes"
+        self.runtime_display_name = runtime_display_name.strip() or DEV_DISPLAY_NAME
+        self.pairing_scheme = pairing_scheme.strip() or "http"
+        self.recall_search_provider = (
+            build_recall_search_provider(recall_search_provider, endpoint=recall_search_endpoint)
+            if isinstance(recall_search_provider, str)
+            else recall_search_provider
+        )
+        self.runtime_store = runtime_store
+        self.runtime_store_path = runtime_store_path.strip()
+        self.pairing_manager = pairing_manager
+        self.trusted_local_tls_required = bool(trusted_local_tls_required)
+        self.tls_certificate_label = tls_certificate_label.strip()
+        self.tls_public_key_sha256 = _normalized_public_key_sha256(tls_public_key_sha256)
+        self.retention_policy = {
+            "input_assets_days": int(input_assets_days),
+            "output_assets_days": int(output_assets_days),
+            "task_history_days": int(task_history_days),
+        }
+        self.pairing_codes: Dict[str, str] = dict(pairing_codes or {DEV_PAIRING_CODE: self.runtime_display_name})
         self._dev_pairing_sequence = 1
         self._task_sequence = 1
         self._recall_sequence = 1
@@ -396,8 +549,10 @@ class MockBridgeApp:
         self.request_counts: Dict[str, int] = {
             "health": 0,
             "capabilities": 0,
+            "pairing_qr": 0,
             "pairing_dev": 0,
             "pairing_exchange": 0,
+            "pairing_revoke": 0,
             "asset_upload": 0,
             "photo_task_create": 0,
             "vision_task_create": 0,
@@ -411,17 +566,108 @@ class MockBridgeApp:
             "asset_download": 0,
             "recall_action": 0,
             "recall_items": 0,
+            "recall_search": 0,
+            "recall_export": 0,
             "recall_delete": 0,
+            "runtime_settings": 0,
         }
 
     def test_client(self) -> MockClient:
         return MockClient(self)
+
+    def purge_retention(self, *, now_iso: str, dry_run: bool = True) -> Mapping[str, Any]:
+        return build_runtime_retention_purge_receipt(
+            runtime=self.runtime_id,
+            policy=self.retention_policy,
+            now_iso=now_iso,
+            dry_run=dry_run,
+            store=self.runtime_store,
+            memory_assets=self.assets,
+        )
 
     def _next_task_id(self) -> str:
         with self._task_lock:
             task_id = f"task_{self._task_sequence:04d}"
             self._task_sequence += 1
             return task_id
+
+    def _next_recall_id(self) -> str:
+        with self._recall_lock:
+            item_id = f"recall_{self._recall_sequence:04d}"
+            self._recall_sequence += 1
+            return item_id
+
+    def _asset_created_at(self) -> str:
+        return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+    def _asset_store_enabled(self) -> bool:
+        return (
+            self.runtime_store is not None
+            and RuntimeAssetRecord is not None
+            and hasattr(self.runtime_store, "upsert_asset")
+            and hasattr(self.runtime_store, "get_asset")
+            and hasattr(self.runtime_store, "list_assets")
+        )
+
+    def _asset_to_runtime_record(self, asset_id: str, asset: Mapping[str, Any]) -> Any:
+        raw_metadata = asset.get("metadata", {})
+        metadata: Mapping[str, Any]
+        if isinstance(raw_metadata, Mapping):
+            metadata = dict(raw_metadata)
+        elif isinstance(raw_metadata, str) and raw_metadata.strip():
+            try:
+                decoded_metadata = json.loads(raw_metadata)
+            except json.JSONDecodeError:
+                decoded_metadata = {}
+            metadata = dict(decoded_metadata) if isinstance(decoded_metadata, Mapping) else {}
+        else:
+            metadata = {}
+        return RuntimeAssetRecord(
+            asset_id=asset_id,
+            role=str(asset.get("role") or ("output" if asset_id.startswith("asset_result_") else "input")),
+            created_at=str(asset.get("created_at") or asset.get("retention_created_at") or self._asset_created_at()),
+            filename=str(asset.get("filename", "")),
+            mime_type=str(asset.get("mime_type", "application/octet-stream")),
+            size_bytes=int(asset.get("size_bytes", len(asset.get("bytes", b"")))),
+            sha256=str(asset.get("sha256", "")),
+            body=bytes(asset.get("bytes", b"")),
+            metadata=metadata,
+        )
+
+    def _asset_to_mapping(self, record: Any) -> Dict[str, Any]:
+        metadata = dict(record.metadata or {})
+        return {
+            "id": record.asset_id,
+            "bytes": record.body,
+            "role": record.role,
+            "created_at": record.created_at,
+            "filename": record.filename,
+            "mime_type": record.mime_type,
+            "metadata": json.dumps(metadata, ensure_ascii=False, sort_keys=True),
+            "size_bytes": record.size_bytes,
+            "sha256": record.sha256,
+        }
+
+    def _save_asset(self, asset_id: str, asset: Mapping[str, Any]) -> None:
+        if self._asset_store_enabled():
+            self.runtime_store.upsert_asset(self._asset_to_runtime_record(asset_id, asset))
+            return
+        self.assets[asset_id] = dict(asset)
+
+    def _get_asset(self, asset_id: str) -> Dict[str, Any] | None:
+        if self._asset_store_enabled():
+            record = self.runtime_store.get_asset(asset_id)
+            return self._asset_to_mapping(record) if record is not None else None
+        asset = self.assets.get(asset_id)
+        return dict(asset) if asset is not None else None
+
+    def _asset_exists(self, asset_id: str) -> bool:
+        return self._get_asset(asset_id) is not None
+
+    def _list_assets(self) -> list[tuple[str, Dict[str, Any]]]:
+        if self._asset_store_enabled():
+            return [(record.asset_id, self._asset_to_mapping(record)) for record in self.runtime_store.list_assets()]
+        return [(asset_id, dict(asset)) for asset_id, asset in self.assets.items()]
 
     def handle(
         self,
@@ -431,12 +677,21 @@ class MockBridgeApp:
         json_body: Optional[Mapping[str, Any]] = None,
         form_data: Optional[Mapping[str, Any]] = None,
     ) -> MockResponse:
+        query_params: Dict[str, str] = {}
+        if "?" in path:
+            parsed_url = urlsplit(path)
+            path = parsed_url.path
+            query_params = {
+                key: values[-1]
+                for key, values in parse_qs(parsed_url.query, keep_blank_values=True).items()
+            }
+
         if method == "GET" and path == "/mobile/v1/health":
             self._count_request("health")
             return self._json(
                 {
                     "ok": True,
-                    "runtime": "hermes",
+                    "runtime": self.runtime_id,
                     "runtime_version": "2026.5.16",
                     "bridge_version": "0.1.0",
                 }
@@ -445,6 +700,14 @@ class MockBridgeApp:
         if method == "POST" and path == "/mobile/v1/pairing/exchange":
             self._count_request("pairing_exchange")
             return self._pairing_exchange(json_body or {})
+
+        if method == "GET" and path == "/mobile/v1/pairing/qr":
+            self._count_request("pairing_qr")
+            return self._json(self._production_pairing_payload(headers))
+
+        if method == "GET" and path == "/mobile/v1/pairing/qr.html":
+            self._count_request("pairing_qr")
+            return self._production_pairing_page(headers)
 
         if method == "GET" and path == "/mobile/v1/pairing/dev":
             self._count_request("pairing_dev")
@@ -458,12 +721,20 @@ class MockBridgeApp:
         if auth_error is not None:
             return auth_error
 
+        if method == "POST" and path == "/mobile/v1/pairing/revoke":
+            self._count_request("pairing_revoke")
+            return self._revoke_current_mobile_token(headers)
+
         if method == "GET" and path == "/mobile/v1/capabilities":
             self._count_request("capabilities")
             return self._json(self._capabilities())
 
         if method == "GET" and path == "/mobile/v1/qa/status":
             return self._json(self._qa_status())
+
+        if method == "GET" and path == "/mobile/v1/runtime/settings":
+            self._count_request("runtime_settings")
+            return self._runtime_settings()
 
         if method == "GET" and path == "/mobile/v1/tasks":
             self._count_request("task_list")
@@ -493,9 +764,27 @@ class MockBridgeApp:
             self._count_request("recall_action")
             return self._recall_action(json_body or {})
 
+        if method == "POST" and path == "/mobile/v1/recall/search":
+            self._count_request("recall_search")
+            return self._recall_search(json_body or {})
+
         if method == "GET" and path == "/mobile/v1/recall/items":
             self._count_request("recall_items")
-            return self._recall_items()
+            raw_limit = query_params.get("limit", "").strip()
+            limit: Optional[int] = None
+            if raw_limit:
+                try:
+                    limit = max(int(raw_limit), 0)
+                except ValueError:
+                    limit = None
+            return self._recall_items(
+                query=query_params.get("query", "").strip(),
+                limit=limit,
+            )
+
+        if method == "GET" and path == "/mobile/v1/recall/export":
+            self._count_request("recall_export")
+            return self._recall_export()
 
         if method == "DELETE" and path.startswith("/mobile/v1/recall/items/"):
             self._count_request("recall_delete")
@@ -528,12 +817,31 @@ class MockBridgeApp:
         return self._error("not_found", "The requested mock bridge route does not exist.", 404)
 
     def _require_auth(self, headers: Mapping[str, str]) -> Optional[MockResponse]:
-        if headers.get("Authorization") != f"Bearer {self.mobile_token}":
+        authorization = headers.get("Authorization", "")
+        if not authorization.startswith("Bearer "):
+            return self._error("unauthorized", "The mobile token is missing or invalid.", 401)
+        token = authorization.removeprefix("Bearer ").strip()
+        if self.pairing_manager is not None:
+            if not self.pairing_manager.is_mobile_token_active(token):
+                return self._error("unauthorized", "The mobile token is missing or invalid.", 401)
+            return None
+        if token != self.mobile_token:
             return self._error("unauthorized", "The mobile token is missing or invalid.", 401)
         return None
 
     def _pairing_exchange(self, payload: Mapping[str, Any]) -> MockResponse:
         pairing_code = str(payload.get("pairing_code", ""))
+        if self.pairing_manager is not None:
+            result = self.pairing_manager.exchange_pairing_code(
+                pairing_code,
+                device_name=str(payload.get("device_name", "")),
+                device_public_id=str(payload.get("device_public_id", "")),
+            )
+            if not result.ok:
+                status_code = 409 if result.error_code == "pairing_already_used" else 404
+                return self._error(result.error_code, result.error_message, status_code)
+            return self._json(result.to_mobile_bridge())
+
         display_name = self.pairing_codes.get(pairing_code)
         if display_name is None:
             return self._error("pairing_expired", "The pairing code is missing or expired.", 404)
@@ -543,14 +851,69 @@ class MockBridgeApp:
         self.used_pairing_codes.add(pairing_code)
         return self._json(
             {
-                "endpoint_id": "endpoint_mock_hermes",
+                "endpoint_id": f"endpoint_mock_{self.runtime_id}",
                 "display_name": display_name,
-                "runtime": "hermes",
+                "runtime": self.runtime_id,
                 "runtime_version": "2026.5.16",
                 "mobile_token": self.mobile_token,
                 "token_expires_at": None,
             }
         )
+
+    def _production_pairing_payload(self, headers: Mapping[str, str]) -> Mapping[str, Any]:
+        if self.pairing_manager is None:
+            return self._development_pairing_payload(headers)
+        host = headers.get("Host") or "127.0.0.1:8765"
+        endpoint = self.advertised_endpoint or f"{self.pairing_scheme}://{host}"
+        session = self.pairing_manager.issue_pairing_session(
+            endpoint=endpoint,
+            runtime=self.runtime_id,
+            display_name=self.runtime_display_name,
+        )
+        return self.pairing_manager.pairing_payload(session)
+
+    def _production_pairing_page(self, headers: Mapping[str, str]) -> MockResponse:
+        payload = self._production_pairing_payload(headers)
+        payload_json = json.dumps(payload, indent=2, sort_keys=True)
+        compact_payload_json = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        qr_data_uri = self._development_pairing_qr_data_uri(compact_payload_json)
+        escaped_payload = html.escape(payload_json)
+        escaped_payload_attribute = html.escape(compact_payload_json, quote=True)
+        qr_markup = ""
+        if qr_data_uri:
+            qr_markup = f"""
+    <figure class="pairing-qr-card">
+      <div class="qr-shell">
+        <img class="pairing-qr" src="{qr_data_uri}" alt="Pairing QR code for Agent Pocket" data-pairing-payload="{escaped_payload_attribute}">
+      </div>
+    </figure>
+"""
+        body = f"""<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Agent Pocket Production Pairing</title></head>
+<body>
+  <main>
+    <h1>Kaka Mobile Bridge Pairing</h1>
+{qr_markup}
+    <pre>{escaped_payload}</pre>
+  </main>
+</body>
+</html>
+"""
+        return MockResponse(
+            status_code=200,
+            content_type="text/html; charset=utf-8",
+            data=body.encode("utf-8"),
+        )
+
+    def _revoke_current_mobile_token(self, headers: Mapping[str, str]) -> MockResponse:
+        authorization = headers.get("Authorization", "")
+        token = authorization.removeprefix("Bearer ").strip()
+        if self.pairing_manager is None:
+            return self._json({"status": "revoked"})
+        if not self.pairing_manager.revoke_mobile_token(token):
+            return self._error("unauthorized", "The mobile token is missing or invalid.", 401)
+        return self._json({"status": "revoked"})
 
     def _current_development_pairing_code(self) -> str:
         display_name = self.pairing_codes.get(DEV_PAIRING_CODE, DEV_DISPLAY_NAME)
@@ -574,14 +937,26 @@ class MockBridgeApp:
         host = headers.get("Host") or "127.0.0.1:8765"
         endpoint = self.advertised_endpoint or f"http://{host}"
         pairing_code = self._current_development_pairing_code()
-        return {
+        payload: Dict[str, Any] = {
             "version": 1,
             "endpoint": endpoint,
-            "runtime": "hermes",
-            "display_name": self.pairing_codes.get(pairing_code, DEV_DISPLAY_NAME),
+            "runtime": self.runtime_id,
+            "display_name": self.pairing_codes.get(pairing_code, self.runtime_display_name),
             "pairing_code": pairing_code,
             "expires_at": "2099-01-01T00:00:00Z",
         }
+        payload.update(self._development_pairing_tls_metadata())
+        return payload
+
+    def _development_pairing_tls_metadata(self) -> Mapping[str, Any]:
+        metadata: Dict[str, Any] = {}
+        if self.trusted_local_tls_required:
+            metadata["trusted_local_tls_required"] = True
+        if self.tls_certificate_label:
+            metadata["tls_certificate_label"] = self.tls_certificate_label
+        if self.tls_public_key_sha256:
+            metadata["tls_public_key_sha256"] = self.tls_public_key_sha256
+        return metadata
 
     def _development_pairing_page(self, headers: Mapping[str, str]) -> MockResponse:
         payload = self._development_pairing_payload(headers)
@@ -757,7 +1132,7 @@ class MockBridgeApp:
             "tasks": {
                 "photo_edit": {
                     "max_upload_mb": 30,
-                    "accepted_mime_types": ["image/jpeg", "image/heic", "image/png"],
+                    "accepted_mime_types": ["image/jpeg"],
                     "styles": [
                         "natural_enhance",
                         "portrait_polish",
@@ -772,7 +1147,7 @@ class MockBridgeApp:
                     "supports_crop_candidates": False,
                     "supports_upscale_policy": True,
                     "supports_sse": True,
-                    "return_variants_max": 3,
+                    "return_variants_max": 2,
                 },
                 "vision": {
                     "max_upload_mb": 30,
@@ -791,15 +1166,12 @@ class MockBridgeApp:
                     "accepted_types": ["text", "url", "image", "pdf"],
                     "provider": "heuristic_universal_intake",
                     "supports_context_snapshot": True,
+                    "supports_voice_followup": True,
                     "supports_recall_actions": True,
                     "supports_sse": False,
                 },
             },
-            "retention": {
-                "input_assets_days": 7,
-                "output_assets_days": 30,
-                "task_history_days": 30,
-            },
+            "retention": dict(self.retention_policy),
         }
 
     def _upload_asset(self, form_data: Mapping[str, Any]) -> MockResponse:
@@ -814,14 +1186,17 @@ class MockBridgeApp:
 
         digest = hashlib.sha256(raw).hexdigest()
         asset_id = f"asset_{digest[:16]}"
-        self.assets[asset_id] = {
+        self._save_asset(asset_id, {
+            "id": asset_id,
             "bytes": raw,
+            "role": "input",
+            "created_at": self._asset_created_at(),
             "filename": filename,
             "mime_type": mime_type,
             "metadata": form_data.get("metadata", "{}"),
             "size_bytes": len(raw),
             "sha256": digest,
-        }
+        })
         return self._json(
             {
                 "asset_id": asset_id,
@@ -833,11 +1208,11 @@ class MockBridgeApp:
 
     def _create_photo_task(self, payload: Mapping[str, Any]) -> MockResponse:
         asset_id = str(payload.get("asset_id", ""))
-        if asset_id not in self.assets:
+        source_asset = self._get_asset(asset_id)
+        if source_asset is None:
             return self._error("not_found", "The source asset does not exist.", 404)
 
         task_id = self._next_task_id()
-        source_asset = self.assets[asset_id]
         provider_name = self._provider_name()
         try:
             provider_variants = self.photo_provider.edit(
@@ -847,7 +1222,7 @@ class MockBridgeApp:
                 return_variants=int(payload.get("return_variants", 1)),
             )
         except Exception:
-            self.tasks[task_id] = {
+            task = {
                 "task_id": task_id,
                 "status": "failed",
                 "progress": 1.0,
@@ -855,6 +1230,8 @@ class MockBridgeApp:
                 "failure_code": "provider_failed",
                 "provider": provider_name,
             }
+            self.tasks[task_id] = task
+            self._store_runtime_task(task)
             return self._json(
                 {
                     "task_id": task_id,
@@ -872,8 +1249,11 @@ class MockBridgeApp:
             if not recipe_metadata and isinstance(variant_recipe_metadata, Mapping):
                 recipe_metadata = variant_recipe_metadata
             result_asset_id = f"asset_result_{task_id.removeprefix('task_')}_{index}"
-            self.assets[result_asset_id] = {
+            self._save_asset(result_asset_id, {
+                "id": result_asset_id,
                 "bytes": variant_bytes,
+                "role": "output",
+                "created_at": self._asset_created_at(),
                 "filename": f"variant_{index}.png",
                 "mime_type": mime_type,
                 "metadata": json.dumps(
@@ -883,7 +1263,7 @@ class MockBridgeApp:
                 ),
                 "size_bytes": len(variant_bytes),
                 "sha256": hashlib.sha256(variant_bytes).hexdigest(),
-            }
+            })
             variants.append(
                 {
                     "id": provider_variant.get("id", f"variant_{index}"),
@@ -917,6 +1297,7 @@ class MockBridgeApp:
                 if key in recipe_metadata:
                     task[key] = recipe_metadata[key]
         self.tasks[task_id] = task
+        self._store_runtime_task(task)
         return self._json(
             {
                 "task_id": task_id,
@@ -927,7 +1308,8 @@ class MockBridgeApp:
 
     def _create_vision_task(self, payload: Mapping[str, Any]) -> MockResponse:
         asset_id = str(payload.get("asset_id", ""))
-        if asset_id not in self.assets:
+        source_asset = self._get_asset(asset_id)
+        if source_asset is None:
             return self._error("not_found", "The source asset does not exist.", 404)
 
         mode = str(payload.get("mode", ""))
@@ -935,10 +1317,9 @@ class MockBridgeApp:
             return self._error("vision_unavailable", "The requested vision mode is not available.", 400)
 
         task_id = self._next_task_id()
-        source_asset = self.assets[asset_id]
         provider_name = self._vision_provider_name()
         try:
-            vision_result = dict(
+            vision_result = _sanitize_vision_result(
                 self.vision_provider.analyze(
                     source_bytes=source_asset["bytes"],
                     mode=mode,
@@ -947,7 +1328,7 @@ class MockBridgeApp:
                 )
             )
         except Exception:
-            self.tasks[task_id] = {
+            task = {
                 "task_id": task_id,
                 "status": "failed",
                 "progress": 1.0,
@@ -956,6 +1337,8 @@ class MockBridgeApp:
                 "provider": provider_name,
                 "result_type": "vision",
             }
+            self.tasks[task_id] = task
+            self._store_runtime_task(task)
             return self._json(
                 {
                     "task_id": task_id,
@@ -968,7 +1351,7 @@ class MockBridgeApp:
         vision_result.setdefault("title", mode.title())
         vision_result.setdefault("summary", "Vision task completed.")
         vision_result.setdefault("items", [])
-        self.tasks[task_id] = {
+        task = {
             "task_id": task_id,
             "status": "completed",
             "progress": 1.0,
@@ -977,6 +1360,8 @@ class MockBridgeApp:
             "vision": vision_result,
             "provider": provider_name,
         }
+        self.tasks[task_id] = task
+        self._store_runtime_task(task)
         return self._json(
             {
                 "task_id": task_id,
@@ -987,14 +1372,14 @@ class MockBridgeApp:
 
     def _create_image_intake_task(self, payload: Mapping[str, Any]) -> MockResponse:
         asset_id = str(payload.get("asset_id", ""))
-        if asset_id not in self.assets:
+        if not self._asset_exists(asset_id):
             return self._error("not_found", "The source asset does not exist.", 404)
 
         task_id = self._next_task_id()
         try:
             image_intake = self._build_image_intake_result_for_asset(asset_id, payload)
         except Exception:
-            self.tasks[task_id] = {
+            task = {
                 "task_id": task_id,
                 "status": "failed",
                 "progress": 1.0,
@@ -1003,6 +1388,8 @@ class MockBridgeApp:
                 "provider": "heuristic_image_intake",
                 "result_type": "image_intake",
             }
+            self.tasks[task_id] = task
+            self._store_runtime_task(task)
             return self._json(
                 {
                     "task_id": task_id,
@@ -1011,7 +1398,7 @@ class MockBridgeApp:
                 }
             )
 
-        self.tasks[task_id] = {
+        task = {
             "task_id": task_id,
             "status": "completed",
             "progress": 1.0,
@@ -1020,6 +1407,8 @@ class MockBridgeApp:
             "image_intake": image_intake,
             "provider": "heuristic_image_intake",
         }
+        self.tasks[task_id] = task
+        self._store_runtime_task(task)
         return self._json(
             {
                 "task_id": task_id,
@@ -1037,7 +1426,7 @@ class MockBridgeApp:
         if intake_type in {"image", "pdf"}:
             if not asset_id:
                 return self._error("invalid_intake_payload", "The intake source must include an asset_id.", 400)
-            if asset_id not in self.assets:
+            if not self._asset_exists(asset_id):
                 return self._error("not_found", "The source asset does not exist.", 404)
 
         if intake_type == "text" and not self._source_text(payload):
@@ -1049,7 +1438,7 @@ class MockBridgeApp:
         try:
             intake = self._build_universal_intake_result(intake_type, payload)
         except Exception:
-            self.tasks[task_id] = {
+            task = {
                 "task_id": task_id,
                 "status": "failed",
                 "progress": 1.0,
@@ -1058,6 +1447,8 @@ class MockBridgeApp:
                 "provider": "heuristic_universal_intake",
                 "result_type": "intake",
             }
+            self.tasks[task_id] = task
+            self._store_runtime_task(task)
             return self._task_create_response(task_id)
 
         task = {
@@ -1073,6 +1464,7 @@ class MockBridgeApp:
         if isinstance(image_intake, Mapping):
             task["image_intake"] = image_intake
         self.tasks[task_id] = task
+        self._store_runtime_task(task)
         return self._task_create_response(task_id)
 
     def _recall_action(self, payload: Mapping[str, Any]) -> MockResponse:
@@ -1091,6 +1483,7 @@ class MockBridgeApp:
                     "status": "remembered",
                     "item": item,
                     "deleted_item_ids": [],
+                    "deleted_index_ids": [],
                 }
             )
 
@@ -1101,31 +1494,46 @@ class MockBridgeApp:
                     "status": "used_once",
                     "item": None,
                     "deleted_item_ids": [],
+                    "deleted_index_ids": [],
                 }
             )
 
-        deleted_item_ids = self._forget_recall_items_by_source(payload)
+        deleted_item_ids, deleted_index_ids = self._forget_recall_items_by_source(payload)
         return self._json(
             {
                 "action": "forget",
                 "status": "forgotten",
                 "item": None,
                 "deleted_item_ids": deleted_item_ids,
+                "deleted_index_ids": deleted_index_ids,
             }
         )
 
     def _remember_recall_item(self, summary: str, payload: Mapping[str, Any]) -> Mapping[str, Any]:
+        item_id = self._next_recall_id()
+        created_at = "2026-06-05T00:00:00Z"
+        provenance = self._recall_provenance(payload)
+        if self.runtime_store is not None and RuntimeRecallItem is not None:
+            item = RuntimeRecallItem(
+                item_id=item_id,
+                summary=summary,
+                created_at=created_at,
+                source_task_id=str(provenance.get("source_task_id", "")),
+                source_inbox_item_id=str(provenance.get("source_inbox_item_id", "")),
+                source_surface=str(payload.get("source_surface", "")).strip(),
+            )
+            self.runtime_store.remember_recall(item, index_ids=[f"embedding_{item_id}"])
+            return item.to_mobile_bridge()
+
+        item = {
+            "item_id": item_id,
+            "summary": summary,
+            "created_at": created_at,
+            "provenance": provenance,
+        }
         with self._recall_lock:
-            item_id = f"recall_{self._recall_sequence:04d}"
-            self._recall_sequence += 1
-            item = {
-                "item_id": item_id,
-                "summary": summary,
-                "created_at": "2026-06-05T00:00:00Z",
-                "provenance": self._recall_provenance(payload),
-            }
             self.recall_items[item_id] = item
-            return dict(item)
+        return dict(item)
 
     def _recall_provenance(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         provenance: Dict[str, Any] = {}
@@ -1137,11 +1545,18 @@ class MockBridgeApp:
             provenance["source_inbox_item_id"] = source_inbox_item_id
         return provenance
 
-    def _forget_recall_items_by_source(self, payload: Mapping[str, Any]) -> List[str]:
+    def _forget_recall_items_by_source(self, payload: Mapping[str, Any]) -> tuple[List[str], List[str]]:
         source_task_id = str(payload.get("source_task_id", "")).strip()
         source_inbox_item_id = str(payload.get("source_inbox_item_id", "")).strip()
         if not source_task_id and not source_inbox_item_id:
-            return []
+            return [], []
+
+        if self.runtime_store is not None and hasattr(self.runtime_store, "delete_recall_by_source"):
+            receipt = self.runtime_store.delete_recall_by_source(
+                source_task_id=source_task_id,
+                source_inbox_item_id=source_inbox_item_id,
+            )
+            return list(receipt.deleted_item_ids), list(receipt.deleted_index_ids)
 
         deleted_item_ids: List[str] = []
         with self._recall_lock:
@@ -1154,42 +1569,181 @@ class MockBridgeApp:
                 if matches_task and matches_inbox:
                     deleted_item_ids.append(item_id)
                     del self.recall_items[item_id]
-        return deleted_item_ids
+        deleted_index_ids = [f"embedding_{deleted_item_id}" for deleted_item_id in deleted_item_ids]
+        return deleted_item_ids, deleted_index_ids
 
-    def _recall_items(self) -> MockResponse:
+    def _recall_items(self, query: str = "", limit: Optional[int] = None) -> MockResponse:
+        if self.runtime_store is not None:
+            items = self.runtime_store.list_recall(query=query, limit=limit)
+            return self._json({"items": [item.to_mobile_bridge() for item in items]})
+
+        normalized_query = query.lower()
         with self._recall_lock:
             items = [
                 dict(item)
                 for _, item in sorted(self.recall_items.items(), reverse=True)
             ]
+        if normalized_query:
+            items = [
+                item
+                for item in items
+                if normalized_query in str(item.get("summary", "")).lower()
+            ]
+        if limit is not None:
+            items = items[:limit]
         return self._json({"items": items})
 
+    def _recall_search(self, payload: Mapping[str, Any]) -> MockResponse:
+        query = str(payload.get("query", "")).strip()
+        limit = self._parse_positive_limit(payload.get("limit"), default=10)
+        if not query:
+            return self._error("invalid_recall_payload", "Recall search requires a non-empty query.", 400)
+
+        retrieval_mode = self._semantic_recall_mode()
+        if self.runtime_store is not None and hasattr(self.runtime_store, "search_recall_semantic"):
+            results = self.runtime_store.search_recall_semantic(query, limit)
+            return self._json(
+                {
+                    "query": query,
+                    "mode": "semantic",
+                    "retrieval_mode": retrieval_mode,
+                    "items": [_safe_recall_search_result(result) for result in results],
+                }
+            )
+
+        results = self._search_memory_recall(query=query, limit=limit)
+        return self._json(
+            {
+                "query": query,
+                "mode": "semantic",
+                "retrieval_mode": retrieval_mode,
+                "items": results,
+            }
+        )
+
+    def _search_memory_recall(self, query: str, limit: int) -> List[Dict[str, Any]]:
+        with self._recall_lock:
+            items = [dict(item) for item in self.recall_items.values()]
+        recall_items = [_MemoryRecallItem(item) for item in items]
+        results = self.recall_search_provider.search(query=query, items=recall_items, limit=limit)
+        return [_safe_recall_search_result(result.to_mobile_bridge()) for result in results]
+
+    def _runtime_settings(self) -> MockResponse:
+        has_runtime_store = self.runtime_store is not None
+        semantic_mode = self._semantic_recall_mode()
+        semantic_recall: Dict[str, Any] = {
+            "available": True,
+            "owner": "runtime" if semantic_mode == "provider_backed" or (
+                has_runtime_store and hasattr(self.runtime_store, "search_recall_semantic")
+            ) else "mock_bridge",
+            "mode": semantic_mode,
+        }
+        if semantic_mode == "provider_backed":
+            semantic_recall["provider_label"] = "Runtime provider"
+        return self._json(
+            {
+                "recall_store": {
+                    "enabled": has_runtime_store,
+                    "owner": "runtime" if has_runtime_store else "mock_bridge",
+                    "label": "Local Kaka Recall and task store" if has_runtime_store else "In-memory development store",
+                    "phone_can_change": False,
+                },
+                "semantic_recall": semantic_recall,
+                "retention": self._capabilities()["retention"],
+                "connection_security": self._connection_security_summary(),
+            }
+        )
+
+    def _connection_security_summary(self) -> Mapping[str, Any]:
+        if self.pairing_manager is not None:
+            return self.pairing_manager.phone_safe_security_summary()
+        return {
+            "pairing_code_ttl_seconds": None,
+            "mobile_token_ttl_seconds": None,
+            "mobile_token_revocation_supported": False,
+            "trusted_local_tls_required": self.trusted_local_tls_required,
+            "tls_trust_state": "development_http",
+            "tls_certificate_label": self.tls_certificate_label,
+            **({"tls_public_key_sha256": self.tls_public_key_sha256} if self.tls_public_key_sha256 else {}),
+        }
+
+    def _semantic_recall_mode(self) -> str:
+        provider_mode = str(getattr(self.recall_search_provider, "provider_mode", "")).strip()
+        if provider_mode == "provider_backed":
+            return "provider_backed"
+        if self.runtime_store is not None:
+            store_provider = getattr(self.runtime_store, "recall_search_provider", None)
+            store_provider_mode = str(getattr(store_provider, "provider_mode", "")).strip()
+            if store_provider_mode == "provider_backed":
+                return "provider_backed"
+        return "local_deterministic"
+
+    def _parse_positive_limit(self, value: Any, default: int) -> int:
+        try:
+            return max(int(value), 0)
+        except (TypeError, ValueError):
+            return default
+
+    def _recall_export(self) -> MockResponse:
+        if self.runtime_store is not None:
+            return self._json(self.runtime_store.export_recall())
+
+        with self._recall_lock:
+            items = [
+                dict(item)
+                for _, item in sorted(self.recall_items.items(), reverse=True)
+            ]
+        return self._json(
+            build_recall_export_artifact(
+                items=items,
+                generated_at="2026-06-05T00:00:00Z",
+            )
+        )
+
     def _delete_recall_item(self, item_id: str) -> MockResponse:
+        if self.runtime_store is not None:
+            return self._json(self.runtime_store.delete_recall(item_id).to_mobile_bridge())
+
         deleted_item_ids: List[str] = []
         with self._recall_lock:
             if item_id in self.recall_items:
                 del self.recall_items[item_id]
                 deleted_item_ids.append(item_id)
-        return self._json({"status": "forgotten", "deleted_item_ids": deleted_item_ids})
+        deleted_index_ids = [f"embedding_{deleted_item_id}" for deleted_item_id in deleted_item_ids]
+        return self._json(
+            {
+                "status": "forgotten",
+                "deleted_item_ids": deleted_item_ids,
+                "deleted_index_ids": deleted_index_ids,
+            }
+        )
 
     def _runtime_tasks(self) -> MockResponse:
+        if self.runtime_store is not None:
+            tasks = [self._stored_task_to_mobile_bridge(task) for task in self.runtime_store.list_tasks()]
+            return self._json({"tasks": self._sort_runtime_task_summaries(tasks)})
+
         with self._task_lock:
             tasks = [
                 self._runtime_task_summary(task)
                 for _, task in self.tasks.items()
             ]
-        tasks.sort(
-            key=lambda task: (
-                task.get("status") != "waiting_for_approval",
-                str(task.get("updated_at", "")),
-            )
-        )
-        waiting = [task for task in tasks if task.get("status") == "waiting_for_approval"]
-        other = [task for task in tasks if task.get("status") != "waiting_for_approval"]
-        other.sort(key=lambda task: str(task.get("updated_at", "")), reverse=True)
-        return self._json({"tasks": waiting + other})
+        return self._json({"tasks": self._sort_runtime_task_summaries(tasks)})
 
     def _cancel_runtime_task(self, task_id: str) -> MockResponse:
+        if self.runtime_store is not None:
+            task = self.runtime_store.get_task(task_id)
+            if task is None:
+                return self._error("not_found", "The runtime task does not exist.", 404)
+            summary = self._update_stored_task(
+                task,
+                status="cancelled",
+                progress=1.0,
+                message="Cancelled.",
+                event_type="task_cancelled",
+            )
+            return self._json({"status": "cancelled", "task": summary})
+
         with self._task_lock:
             task = self.tasks.get(task_id)
             if task is None:
@@ -1208,6 +1762,28 @@ class MockBridgeApp:
         action = raw_action.strip()
         if action not in {"approve", "reject"}:
             return self._error("invalid_task_approval", "Task approval action must be approve or reject.", 400)
+        if self.runtime_store is not None:
+            task = self.runtime_store.get_task(task_id)
+            if task is None:
+                return self._error("not_found", "The runtime task does not exist.", 404)
+            if action == "approve":
+                summary = self._update_stored_task(
+                    task,
+                    status="running",
+                    progress=max(self._stored_task_progress(task), 0.5),
+                    message="Approved.",
+                    event_type="task_approved",
+                )
+                return self._json({"status": "approved", "task": summary})
+            summary = self._update_stored_task(
+                task,
+                status="cancelled",
+                progress=1.0,
+                message="Rejected.",
+                event_type="task_rejected",
+            )
+            return self._json({"status": "rejected", "task": summary})
+
         with self._task_lock:
             task = self.tasks.get(task_id)
             if task is None:
@@ -1249,6 +1825,200 @@ class MockBridgeApp:
             "message": task.get("message"),
             "updated_at": str(task.get("updated_at", "2026-06-05T09:30:00Z")),
         }
+
+    def _task_result_metadata(self, task: Mapping[str, Any]) -> Dict[str, Any]:
+        metadata: Dict[str, Any] = {}
+        variants = self._safe_task_variants(task.get("variants"))
+        if variants:
+            metadata["variants"] = variants
+        for key in (
+            "provider",
+            "result_type",
+            "explanation",
+            "recipe_metadata",
+            "renderer",
+            "composition",
+            "qa",
+            "crop",
+            "share_caption",
+            "recipe_summary",
+            "safety",
+            "upscale",
+        ):
+            value = _safe_json_value(task.get(key))
+            if value not in (None, "", [], {}):
+                metadata[key] = value
+        return metadata
+
+    def _safe_task_variants(self, raw_variants: Any) -> List[Dict[str, Any]]:
+        if not isinstance(raw_variants, list):
+            return []
+        variants: List[Dict[str, Any]] = []
+        for raw_variant in raw_variants:
+            if not isinstance(raw_variant, Mapping):
+                continue
+            variant: Dict[str, Any] = {}
+            for key in ("id", "label", "asset_id"):
+                value = raw_variant.get(key)
+                if isinstance(value, str) and value:
+                    variant[key] = value
+            if variant.get("asset_id"):
+                variants.append(variant)
+        return variants
+
+    def _sort_runtime_task_summaries(self, tasks: List[Mapping[str, Any]]) -> List[Mapping[str, Any]]:
+        waiting = [dict(task) for task in tasks if task.get("status") == "waiting_for_approval"]
+        other = [dict(task) for task in tasks if task.get("status") != "waiting_for_approval"]
+        waiting.sort(key=lambda task: str(task.get("updated_at", "")), reverse=True)
+        other.sort(key=lambda task: str(task.get("updated_at", "")), reverse=True)
+        return waiting + other
+
+    def _store_runtime_task(self, task: Mapping[str, Any]) -> None:
+        if self.runtime_store is None or RuntimeTaskRecord is None:
+            return
+        summary = self._runtime_task_summary(task)
+        task_id = str(summary["id"])
+        metadata = {
+            "progress": summary["progress"],
+            "message": _safe_json_value(summary.get("message")),
+        }
+        for key in ("result_type", "provider"):
+            value = _safe_json_value(task.get(key, ""))
+            if value not in (None, "", [], {}):
+                metadata[key] = value
+        metadata.update(self._task_result_metadata(task))
+        record = RuntimeTaskRecord(
+            task_id=task_id,
+            title=str(summary["title"]),
+            status=str(summary["status"]),
+            updated_at=str(summary["updated_at"]),
+            detail=str(summary.get("message") or ""),
+            approval_required=summary.get("status") == "waiting_for_approval",
+            metadata=metadata,
+        )
+        self.runtime_store.upsert_task(record)
+        self._append_stored_task_event(
+            event_id=f"event_{task_id}_{summary['status']}",
+            task_id=task_id,
+            event_type="task_status",
+            message=str(summary.get("message") or "Task status changed."),
+            created_at=str(summary["updated_at"]),
+            metadata={"status": summary["status"], "progress": summary["progress"]},
+        )
+
+    def _stored_task_to_mobile_bridge(self, task: Any) -> Dict[str, Any]:
+        metadata = dict(task.metadata or {})
+        progress = self._progress_from_metadata(metadata, str(task.status))
+        message = metadata.get("message")
+        if message in (None, ""):
+            message = task.detail or None
+        return {
+            "id": task.task_id,
+            "title": task.title,
+            "status": task.status,
+            "progress": progress,
+            "message": message,
+            "updated_at": task.updated_at,
+        }
+
+    def _stored_task_detail_to_mobile_bridge(self, task: Any) -> Dict[str, Any]:
+        metadata = dict(task.metadata or {})
+        body = self._stored_task_to_mobile_bridge(task)
+        for key in (
+            "provider",
+            "result_type",
+            "explanation",
+            "recipe_metadata",
+            "renderer",
+            "composition",
+            "qa",
+            "crop",
+            "share_caption",
+            "recipe_summary",
+            "safety",
+            "upscale",
+        ):
+            value = metadata.get(key)
+            if value not in (None, "", [], {}):
+                body[key] = value
+        variants = self._safe_task_variants(metadata.get("variants"))
+        if variants:
+            body["variants"] = [
+                {
+                    **variant,
+                    "download_url": f"/mobile/v1/assets/{variant['asset_id']}/download",
+                }
+                for variant in variants
+            ]
+        return body
+
+    def _stored_task_progress(self, task: Any) -> float:
+        return self._progress_from_metadata(dict(task.metadata or {}), str(task.status))
+
+    def _progress_from_metadata(self, metadata: Mapping[str, Any], status: str) -> float:
+        try:
+            return float(metadata.get("progress", 0.0))
+        except (TypeError, ValueError):
+            pass
+        if status in {"completed", "failed", "cancelled"}:
+            return 1.0
+        if status == "running":
+            return 0.5
+        return 0.0
+
+    def _update_stored_task(
+        self,
+        task: Any,
+        status: str,
+        progress: float,
+        message: str,
+        event_type: str,
+    ) -> Dict[str, Any]:
+        metadata = dict(task.metadata or {})
+        metadata["progress"] = progress
+        metadata["message"] = message
+        updated_at = "2026-06-05T09:35:00Z"
+        updated = RuntimeTaskRecord(
+            task_id=task.task_id,
+            title=task.title,
+            status=status,
+            updated_at=updated_at,
+            detail=message,
+            approval_required=status == "waiting_for_approval",
+            metadata=metadata,
+        )
+        self.runtime_store.upsert_task(updated)
+        self._append_stored_task_event(
+            event_id=f"event_{task.task_id}_{event_type}",
+            task_id=task.task_id,
+            event_type=event_type,
+            message=message,
+            created_at=updated_at,
+            metadata={"status": status, "progress": progress},
+        )
+        return self._stored_task_to_mobile_bridge(updated)
+
+    def _append_stored_task_event(
+        self,
+        event_id: str,
+        task_id: str,
+        event_type: str,
+        message: str,
+        created_at: str,
+        metadata: Optional[Mapping[str, Any]] = None,
+    ) -> None:
+        if self.runtime_store is None or RuntimeTaskEvent is None:
+            return
+        self.runtime_store.append_task_event(
+            RuntimeTaskEvent(
+                event_id=event_id,
+                task_id=task_id,
+                type=event_type,
+                message=message,
+                created_at=created_at,
+                metadata=metadata or {},
+            )
+        )
 
     def _build_universal_intake_result(self, intake_type: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
         metadata = self._universal_intake_metadata(payload)
@@ -1310,7 +2080,9 @@ class MockBridgeApp:
         return result
 
     def _build_image_intake_result_for_asset(self, asset_id: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
-        source_asset = self.assets[asset_id]
+        source_asset = self._get_asset(asset_id)
+        if source_asset is None:
+            raise KeyError(asset_id)
         image_intake = dict(
             build_image_intake_result(
                 image_bytes=source_asset["bytes"],
@@ -1365,10 +2137,12 @@ class MockBridgeApp:
                 metadata[key] = value
         context_snapshot = payload.get("context_snapshot")
         if isinstance(context_snapshot, Mapping):
-            metadata["context_snapshot"] = dict(context_snapshot)
+            sanitized_snapshot = self._sanitized_context_snapshot(context_snapshot)
+            if sanitized_snapshot:
+                metadata["context_snapshot"] = sanitized_snapshot
 
         asset_id = self._source_asset_id(payload)
-        asset = self.assets.get(asset_id)
+        asset = self._get_asset(asset_id)
         if asset is not None:
             metadata.setdefault("asset_id", asset_id)
             metadata.setdefault("filename", asset.get("filename"))
@@ -1386,6 +2160,14 @@ class MockBridgeApp:
                     if "page_count" in decoded_asset_metadata:
                         metadata.setdefault("page_count", decoded_asset_metadata["page_count"])
         return {key: value for key, value in metadata.items() if value is not None}
+
+    def _sanitized_context_snapshot(self, context_snapshot: Mapping[str, Any]) -> Dict[str, str]:
+        sanitized: Dict[str, str] = {}
+        for key in self.CONTEXT_SNAPSHOT_ALLOWED_FIELDS:
+            value = context_snapshot.get(key)
+            if isinstance(value, str) and value.strip():
+                sanitized[key] = value
+        return sanitized
 
     def _intake_suggestion(
         self,
@@ -1440,12 +2222,50 @@ class MockBridgeApp:
         return normalized
 
     def _task_status(self, task_id: str) -> MockResponse:
+        if self.runtime_store is not None:
+            task = self.runtime_store.get_task(task_id)
+            if task is None:
+                return self._error("not_found", "The task does not exist.", 404)
+            body = self._stored_task_detail_to_mobile_bridge(task)
+            body["task_id"] = task.task_id
+            return self._json(body)
+
         task = self.tasks.get(task_id)
         if task is None:
             return self._error("not_found", "The task does not exist.", 404)
         return self._json(task)
 
     def _task_events(self, task_id: str) -> MockResponse:
+        if self.runtime_store is not None:
+            task = self.runtime_store.get_task(task_id)
+            if task is None:
+                return self._error("not_found", "The task does not exist.", 404)
+            events = self.runtime_store.list_task_events(task_id)
+            if events:
+                chunks: List[str] = []
+                for event in events:
+                    metadata = dict(event.metadata or {})
+                    progress = self._progress_from_metadata(metadata, str(task.status))
+                    message = event.message or metadata.get("message")
+                    chunks.append(
+                        "event: task.progress\n"
+                        f"data: {json.dumps({'progress': progress, 'message': message})}\n\n"
+                    )
+                if task.status in {"completed", "failed", "cancelled"}:
+                    variant_count = len(self._safe_task_variants(dict(task.metadata or {}).get("variants")))
+                    chunks.append(
+                        "event: task.completed\n"
+                        f"data: {json.dumps({'variant_count': variant_count})}\n\n"
+                    )
+                payload = "".join(chunks)
+            else:
+                summary = self._stored_task_to_mobile_bridge(task)
+                payload = (
+                    "event: task.progress\n"
+                    f"data: {json.dumps({'progress': summary['progress'], 'message': summary.get('message')})}\n\n"
+                )
+            return MockResponse(status_code=200, data=payload.encode("utf-8"), content_type="text/event-stream")
+
         task = self.tasks.get(task_id)
         if task is None:
             return self._error("not_found", "The task does not exist.", 404)
@@ -1475,7 +2295,7 @@ class MockBridgeApp:
         return MockResponse(status_code=200, data=payload.encode("utf-8"), content_type="text/event-stream")
 
     def _download_asset(self, asset_id: str) -> MockResponse:
-        asset = self.assets.get(asset_id)
+        asset = self._get_asset(asset_id)
         if asset is None:
             return self._error("not_found", "The asset does not exist.", 404)
         self.download_requests.append(
@@ -1488,14 +2308,15 @@ class MockBridgeApp:
         return MockResponse(status_code=200, data=asset["bytes"], content_type=asset["mime_type"])
 
     def _qa_status(self) -> Mapping[str, Any]:
+        assets = self._list_assets()
         uploaded_assets = [
             (asset_id, asset)
-            for asset_id, asset in self.assets.items()
+            for asset_id, asset in assets
             if not asset_id.startswith("asset_result_")
         ]
         result_assets = [
             (asset_id, asset)
-            for asset_id, asset in self.assets.items()
+            for asset_id, asset in assets
             if asset_id.startswith("asset_result_")
         ]
         last_upload = uploaded_assets[-1] if uploaded_assets else None
@@ -1606,12 +2427,180 @@ class MockBridgeApp:
         )
 
 
+class _MemoryRecallItem:
+    def __init__(self, item: Mapping[str, Any]) -> None:
+        self.item = dict(item)
+        self.item_id = str(self.item.get("item_id", ""))
+        self.summary = str(self.item.get("summary", ""))
+        self.created_at = str(self.item.get("created_at", ""))
+
+    def to_mobile_bridge(self) -> dict[str, Any]:
+        return dict(self.item)
+
+
+def _safe_recall_search_result(result: Mapping[str, Any]) -> Dict[str, Any]:
+    item = result.get("item")
+    safe_item: Dict[str, Any] = {}
+    if isinstance(item, Mapping):
+        safe_item = {
+            "item_id": str(item.get("item_id", "")),
+            "summary": str(item.get("summary", "")),
+            "created_at": str(item.get("created_at", "")),
+            "provenance": _safe_recall_provenance(item.get("provenance", {})),
+        }
+    try:
+        score = float(result.get("score", 0))
+    except (TypeError, ValueError):
+        score = 0.0
+    match_reason = _safe_match_reason(result.get("match_reason", ""))
+    return {
+        "item": safe_item,
+        "score": score,
+        "match_reason": match_reason,
+    }
+
+
+def _safe_recall_provenance(value: Any) -> Dict[str, Any]:
+    if not isinstance(value, Mapping):
+        return {}
+    safe: Dict[str, Any] = {}
+    for key in ("source_task_id", "source_inbox_item_id", "source_surface"):
+        raw = value.get(key)
+        if raw in (None, ""):
+            continue
+        text = str(raw)
+        if _contains_runtime_secret_marker(text):
+            continue
+        safe[key] = text
+    return safe
+
+
+def _safe_match_reason(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text or _contains_runtime_secret_marker(text):
+        return "Matched runtime Recall provider."
+    return text
+
+
+_DROP = object()
+
+
+def _sanitize_vision_result(value: Mapping[str, Any]) -> Dict[str, Any]:
+    top_level_keys = ("mode", "title", "summary", "text", "language", "confidence", "sections", "items")
+    safe: Dict[str, Any] = {}
+    for key in top_level_keys:
+        if key not in value:
+            continue
+        if key == "sections":
+            sections = _sanitize_vision_sections(value.get(key))
+            if sections:
+                safe[key] = sections
+            continue
+        if key == "items":
+            items = _sanitize_vision_items(value.get(key))
+            if items:
+                safe[key] = items
+            continue
+        cleaned = _sanitize_vision_scalar(value.get(key))
+        if cleaned is not _DROP:
+            safe[key] = cleaned
+    return safe
+
+
+def _sanitize_vision_sections(value: Any) -> List[Dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    sections: List[Dict[str, Any]] = []
+    for raw_section in value:
+        if not isinstance(raw_section, Mapping):
+            continue
+        section: Dict[str, Any] = {}
+        for key in ("title", "kind", "summary"):
+            cleaned = _sanitize_vision_scalar(raw_section.get(key))
+            if cleaned is not _DROP:
+                section[key] = cleaned
+        items = _sanitize_vision_items(raw_section.get("items"))
+        if items:
+            section["items"] = items
+        if section:
+            sections.append(section)
+    return sections
+
+
+def _sanitize_vision_items(value: Any) -> List[Dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    items: List[Dict[str, Any]] = []
+    for raw_item in value:
+        if not isinstance(raw_item, Mapping):
+            continue
+        item: Dict[str, Any] = {}
+        for key in ("title", "value", "subtitle", "kind", "label", "confidence"):
+            cleaned = _sanitize_vision_scalar(raw_item.get(key))
+            if cleaned is not _DROP:
+                item[key] = cleaned
+        if item:
+            items.append(item)
+    return items
+
+
+def _sanitize_vision_scalar(value: Any) -> object:
+    if value is None:
+        return _DROP
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value
+    text = str(value).strip()
+    if not text or _contains_runtime_secret_marker(text):
+        return _DROP
+    return text
+
+
+def _contains_runtime_secret_marker(value: str) -> bool:
+    lowered = value.lower()
+    markers = (
+        "provider_endpoint",
+        "recall_search_endpoint",
+        "runtime_store_path",
+        "sqlite_path",
+        "raw_embedding",
+        "raw_provider_response",
+        "hidden_prompt",
+        "task_logs",
+        "openai_api_key",
+        "bearer ",
+        "sk-",
+        "http://",
+        "https://",
+        ".sqlite",
+        ".sqlite3",
+        "embedding_",
+        "index_rows",
+    )
+    return any(marker in lowered for marker in markers)
+
+
 def create_app(
     pairing_codes: Optional[Mapping[str, str]] = None,
     mobile_token: str = DEV_MOBILE_TOKEN,
     photo_provider: Optional[PhotoProvider] = None,
     vision_provider: Optional[VisionProvider] = None,
     advertised_endpoint: str = "",
+    runtime_id: str = "hermes",
+    runtime_display_name: str = DEV_DISPLAY_NAME,
+    pairing_scheme: str = "http",
+    recall_search_provider: str | RecallSearchProvider = "local",
+    recall_search_endpoint: str = "",
+    runtime_store: Optional[Any] = None,
+    runtime_store_path: str = "",
+    pairing_manager: Optional[PairingManager] = None,
+    trusted_local_tls_required: bool = False,
+    tls_certificate_label: str = "",
+    tls_public_key_sha256: str = "",
+    input_assets_days: int = DEFAULT_INPUT_ASSETS_DAYS,
+    output_assets_days: int = DEFAULT_OUTPUT_ASSETS_DAYS,
+    task_history_days: int = DEFAULT_TASK_HISTORY_DAYS,
 ) -> MockBridgeApp:
     return MockBridgeApp(
         pairing_codes=pairing_codes,
@@ -1619,6 +2608,20 @@ def create_app(
         photo_provider=photo_provider,
         vision_provider=vision_provider,
         advertised_endpoint=advertised_endpoint,
+        runtime_id=runtime_id,
+        runtime_display_name=runtime_display_name,
+        pairing_scheme=pairing_scheme,
+        recall_search_provider=recall_search_provider,
+        recall_search_endpoint=recall_search_endpoint,
+        runtime_store=runtime_store,
+        runtime_store_path=runtime_store_path,
+        pairing_manager=pairing_manager,
+        trusted_local_tls_required=trusted_local_tls_required,
+        tls_certificate_label=tls_certificate_label,
+        tls_public_key_sha256=tls_public_key_sha256,
+        input_assets_days=input_assets_days,
+        output_assets_days=output_assets_days,
+        task_history_days=task_history_days,
     )
 
 
