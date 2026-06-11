@@ -11,21 +11,22 @@ public struct ContextSnapshotPreviewView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Toggle(isOn: $viewModel.includeContext) {
-                Label("Context", systemImage: "location.circle")
+                Label("Share Context", systemImage: "location.circle")
                     .font(.headline)
             }
             .tint(Color(red: 0.55, green: 0.96, blue: 0.89))
 
-            if let snapshot = viewModel.snapshotPreview {
+            if viewModel.includeContext && viewModel.isContextSnapshotPreparing {
+                Label("Preparing context", systemImage: "clock")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            if !viewModel.previewRows.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    snapshotRow("Time", snapshot.timestamp)
-                    snapshotRow("Timezone", snapshot.timezone)
-                    snapshotRow("Locale", snapshot.locale)
-                    snapshotRow("Source", snapshot.sourceSurface)
-                    snapshotRow("Network", snapshot.network)
-                    snapshotRow("Battery", snapshot.battery)
-                    snapshotRow("Motion", snapshot.motion)
-                    snapshotRow("Location", snapshot.locationLabel)
+                    ForEach(viewModel.previewRows) { row in
+                        snapshotRow(row.label, row.value)
+                    }
                 }
                 .font(.footnote)
             }
@@ -36,8 +37,14 @@ public struct ContextSnapshotPreviewView: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .onChange(of: viewModel.includeContext) { _, includeContext in
+            guard includeContext else { return }
+            Task {
+                await viewModel.refreshForInclusionIfNeeded()
+            }
+        }
         .task {
-            await viewModel.refresh()
+            await viewModel.refreshForInclusionIfNeeded()
         }
     }
 

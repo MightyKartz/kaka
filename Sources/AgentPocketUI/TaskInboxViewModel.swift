@@ -17,16 +17,15 @@ public protocol RuntimeTaskInboxPerforming: Sendable {
 }
 
 public struct MobileBridgeRuntimeTaskInboxPerformer: RuntimeTaskInboxPerforming {
-    private let session: URLSession
+    private let session: URLSession?
 
-    public init(session: URLSession = .shared) {
+    public init(session: URLSession? = nil) {
         self.session = session
     }
 
     public func fetchRuntimeTasks(connection: StoredConnection) async throws -> [RuntimeTaskSummary] {
         let client = MobileBridgeHTTPClient(
-            endpoint: connection.endpoint,
-            token: connection.mobileToken,
+            connection: connection,
             session: session
         )
         return try await client.fetchRuntimeTasks()
@@ -37,8 +36,7 @@ public struct MobileBridgeRuntimeTaskInboxPerformer: RuntimeTaskInboxPerforming 
         connection: StoredConnection
     ) async throws -> RuntimeTaskActionResponse {
         let client = MobileBridgeHTTPClient(
-            endpoint: connection.endpoint,
-            token: connection.mobileToken,
+            connection: connection,
             session: session
         )
         return try await client.cancelRuntimeTask(taskID: taskID)
@@ -50,8 +48,7 @@ public struct MobileBridgeRuntimeTaskInboxPerformer: RuntimeTaskInboxPerforming 
         connection: StoredConnection
     ) async throws -> RuntimeTaskActionResponse {
         let client = MobileBridgeHTTPClient(
-            endpoint: connection.endpoint,
-            token: connection.mobileToken,
+            connection: connection,
             session: session
         )
         return try await client.approveRuntimeTask(taskID: taskID, approval: approval)
@@ -72,9 +69,14 @@ public final class TaskInboxViewModel: ObservableObject {
     @Published public private(set) var state: State = .idle
 
     private let performer: any RuntimeTaskInboxPerforming
+    private let activityCoordinator: any RuntimeTaskActivityCoordinating
 
-    public init(performer: any RuntimeTaskInboxPerforming = MobileBridgeRuntimeTaskInboxPerformer()) {
+    public init(
+        performer: any RuntimeTaskInboxPerforming = MobileBridgeRuntimeTaskInboxPerformer(),
+        activityCoordinator: any RuntimeTaskActivityCoordinating = ActivityKitRuntimeTaskActivityCoordinator()
+    ) {
         self.performer = performer
+        self.activityCoordinator = activityCoordinator
     }
 
     public func load(connection: StoredConnection?) async {
@@ -86,6 +88,7 @@ public final class TaskInboxViewModel: ObservableObject {
         state = .loading
         do {
             tasks = Self.sorted(try await performer.fetchRuntimeTasks(connection: connection))
+            await syncRuntimeTaskActivities()
             state = .loaded
         } catch {
             state = .failed("Could not load runtime tasks.")
@@ -102,6 +105,7 @@ public final class TaskInboxViewModel: ObservableObject {
         do {
             let response = try await performer.cancelRuntimeTask(taskID: taskID, connection: connection)
             apply(response)
+            await syncRuntimeTaskActivities()
             state = .loaded
         } catch {
             state = .failed("Could not update runtime task.")
@@ -122,6 +126,7 @@ public final class TaskInboxViewModel: ObservableObject {
                 connection: connection
             )
             apply(response)
+            await syncRuntimeTaskActivities()
             state = .loaded
         } catch {
             state = .failed("Could not update runtime task.")
@@ -135,6 +140,10 @@ public final class TaskInboxViewModel: ObservableObject {
         tasks.removeAll { $0.id == task.id }
         tasks.append(task)
         tasks = Self.sorted(tasks)
+    }
+
+    private func syncRuntimeTaskActivities() async {
+        await activityCoordinator.sync(tasks: tasks)
     }
 
     private static func sorted(_ tasks: [RuntimeTaskSummary]) -> [RuntimeTaskSummary] {

@@ -90,6 +90,27 @@ final class ConnectScreenCopyTests: XCTestCase {
         XCTAssertFalse(copy.visibleCopy.localizedCaseInsensitiveContains("No local agent runtime found"))
         XCTAssertFalse(copy.visibleCopy.localizedCaseInsensitiveContains("enter an endpoint"))
     }
+
+    func testChineseFailureCopyCoversKnownPairingAndRestoreFailures() {
+        let cases: [(String, String)] = [
+            ("Pairing code expired.", "配对二维码已过期。请在本机运行时刷新二维码后重新扫码。"),
+            ("Pairing code already used. Scan a new QR code.", "这个配对二维码已经使用过。请在本机运行时生成新的二维码。"),
+            ("QR code is not a Kaka pairing code.", "这不是 Kaka 配对二维码。请扫描本机运行时显示的 Kaka Mobile Bridge 二维码。"),
+            ("Could not restore local agent connection.", "无法恢复已保存连接。请确认本机运行时正在运行，或重新扫码配对。"),
+            ("Could not forget local agent connection.", "无法清除已保存连接。请稍后重试。")
+        ]
+
+        for (message, expectedSubtitle) in cases {
+            let copy = ConnectScreenCopy(
+                state: .failed(message: message),
+                language: .chinese,
+                fallbackDeviceName: "我的电脑"
+            )
+
+            XCTAssertEqual(copy.connectTitle, "连接失败")
+            XCTAssertEqual(copy.connectSubtitle, expectedSubtitle)
+        }
+    }
 }
 
 private extension String {

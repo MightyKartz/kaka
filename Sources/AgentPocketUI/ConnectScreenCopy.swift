@@ -266,6 +266,12 @@ private extension ConnectionState {
         }
 
         switch message {
+        case "Pairing code expired.":
+            return "配对二维码已过期。请在本机运行时刷新二维码后重新扫码。"
+        case "Pairing code already used. Scan a new QR code.":
+            return "这个配对二维码已经使用过。请在本机运行时生成新的二维码。"
+        case "QR code is not a Kaka pairing code.":
+            return "这不是 Kaka 配对二维码。请扫描本机运行时显示的 Kaka Mobile Bridge 二维码。"
         case "No local agent runtime found. Scan a pairing QR or enter an endpoint.":
             return "没有发现本机智能体。请扫描配对二维码，或手动输入本机地址。"
         case "Could not search the local network. Check Local Network permission and try again.":
@@ -280,6 +286,10 @@ private extension ConnectionState {
             return "请输入有效的本机智能体地址。"
         case "Could not save local agent credentials.":
             return "无法保存本机智能体凭证。"
+        case "Could not restore local agent connection.":
+            return "无法恢复已保存连接。请确认本机运行时正在运行，或重新扫码配对。"
+        case "Could not forget local agent connection.":
+            return "无法清除已保存连接。请稍后重试。"
         default:
             return message
         }

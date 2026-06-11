@@ -26,12 +26,12 @@ public extension UniversalIntakeSubmitting {
 }
 
 public struct MobileBridgeUniversalIntakeSubmitter: UniversalIntakeSubmitting {
-    private let session: URLSession
+    private let session: URLSession?
     private let poller: TaskPoller
     private let documentLoader: any InboxDocumentPayloadLoading
 
     public init(
-        session: URLSession = .shared,
+        session: URLSession? = nil,
         poller: TaskPoller = TaskPoller(),
         documentLoader: any InboxDocumentPayloadLoading = FileInboxDocumentPayloadLoader()
     ) {
@@ -47,8 +47,7 @@ public struct MobileBridgeUniversalIntakeSubmitter: UniversalIntakeSubmitting {
         progress: @escaping @Sendable (PhotoEditSubmissionProgress) async -> Void
     ) async throws -> TaskStatusResponse {
         let client = MobileBridgeHTTPClient(
-            endpoint: connection.endpoint,
-            token: connection.mobileToken,
+            connection: connection,
             session: session
         )
         let capabilities = try await client.fetchCapabilities()
@@ -79,7 +78,7 @@ public struct MobileBridgeUniversalIntakeSubmitter: UniversalIntakeSubmitting {
                 preferredProfileID: profileID,
                 sourceApp: item.sourceApp,
                 receivedAt: item.receivedAt,
-                source: IntakeSource(surface: "share_extension", hostApp: item.sourceApp),
+                source: IntakeSource(surface: item.sourceSurface, hostApp: item.sourceApp),
                 contextSnapshot: submittedContextSnapshot,
                 userInstruction: item.note
             )

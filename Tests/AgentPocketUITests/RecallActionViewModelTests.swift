@@ -72,6 +72,24 @@ final class RecallActionViewModelTests: XCTestCase {
         XCTAssertNil(performer.calls.first?.persistedItemID)
     }
 
+    func testRecallActionSubmitsTaskAndInboxProvenanceTogether() async throws {
+        let inboxItemID = UUID(uuidString: "12345678-1234-1234-1234-1234567890AB")!
+        let performer = StubRecallActionPerformer(response: .usedOnceFixture())
+        let viewModel = RecallActionViewModel(performer: performer)
+
+        await viewModel.perform(
+            .useOnce,
+            sourceTaskID: "task_123",
+            sourceInboxItemID: inboxItemID,
+            userVisibleSummary: "Use this result provenance for the current answer.",
+            connection: try storedConnection()
+        )
+
+        XCTAssertEqual(performer.calls.map(\.action), [.useOnce])
+        XCTAssertEqual(performer.calls.map(\.sourceTaskID), ["task_123"])
+        XCTAssertEqual(performer.calls.map(\.sourceInboxItemID), [inboxItemID])
+    }
+
     func testCancelConfirmationDoesNotSubmitPendingRemember() async throws {
         let performer = StubRecallActionPerformer(response: .rememberedFixture())
         let viewModel = RecallActionViewModel(performer: performer)

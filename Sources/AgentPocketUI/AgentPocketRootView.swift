@@ -1,10 +1,19 @@
 import AgentPocketCore
 import SwiftUI
 
+public enum AgentPocketRootTab: Hashable, Sendable {
+    case capture
+    case inbox
+    case recall
+    case tasks
+}
+
 public struct AgentPocketRootView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var connectionViewModel = ConnectionViewModel()
     @StateObject private var captureViewModel = CaptureFlowViewModel()
     @State private var hasBootstrappedConnection = false
+    @State private var selectedTab: AgentPocketRootTab = .capture
 
     public init() {}
 
@@ -23,11 +32,18 @@ public struct AgentPocketRootView: View {
             }
             hasBootstrappedConnection = true
             await connectionViewModel.restoreSavedConnectionOrDiscoverNearby()
+            handlePendingAppIntentHandoff()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else {
+                return
+            }
+            handlePendingAppIntentHandoff()
         }
     }
 
     private func connectedTabs(runtime: ConnectedRuntime) -> some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             CaptureView(viewModel: captureViewModel, connectedRuntime: runtime) {
                 connectionViewModel.forgetSavedConnection()
             } activeConnection: {
@@ -36,6 +52,7 @@ public struct AgentPocketRootView: View {
             .tabItem {
                 Label("Capture", systemImage: "camera.viewfinder")
             }
+            .tag(AgentPocketRootTab.capture)
 
             InboxView(viewModel: makeInboxViewModel()) {
                 connectionViewModel.activeConnection
@@ -43,6 +60,15 @@ public struct AgentPocketRootView: View {
             .tabItem {
                 Label("Inbox", systemImage: "tray.full")
             }
+            .tag(AgentPocketRootTab.inbox)
+
+            RecallBrowseView {
+                connectionViewModel.activeConnection
+            }
+            .tabItem {
+                Label("Recall", systemImage: "brain.head.profile")
+            }
+            .tag(AgentPocketRootTab.recall)
 
             TaskInboxView {
                 connectionViewModel.activeConnection
@@ -50,7 +76,15 @@ public struct AgentPocketRootView: View {
             .tabItem {
                 Label("Tasks", systemImage: "list.bullet.rectangle")
             }
+            .tag(AgentPocketRootTab.tasks)
         }
+    }
+
+    private func handlePendingAppIntentHandoff() {
+        guard let handoff = KakaAppIntentHandoffStore().consumePendingHandoff() else {
+            return
+        }
+        selectedTab = handoff.surface.targetTab
     }
 
     private func makeInboxViewModel() -> InboxViewModel {

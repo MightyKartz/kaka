@@ -8,9 +8,10 @@ import AppKit
 
 public struct ImageConversationView: View {
     @StateObject private var viewModel: ImageConversationViewModel
-    @StateObject private var voiceCaptureViewModel = VoiceCaptureViewModel()
+    @StateObject private var voiceCaptureViewModel: VoiceCaptureViewModel
     @State private var isVoiceCapturePresented = false
     private let activeConnection: () -> StoredConnection?
+    private let voiceReplySpeaker: any VoiceReplySpeaking
     private let language: AppLanguage
 
     public init(
@@ -18,7 +19,9 @@ public struct ImageConversationView: View {
         originalAsset: DownloadedAsset?,
         preparedUpload: PreparedImageUpload,
         activeConnection: @escaping () -> StoredConnection?,
-        skillExecutor: any ImageSkillExecuting = MobileBridgeImageSkillSubmitter()
+        skillExecutor: any ImageSkillExecuting = MobileBridgeImageSkillSubmitter(),
+        voiceTranscriber: (any VoiceRecordingTranscribing)? = VoiceTranscriberFactory.makeDefault(),
+        voiceReplySpeaker: any VoiceReplySpeaking = VoiceReplySpeakerFactory.makeDefault()
     ) {
         _viewModel = StateObject(wrappedValue: ImageConversationViewModel(
             intakeStatus: intakeStatus,
@@ -26,7 +29,9 @@ public struct ImageConversationView: View {
             preparedUpload: preparedUpload,
             skillExecutor: skillExecutor
         ))
+        _voiceCaptureViewModel = StateObject(wrappedValue: VoiceCaptureViewModel(transcriber: voiceTranscriber))
         self.activeConnection = activeConnection
+        self.voiceReplySpeaker = voiceReplySpeaker
         self.language = AppLanguage.resolved(storedValue: nil)
     }
 
@@ -60,8 +65,11 @@ public struct ImageConversationView: View {
                 onSend: { transcript in
                     isVoiceCapturePresented = false
                     Task {
-                        await viewModel.submitVoiceTranscript(transcript, connection: activeConnection())
+                        let reply = await viewModel.submitVoiceTranscript(transcript, connection: activeConnection())
                         voiceCaptureViewModel.reset()
+                        if let reply {
+                            await voiceReplySpeaker.speak(reply)
+                        }
                     }
                 }
             )
@@ -162,7 +170,7 @@ public struct ImageConversationView: View {
                 )
 
             Button {
-                voiceCaptureViewModel.markTranscriptReady("")
+                voiceCaptureViewModel.reset()
                 isVoiceCapturePresented = true
             } label: {
                 Image(systemName: "mic.fill")

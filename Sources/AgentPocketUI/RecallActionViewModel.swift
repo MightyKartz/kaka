@@ -14,9 +14,9 @@ public protocol RecallActionPerforming: Sendable {
 }
 
 public struct MobileBridgeRecallActionSubmitter: RecallActionPerforming {
-    private let session: URLSession
+    private let session: URLSession?
 
-    public init(session: URLSession = .shared) {
+    public init(session: URLSession? = nil) {
         self.session = session
     }
 
@@ -25,8 +25,7 @@ public struct MobileBridgeRecallActionSubmitter: RecallActionPerforming {
         connection: StoredConnection
     ) async throws -> RecallActionResponse {
         let client = MobileBridgeHTTPClient(
-            endpoint: connection.endpoint,
-            token: connection.mobileToken,
+            connection: connection,
             session: session
         )
         return try await client.submitRecallAction(request)
@@ -34,8 +33,7 @@ public struct MobileBridgeRecallActionSubmitter: RecallActionPerforming {
 
     public func fetchRecallItems(connection: StoredConnection) async throws -> [RecallItem] {
         let client = MobileBridgeHTTPClient(
-            endpoint: connection.endpoint,
-            token: connection.mobileToken,
+            connection: connection,
             session: session
         )
         return try await client.fetchRecallItems()
@@ -43,8 +41,7 @@ public struct MobileBridgeRecallActionSubmitter: RecallActionPerforming {
 
     public func deleteRecallItem(itemID: String, connection: StoredConnection) async throws -> RecallDeleteResponse {
         let client = MobileBridgeHTTPClient(
-            endpoint: connection.endpoint,
-            token: connection.mobileToken,
+            connection: connection,
             session: session
         )
         return try await client.deleteRecallItem(itemID: itemID)

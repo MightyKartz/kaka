@@ -120,7 +120,7 @@ final class PhotoEditSubmitterTests: XCTestCase {
         switch request.url?.path {
         case "/mobile/v1/capabilities":
             body = """
-            {"profiles":[{"id":"photo-agent","display_name":"Photo Agent","capabilities":["photo_edit"]}],"tasks":{"photo_edit":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance","portrait_polish"],"supports_sse":true,"return_variants_max":3}},"retention":{"input_assets_days":7,"output_assets_days":30,"task_history_days":30}}
+            {"profiles":[{"id":"photo-agent","display_name":"Photo Agent","capabilities":["photo_edit"]}],"tasks":{"photo_edit":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance","portrait_polish"],"supports_sse":true,"return_variants_max":2}},"retention":{"input_assets_days":7,"output_assets_days":30,"task_history_days":30}}
             """
             contentType = "application/json"
         case "/mobile/v1/assets":
