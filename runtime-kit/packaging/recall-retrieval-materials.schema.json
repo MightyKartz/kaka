@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/recall-retrieval-materials.schema.json",
+  "title": "Kaka Recall Retrieval Materials Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "strategy",
+    "materials",
+    "phone_api",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.recall_retrieval_materials.v1"
+    },
+    "surface": {
+      "const": "recall_retrieval_materials"
+    },
+    "runtime": {
+      "enum": ["hermes", "openclaw"]
+    },
+    "strategy": {
+      "enum": [
+        "host_native_embeddings",
+        "sidecar_adapter",
+        "capability_negotiated_hybrid"
+      ]
+    },
+    "materials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter_package_ref",
+        "runtime_settings_ui_ref",
+        "signature_ref",
+        "conformance_report_ref",
+        "privacy_review_ref",
+        "fallback_drill_ref",
+        "release_notes_ref"
+      ],
+      "properties": {
+        "adapter_package_ref": {
+          "type": "string"
+        },
+        "runtime_settings_ui_ref": {
+          "type": "string"
+        },
+        "signature_ref": {
+          "type": "string"
+        },
+        "conformance_report_ref": {
+          "type": "string"
+        },
+        "privacy_review_ref": {
+          "type": "string"
+        },
+        "fallback_drill_ref": {
+          "type": "string"
+        },
+        "release_notes_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "phone_api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_path",
+        "phone_api_unchanged"
+      ],
+      "properties": {
+        "base_path": {
+          "const": "/mobile/v1/recall/search"
+        },
+        "phone_api_unchanged": {
+          "const": true
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "provider_endpoint_included",
+        "provider_keys_included",
+        "raw_embeddings_included",
+        "retrieval_index_rows_included",
+        "raw_provider_responses_included",
+        "invokes_provider",
+        "fetches_refs"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "provider_endpoint_included": {
+          "const": false
+        },
+        "provider_keys_included": {
+          "const": false
+        },
+        "raw_embeddings_included": {
+          "const": false
+        },
+        "retrieval_index_rows_included": {
+          "const": false
+        },
+        "raw_provider_responses_included": {
+          "const": false
+        },
+        "invokes_provider": {
+          "const": false
+        },
+        "fetches_refs": {
+          "const": false
+        }
+      }
+    }
+  }
+}

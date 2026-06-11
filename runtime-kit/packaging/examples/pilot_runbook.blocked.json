@@ -1,0 +1,256 @@
+{
+  "schema_version": "kaka.host_shell_pilot_runbook.v1",
+  "surface": "hermes_openclaw_host_shell_pilot_runbook",
+  "runtime": "hermes",
+  "ok": false,
+  "runbook_status": "blocked",
+  "runtime_side_only": true,
+  "phone_api_path": "/mobile/v1",
+  "phone_api_unchanged": true,
+  "p3_4_complete": false,
+  "p3_4_completion_owner": "external_host_shell",
+  "brief": {
+    "goal": "prepare_external_host_shell_pilot",
+    "current_blocker": "missing_private_adapter_command",
+    "requested_host_owner_action": "provide_private_adapter_command",
+    "non_goals": [
+      "does_not_complete_p3_4",
+      "does_not_bundle_proprietary_host_binary",
+      "does_not_expose_private_host_api_to_phone"
+    ]
+  },
+  "pilot_target": {
+    "default_command_name": "hermes-kaka-host-api",
+    "environment_variable": "HERMES_KAKA_HOST_API",
+    "manifest_key": "host_private_adapter.command",
+    "well_known_paths": [
+      "~/Library/Application Support/Hermes/Kaka/hermes-kaka-host-api"
+    ],
+    "distribution_source": "local_checkout",
+    "distribution_channel": "development",
+    "package_version": "development",
+    "host_api_level": "preview"
+  },
+  "preflight": {
+    "status": "blocked",
+    "can_run_conformance": false,
+    "blocking_reasons": [
+      "missing_private_adapter_command"
+    ],
+    "host_shell_detected": true,
+    "private_adapter_command": {
+      "provided": false,
+      "source": "missing",
+      "path": ""
+    }
+  },
+  "ordered_steps": [
+    {
+      "id": "host_shell_pilot_preflight",
+      "owner": "runtime_kit",
+      "required": true,
+      "status": "blocked",
+      "output_schema": "kaka.host_shell_pilot_preflight.v1",
+      "blocking_reason": "missing_private_adapter_command"
+    },
+    {
+      "id": "host_private_adapter_conformance",
+      "owner": "runtime_kit",
+      "required": true,
+      "status": "blocked",
+      "output_schema": "kaka.host_private_adapter_conformance.v1",
+      "blocking_reason": "missing_private_adapter_command"
+    },
+    {
+      "id": "distribution_and_signing_evidence",
+      "owner": "host_shell",
+      "required": true,
+      "status": "waiting_for_host_evidence",
+      "output_schema": "kaka.host_shell_pilot_receipt.v1",
+      "blocking_reason": ""
+    },
+    {
+      "id": "install_update_failure_drills",
+      "owner": "host_shell",
+      "required": true,
+      "status": "waiting_for_host_evidence",
+      "output_schema": "kaka.host_shell_pilot_receipt.v1",
+      "blocking_reason": ""
+    },
+    {
+      "id": "host_shell_pilot_report",
+      "owner": "runtime_kit",
+      "required": true,
+      "status": "blocked",
+      "output_schema": "kaka.host_shell_pilot_receipt.v1",
+      "blocking_reason": "missing_private_adapter_command"
+    },
+    {
+      "id": "host_shell_pilot_handoff",
+      "owner": "runtime_kit",
+      "required": true,
+      "status": "blocked",
+      "output_schema": "kaka.host_shell_pilot_handoff.v1",
+      "blocking_reason": "missing_private_adapter_command"
+    }
+  ],
+  "command_artifacts": {
+    "host_shell_pilot_preflight": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-shell-pilot-preflight",
+      "--runtime",
+      "hermes"
+    ],
+    "host_private_adapter_conformance": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-private-adapter-conformance",
+      "--runtime",
+      "hermes"
+    ],
+    "host_shell_pilot_report": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-shell-pilot-report",
+      "--runtime",
+      "hermes",
+      "--distribution-source",
+      "local_checkout",
+      "--distribution-channel",
+      "development",
+      "--package-version",
+      "development",
+      "--host-api-level",
+      "preview"
+    ],
+    "host_shell_pilot_handoff": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-shell-pilot-handoff",
+      "--runtime",
+      "hermes",
+      "--distribution-source",
+      "local_checkout",
+      "--distribution-channel",
+      "development",
+      "--package-version",
+      "development",
+      "--host-api-level",
+      "preview"
+    ]
+  },
+  "evidence_requirements": {
+    "required": true,
+    "complete": false,
+    "distribution": {
+      "items": [
+        {
+          "id": "native_channel_ref",
+          "owner": "host_shell",
+          "required": true,
+          "provided": false,
+          "cli_flag": "--native-channel-ref",
+          "receipt_path": "distribution.evidence.native_channel_ref"
+        },
+        {
+          "id": "signature_subject",
+          "owner": "host_shell",
+          "required": true,
+          "provided": false,
+          "cli_flag": "--signature-subject",
+          "receipt_path": "distribution.evidence.signature_subject"
+        },
+        {
+          "id": "notarization_team_id",
+          "owner": "host_shell",
+          "required": true,
+          "provided": false,
+          "cli_flag": "--notarization-team-id",
+          "receipt_path": "distribution.evidence.notarization_team_id"
+        },
+        {
+          "id": "update_feed_ref",
+          "owner": "host_shell",
+          "required": true,
+          "provided": false,
+          "cli_flag": "--update-feed-ref",
+          "receipt_path": "distribution.evidence.update_feed_ref"
+        }
+      ],
+      "provided": [],
+      "missing": [
+        "native_channel_ref",
+        "signature_subject",
+        "notarization_team_id",
+        "update_feed_ref"
+      ]
+    },
+    "drills": {
+      "items": [
+        {
+          "id": "install_receipt_ref",
+          "owner": "host_shell",
+          "required": true,
+          "provided": false,
+          "cli_flag": "--install-receipt-ref",
+          "receipt_path": "drills.evidence.install_receipt_ref"
+        },
+        {
+          "id": "update_receipt_ref",
+          "owner": "host_shell",
+          "required": true,
+          "provided": false,
+          "cli_flag": "--update-receipt-ref",
+          "receipt_path": "drills.evidence.update_receipt_ref"
+        },
+        {
+          "id": "failure_recovery_receipt_ref",
+          "owner": "host_shell",
+          "required": true,
+          "provided": false,
+          "cli_flag": "--failure-recovery-receipt-ref",
+          "receipt_path": "drills.evidence.failure_recovery_receipt_ref"
+        },
+        {
+          "id": "release_notes_ref",
+          "owner": "host_shell",
+          "required": true,
+          "provided": false,
+          "cli_flag": "--release-notes-ref",
+          "receipt_path": "drills.evidence.release_notes_ref"
+        }
+      ],
+      "provided": [],
+      "missing": [
+        "install_receipt_ref",
+        "update_receipt_ref",
+        "failure_recovery_receipt_ref",
+        "release_notes_ref"
+      ]
+    }
+  },
+  "acceptance_gates": {
+    "can_run_conformance": false,
+    "can_emit_ready_receipt": false,
+    "can_submit_handoff": false,
+    "can_mark_p3_4_complete": false,
+    "blocking_reasons": [
+      "missing_private_adapter_command"
+    ]
+  },
+  "safety": {
+    "runtime_side_only": true,
+    "phone_api_unchanged": true,
+    "phone_settings_owner": false,
+    "no_proprietary_binary_bundled_by_kaka": true,
+    "does_not_invoke_private_adapter_command": true,
+    "does_not_run_conformance": true,
+    "does_not_fetch_audit_refs": true,
+    "does_not_mutate_host_state": true
+  }
+}

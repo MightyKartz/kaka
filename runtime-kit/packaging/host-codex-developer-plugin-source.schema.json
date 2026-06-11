@@ -1,0 +1,385 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/host-codex-developer-plugin-source.schema.json",
+  "title": "Kaka Host Codex Developer Plugin Source",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "written",
+    "output_root",
+    "developer_only",
+    "ordinary_user_install",
+    "plugin",
+    "skill",
+    "host_extension",
+    "generated_files",
+    "codex_install",
+    "ordinary_user_boundary",
+    "phone_api",
+    "runtime_kit_commands",
+    "safety"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "const": "hermes"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "plugin": {
+            "properties": {
+              "name": {
+                "const": "kaka-host-extension-developer-hermes"
+              }
+            }
+          },
+          "skill": {
+            "properties": {
+              "target_runtimes": {
+                "const": ["hermes"]
+              }
+            }
+          },
+          "host_extension": {
+            "properties": {
+              "install_shape": {
+                "const": "hermes_plugin"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "const": "openclaw"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "plugin": {
+            "properties": {
+              "name": {
+                "const": "kaka-host-extension-developer-openclaw"
+              }
+            }
+          },
+          "skill": {
+            "properties": {
+              "target_runtimes": {
+                "const": ["openclaw"]
+              }
+            }
+          },
+          "host_extension": {
+            "properties": {
+              "install_shape": {
+                "const": "openclaw_skill"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_codex_developer_plugin_source.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_host_codex_developer_plugin_source"
+    },
+    "runtime": {
+      "enum": ["hermes", "openclaw"]
+    },
+    "written": {
+      "type": "boolean"
+    },
+    "output_root": {
+      "type": "string"
+    },
+    "developer_only": {
+      "const": true
+    },
+    "ordinary_user_install": {
+      "const": false
+    },
+    "plugin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "source_scope",
+        "plugin_manifest_path",
+        "skill_path",
+        "updates_marketplace"
+      ],
+      "properties": {
+        "name": {
+          "enum": [
+            "kaka-host-extension-developer-hermes",
+            "kaka-host-extension-developer-openclaw"
+          ]
+        },
+        "version": {
+          "type": "string"
+        },
+        "source_scope": {
+          "const": "explicit_output_dir"
+        },
+        "plugin_manifest_path": {
+          "const": ".codex-plugin/plugin.json"
+        },
+        "skill_path": {
+          "const": "skills/kaka-host-extension-developer/SKILL.md"
+        },
+        "updates_marketplace": {
+          "const": false
+        }
+      }
+    },
+    "skill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "target_runtimes",
+        "purpose",
+        "ordinary_user_install_surface",
+        "references"
+      ],
+      "properties": {
+        "name": {
+          "const": "kaka-host-extension-developer"
+        },
+        "target_runtimes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["hermes", "openclaw"]
+          }
+        },
+        "purpose": {
+          "const": "host_team_scaffold_validate_review"
+        },
+        "ordinary_user_install_surface": {
+          "const": false
+        },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "const": "skills/kaka-host-extension-developer/references/runtime-kit-commands.md"
+          }
+        }
+      }
+    },
+    "host_extension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "install_shape",
+        "ordinary_user_entrypoint",
+        "stable_package_owner",
+        "developer_plugin_owner"
+      ],
+      "properties": {
+        "install_shape": {
+          "enum": ["hermes_plugin", "openclaw_skill"]
+        },
+        "ordinary_user_entrypoint": {
+          "type": "string"
+        },
+        "stable_package_owner": {
+          "const": "host_shell"
+        },
+        "developer_plugin_owner": {
+          "const": "host_engineering_team"
+        }
+      }
+    },
+    "generated_files": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "kind"],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "codex_plugin_manifest",
+              "codex_skill",
+              "codex_skill_reference",
+              "source_manifest"
+            ]
+          }
+        }
+      }
+    },
+    "codex_install": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "installs_codex_plugin",
+        "updates_marketplace",
+        "writes_user_home",
+        "requires_install_target_decision",
+        "marketplace_entry_created"
+      ],
+      "properties": {
+        "installs_codex_plugin": {
+          "const": false
+        },
+        "updates_marketplace": {
+          "const": false
+        },
+        "writes_user_home": {
+          "const": false
+        },
+        "requires_install_target_decision": {
+          "const": true
+        },
+        "marketplace_entry_created": {
+          "const": false
+        }
+      }
+    },
+    "ordinary_user_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "install_surface",
+        "phone_api_path",
+        "codex_plugin_required",
+        "manual_adapter_code_required",
+        "environment_variable_required"
+      ],
+      "properties": {
+        "install_surface": {
+          "const": "host_native_plugin_or_skill"
+        },
+        "phone_api_path": {
+          "const": "/mobile/v1"
+        },
+        "codex_plugin_required": {
+          "const": false
+        },
+        "manual_adapter_code_required": {
+          "const": false
+        },
+        "environment_variable_required": {
+          "const": false
+        }
+      }
+    },
+    "phone_api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_path",
+        "private_host_api_exposed",
+        "phone_api_unchanged"
+      ],
+      "properties": {
+        "base_path": {
+          "const": "/mobile/v1"
+        },
+        "private_host_api_exposed": {
+          "const": false
+        },
+        "phone_api_unchanged": {
+          "const": true
+        }
+      }
+    },
+    "runtime_kit_commands": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "host-plugin-skill-devkit",
+          "host-extension-install-package",
+          "host-extension-readiness",
+          "host-private-adapter-conformance",
+          "host-shell-pilot-evidence-manifest",
+          "host-shell-pilot-artifact-review"
+        ]
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "does_not_install_package",
+        "does_not_install_codex_plugin",
+        "does_not_update_marketplace",
+        "does_not_write_user_home",
+        "does_not_start_bridge",
+        "does_not_bind_lan",
+        "does_not_advertise_bonjour",
+        "does_not_mint_credentials",
+        "does_not_run_conformance",
+        "does_not_invoke_private_adapter",
+        "does_not_change_phone_api"
+      ],
+      "properties": {
+        "does_not_install_package": {
+          "const": true
+        },
+        "does_not_install_codex_plugin": {
+          "const": true
+        },
+        "does_not_update_marketplace": {
+          "const": true
+        },
+        "does_not_write_user_home": {
+          "const": true
+        },
+        "does_not_start_bridge": {
+          "const": true
+        },
+        "does_not_bind_lan": {
+          "const": true
+        },
+        "does_not_advertise_bonjour": {
+          "const": true
+        },
+        "does_not_mint_credentials": {
+          "const": true
+        },
+        "does_not_run_conformance": {
+          "const": true
+        },
+        "does_not_invoke_private_adapter": {
+          "const": true
+        },
+        "does_not_change_phone_api": {
+          "const": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "schema_version": "kaka.host_shell_pilot_handoff.v1",
+  "surface": "hermes_openclaw_host_shell_pilot_handoff",
+  "runtime": "hermes",
+  "ok": false,
+  "handoff_status": "incomplete",
+  "runtime_side_only": true,
+  "phone_api_path": "/mobile/v1",
+  "phone_api_unchanged": true,
+  "p3_4_complete": false,
+  "p3_4_completion_owner": "external_host_shell",
+  "pilot_receipt": {
+    "schema_version": "kaka.host_shell_pilot_receipt.v1",
+    "surface": "hermes_openclaw_external_host_shell_pilot",
+    "runtime": "hermes",
+    "ok": false,
+    "status": "not_ready",
+    "runtime_side_only": true,
+    "phone_api_path": "/mobile/v1",
+    "phone_api_unchanged": true,
+    "external_binary_required": true,
+    "binary_owner": "host_shell",
+    "distribution_owner": "hermes",
+    "private_adapter_command": {
+      "provided": false,
+      "path": "",
+      "source": "missing",
+      "outside_kaka_repo": false
+    },
+    "distribution": {
+      "source": "local_checkout",
+      "channel": "development",
+      "package_version": "development",
+      "host_api_level": "preview",
+      "native_channel_verified": false,
+      "signature_verified": false,
+      "update_feed_verified": false
+    },
+    "conformance": {
+      "required": true,
+      "ran": false,
+      "ok": false,
+      "synthetic_only": false,
+      "summary": {
+        "total": 0,
+        "passed": 0,
+        "failed": 0
+      }
+    },
+    "drills": {
+      "install_verified": false,
+      "update_verified": false,
+      "failure_recovery_verified": false,
+      "release_notes_verified": false
+    },
+    "release_readiness": {
+      "can_start_external_pilot": false,
+      "can_mark_p3_4_complete": false,
+      "blocking_reasons": [
+        "missing_private_adapter_command",
+        "conformance_not_run",
+        "native_channel_not_verified",
+        "signature_not_verified",
+        "update_feed_not_verified",
+        "install_drill_not_verified",
+        "update_drill_not_verified",
+        "failure_recovery_drill_not_verified",
+        "release_notes_not_verified"
+      ]
+    },
+    "safety": {
+      "runtime_side_only": true,
+      "phone_api_unchanged": true,
+      "phone_settings_owner": false,
+      "no_proprietary_binary_bundled_by_kaka": true
+    }
+  },
+  "audit_refs": {
+    "required": true,
+    "complete": false,
+    "distribution": {
+      "provided": [],
+      "missing": [
+        "native_channel_ref",
+        "signature_subject",
+        "notarization_team_id",
+        "update_feed_ref"
+      ]
+    },
+    "drills": {
+      "provided": [],
+      "missing": [
+        "install_receipt_ref",
+        "update_receipt_ref",
+        "failure_recovery_receipt_ref",
+        "release_notes_ref"
+      ]
+    }
+  },
+  "deliverables": [
+    {
+      "id": "private_adapter_command",
+      "owner": "host_shell",
+      "required": true,
+      "status": "missing",
+      "source": "missing",
+      "evidence_ref": "",
+      "blocking_reason": "missing_private_adapter_command"
+    },
+    {
+      "id": "conformance_report",
+      "owner": "runtime_kit",
+      "required": true,
+      "status": "missing",
+      "source": "host-private-adapter-conformance",
+      "evidence_ref": "embedded_pilot_receipt.conformance",
+      "blocking_reason": "conformance_not_passed"
+    },
+    {
+      "id": "distribution_audit_refs",
+      "owner": "hermes",
+      "required": true,
+      "status": "missing",
+      "source": "local_checkout",
+      "evidence_ref": "embedded_pilot_receipt.distribution.evidence",
+      "blocking_reason": "missing_distribution_audit_refs"
+    },
+    {
+      "id": "drill_audit_refs",
+      "owner": "hermes",
+      "required": true,
+      "status": "missing",
+      "source": "host-shell-pilot-report",
+      "evidence_ref": "embedded_pilot_receipt.drills.evidence",
+      "blocking_reason": "missing_drill_audit_refs"
+    },
+    {
+      "id": "release_notes_ref",
+      "owner": "hermes",
+      "required": true,
+      "status": "missing",
+      "source": "host-shell-pilot-report",
+      "evidence_ref": "embedded_pilot_receipt.drills.evidence.release_notes_ref",
+      "blocking_reason": "missing_audit_ref:release_notes_ref"
+    }
+  ],
+  "release_handoff": {
+    "can_submit_to_external_pilot": false,
+    "can_mark_p3_4_complete": false,
+    "blocking_reasons": [
+      "missing_private_adapter_command",
+      "conformance_not_run",
+      "native_channel_not_verified",
+      "signature_not_verified",
+      "update_feed_not_verified",
+      "install_drill_not_verified",
+      "update_drill_not_verified",
+      "failure_recovery_drill_not_verified",
+      "release_notes_not_verified",
+      "missing_audit_ref:native_channel_ref",
+      "missing_audit_ref:signature_subject",
+      "missing_audit_ref:notarization_team_id",
+      "missing_audit_ref:update_feed_ref",
+      "missing_audit_ref:install_receipt_ref",
+      "missing_audit_ref:update_receipt_ref",
+      "missing_audit_ref:failure_recovery_receipt_ref",
+      "missing_audit_ref:release_notes_ref"
+    ]
+  },
+  "safety": {
+    "runtime_side_only": true,
+    "phone_api_unchanged": true,
+    "phone_settings_owner": false,
+    "no_proprietary_binary_bundled_by_kaka": true,
+    "does_not_fetch_audit_refs": true,
+    "does_not_change_receipt_gate": true
+  }
+}

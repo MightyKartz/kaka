@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/recall-retrieval-readiness.schema.json",
+  "title": "Kaka Recall Retrieval Packaging Readiness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "strategy",
+    "status",
+    "ready_for_production_recall_retrieval_packaging",
+    "required_materials",
+    "missing_materials",
+    "release_gates",
+    "phone_api",
+    "safety",
+    "notes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.recall_retrieval_readiness.v1"
+    },
+    "surface": {
+      "const": "recall_retrieval_packaging_readiness"
+    },
+    "runtime": {
+      "enum": ["hermes", "openclaw"]
+    },
+    "strategy": {
+      "enum": [
+        "host_native_embeddings",
+        "sidecar_adapter",
+        "capability_negotiated_hybrid"
+      ]
+    },
+    "status": {
+      "enum": ["blocked", "ready_for_production_recall_retrieval_packaging"]
+    },
+    "ready_for_production_recall_retrieval_packaging": {
+      "type": "boolean"
+    },
+    "required_materials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter_package_ref",
+        "runtime_settings_ui_ref",
+        "signature_ref",
+        "conformance_report_ref",
+        "privacy_review_ref",
+        "fallback_drill_ref",
+        "release_notes_ref"
+      ],
+      "properties": {
+        "adapter_package_ref": {
+          "type": "string"
+        },
+        "runtime_settings_ui_ref": {
+          "type": "string"
+        },
+        "signature_ref": {
+          "type": "string"
+        },
+        "conformance_report_ref": {
+          "type": "string"
+        },
+        "privacy_review_ref": {
+          "type": "string"
+        },
+        "fallback_drill_ref": {
+          "type": "string"
+        },
+        "release_notes_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "missing_materials": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "adapter_package_ref",
+          "runtime_settings_ui_ref",
+          "signature_ref",
+          "conformance_report_ref",
+          "privacy_review_ref",
+          "fallback_drill_ref",
+          "release_notes_ref"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "release_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requires_adapter_package_ref",
+        "requires_runtime_settings_ui_ref",
+        "requires_signature_ref",
+        "requires_conformance_report",
+        "requires_privacy_review",
+        "requires_fallback_drill",
+        "requires_release_notes"
+      ],
+      "properties": {
+        "requires_adapter_package_ref": {
+          "const": true
+        },
+        "requires_runtime_settings_ui_ref": {
+          "const": true
+        },
+        "requires_signature_ref": {
+          "const": true
+        },
+        "requires_conformance_report": {
+          "const": true
+        },
+        "requires_privacy_review": {
+          "const": true
+        },
+        "requires_fallback_drill": {
+          "const": true
+        },
+        "requires_release_notes": {
+          "const": true
+        }
+      }
+    },
+    "phone_api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_path",
+        "phone_api_unchanged",
+        "search_response_allowlist"
+      ],
+      "properties": {
+        "base_path": {
+          "const": "/mobile/v1/recall/search"
+        },
+        "phone_api_unchanged": {
+          "const": true
+        },
+        "search_response_allowlist": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "item"
+            },
+            {
+              "const": "score"
+            },
+            {
+              "const": "match_reason"
+            }
+          ],
+          "minItems": 3,
+          "maxItems": 3
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "runtime_owned_provider",
+        "phone_can_configure_provider",
+        "provider_endpoint_visible_to_phone",
+        "provider_keys_visible_to_phone",
+        "returns_raw_embeddings_to_phone",
+        "returns_retrieval_index_rows_to_phone",
+        "returns_raw_provider_responses_to_phone",
+        "included_in_recall_export",
+        "invokes_provider",
+        "fetches_refs"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "runtime_owned_provider": {
+          "const": true
+        },
+        "phone_can_configure_provider": {
+          "const": false
+        },
+        "provider_endpoint_visible_to_phone": {
+          "const": false
+        },
+        "provider_keys_visible_to_phone": {
+          "const": false
+        },
+        "returns_raw_embeddings_to_phone": {
+          "const": false
+        },
+        "returns_retrieval_index_rows_to_phone": {
+          "const": false
+        },
+        "returns_raw_provider_responses_to_phone": {
+          "const": false
+        },
+        "included_in_recall_export": {
+          "const": false
+        },
+        "invokes_provider": {
+          "const": false
+        },
+        "fetches_refs": {
+          "const": false
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

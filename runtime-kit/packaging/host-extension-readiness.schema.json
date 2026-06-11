@@ -1,0 +1,421 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/host-extension-readiness.schema.json",
+  "title": "Kaka Host Extension Readiness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "status",
+    "ready_for_external_install_drill",
+    "missing_inputs",
+    "ordinary_user_install",
+    "adapter_command",
+    "distribution",
+    "evidence",
+    "phone_api",
+    "gates",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_extension_readiness.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_host_extension_readiness"
+    },
+    "runtime": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "status": {
+      "enum": [
+        "blocked",
+        "ready_for_external_install_drill"
+      ]
+    },
+    "ready_for_external_install_drill": {
+      "type": "boolean"
+    },
+    "missing_inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "install_command",
+              "update_channel",
+              "adapter_command_location",
+              "host_ui_entrypoint",
+              "signed_package_ref",
+              "signature_ref",
+              "conformance_report_ref",
+              "evidence_manifest_ref"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        }
+      },
+      "uniqueItems": true
+    },
+    "ordinary_user_install": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "install_shape",
+        "requires_manual_adapter_code",
+        "requires_environment_variable",
+        "starts_bridge_on_install",
+        "creates_login_item_on_install",
+        "requires_explicit_enable"
+      ],
+      "properties": {
+        "install_shape": {
+          "enum": [
+            "hermes_plugin",
+            "openclaw_skill"
+          ]
+        },
+        "requires_manual_adapter_code": {
+          "const": false
+        },
+        "requires_environment_variable": {
+          "const": false
+        },
+        "starts_bridge_on_install": {
+          "const": false
+        },
+        "creates_login_item_on_install": {
+          "const": false
+        },
+        "requires_explicit_enable": {
+          "const": true
+        }
+      }
+    },
+    "adapter_command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "visibility",
+        "developer_fallback_only",
+        "default_command_name",
+        "extension_internal_location"
+      ],
+      "properties": {
+        "visibility": {
+          "const": "extension_internal"
+        },
+        "developer_fallback_only": {
+          "const": true
+        },
+        "default_command_name": {
+          "enum": [
+            "hermes-kaka-host-api",
+            "openclaw-kaka-host-api"
+          ]
+        },
+        "extension_internal_location": {
+          "type": "string",
+          "maxLength": 512
+        }
+      }
+    },
+    "distribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "install_command",
+        "update_channel",
+        "signed_package_ref",
+        "signature_ref",
+        "host_ui_entrypoint"
+      ],
+      "properties": {
+        "install_command": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "update_channel": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "signed_package_ref": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "signature_ref": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "host_ui_entrypoint": {
+          "type": "string",
+          "maxLength": 256
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conformance_report_ref",
+        "evidence_manifest_ref"
+      ],
+      "properties": {
+        "conformance_report_ref": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "evidence_manifest_ref": {
+          "type": "string",
+          "maxLength": 512
+        }
+      }
+    },
+    "phone_api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_path",
+        "private_host_api_exposed",
+        "phone_api_unchanged"
+      ],
+      "properties": {
+        "base_path": {
+          "const": "/mobile/v1"
+        },
+        "private_host_api_exposed": {
+          "const": false
+        },
+        "phone_api_unchanged": {
+          "const": true
+        }
+      }
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requires_p3_2_conformance",
+        "requires_p3_4_evidence_manifest",
+        "requires_external_install_drill",
+        "can_mark_p3_4_complete"
+      ],
+      "properties": {
+        "requires_p3_2_conformance": {
+          "const": true
+        },
+        "requires_p3_4_evidence_manifest": {
+          "const": true
+        },
+        "requires_external_install_drill": {
+          "const": true
+        },
+        "can_mark_p3_4_complete": {
+          "const": false
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "does_not_install_package",
+        "does_not_invoke_private_adapter",
+        "does_not_start_bridge",
+        "does_not_bind_lan",
+        "does_not_advertise_bonjour",
+        "does_not_mint_credentials",
+        "does_not_create_login_item",
+        "does_not_fetch_audit_refs"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "does_not_install_package": {
+          "const": true
+        },
+        "does_not_invoke_private_adapter": {
+          "const": true
+        },
+        "does_not_start_bridge": {
+          "const": true
+        },
+        "does_not_bind_lan": {
+          "const": true
+        },
+        "does_not_advertise_bonjour": {
+          "const": true
+        },
+        "does_not_mint_credentials": {
+          "const": true
+        },
+        "does_not_create_login_item": {
+          "const": true
+        },
+        "does_not_fetch_audit_refs": {
+          "const": true
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "blocked"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ready_for_external_install_drill": {
+            "const": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "ready_for_external_install_drill"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ready_for_external_install_drill": {
+            "const": true
+          },
+          "missing_inputs": {
+            "maxItems": 0
+          },
+          "adapter_command": {
+            "properties": {
+              "extension_internal_location": {
+                "minLength": 1
+              }
+            }
+          },
+          "distribution": {
+            "properties": {
+              "install_command": {
+                "minLength": 1
+              },
+              "update_channel": {
+                "minLength": 1
+              },
+              "signed_package_ref": {
+                "minLength": 1
+              },
+              "signature_ref": {
+                "minLength": 1
+              },
+              "host_ui_entrypoint": {
+                "minLength": 1
+              }
+            }
+          },
+          "evidence": {
+            "properties": {
+              "conformance_report_ref": {
+                "minLength": 1
+              },
+              "evidence_manifest_ref": {
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ready_for_external_install_drill": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "const": "ready_for_external_install_drill"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "const": "hermes"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ordinary_user_install": {
+            "properties": {
+              "install_shape": {
+                "const": "hermes_plugin"
+              }
+            }
+          },
+          "adapter_command": {
+            "properties": {
+              "default_command_name": {
+                "const": "hermes-kaka-host-api"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "const": "openclaw"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ordinary_user_install": {
+            "properties": {
+              "install_shape": {
+                "const": "openclaw_skill"
+              }
+            }
+          },
+          "adapter_command": {
+            "properties": {
+              "default_command_name": {
+                "const": "openclaw-kaka-host-api"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

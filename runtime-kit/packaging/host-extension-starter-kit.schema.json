@@ -1,0 +1,330 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/host-extension-starter-kit.schema.json",
+  "title": "Kaka Host Extension Starter Kit",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "written",
+    "package",
+    "generated_files",
+    "adapter_command",
+    "runtime_contracts",
+    "ordinary_user_flow",
+    "phone_api",
+    "readiness_inputs",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_extension_starter_kit.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_host_extension_starter_kit"
+    },
+    "runtime": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "written": {
+      "type": "boolean"
+    },
+    "output_root": {
+      "type": "string"
+    },
+    "package": {
+      "type": "object",
+      "required": [
+        "install_shape",
+        "ordinary_user_entrypoint",
+        "stable_package_owner",
+        "starter_kit_owner",
+        "final_distribution_requires_host_signature"
+      ],
+      "properties": {
+        "install_shape": {
+          "enum": [
+            "hermes_plugin",
+            "openclaw_skill"
+          ]
+        },
+        "ordinary_user_entrypoint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stable_package_owner": {
+          "const": "host_shell"
+        },
+        "starter_kit_owner": {
+          "const": "kaka_runtime_kit"
+        },
+        "final_distribution_requires_host_signature": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "generated_files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "kind"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "adapter_command": {
+      "type": "object",
+      "required": [
+        "default_command_name",
+        "visibility",
+        "developer_fallback_only",
+        "environment_variable",
+        "implementation_owner",
+        "starter_kit_contains_proprietary_implementation"
+      ],
+      "properties": {
+        "default_command_name": {
+          "enum": [
+            "hermes-kaka-host-api",
+            "openclaw-kaka-host-api"
+          ]
+        },
+        "visibility": {
+          "const": "extension_internal"
+        },
+        "developer_fallback_only": {
+          "const": true
+        },
+        "environment_variable": {
+          "enum": [
+            "HERMES_KAKA_HOST_API",
+            "OPENCLAW_KAKA_HOST_API"
+          ]
+        },
+        "implementation_owner": {
+          "const": "host_shell"
+        },
+        "starter_kit_contains_proprietary_implementation": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "runtime_contracts": {
+      "type": "object",
+      "required": [
+        "required_entrypoints",
+        "phone_api"
+      ],
+      "properties": {
+        "required_entrypoints": {
+          "type": "array",
+          "allOf": [
+            {
+              "contains": {
+                "const": "settings-preview"
+              }
+            },
+            {
+              "contains": {
+                "const": "package-preview"
+              }
+            },
+            {
+              "contains": {
+                "const": "host-package-preview"
+              }
+            },
+            {
+              "contains": {
+                "const": "host-extension-preview"
+              }
+            },
+            {
+              "contains": {
+                "const": "host-extension-readiness"
+              }
+            },
+            {
+              "contains": {
+                "const": "host-adapter-run"
+              }
+            },
+            {
+              "contains": {
+                "const": "host-private-adapter-conformance"
+              }
+            }
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "phone_api": {
+          "const": "/mobile/v1"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ordinary_user_flow": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "phone_api": {
+      "type": "object",
+      "required": [
+        "base_path",
+        "private_host_api_exposed",
+        "phone_api_unchanged"
+      ],
+      "properties": {
+        "base_path": {
+          "const": "/mobile/v1"
+        },
+        "private_host_api_exposed": {
+          "const": false
+        },
+        "phone_api_unchanged": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "readiness_inputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "safety": {
+      "type": "object",
+      "required": [
+        "requires_manual_adapter_code",
+        "requires_environment_variable",
+        "starts_bridge_on_install",
+        "binds_lan_on_install",
+        "advertises_bonjour_on_install",
+        "creates_login_item_on_install",
+        "mints_credentials_on_install",
+        "invokes_private_adapter",
+        "runtime_side_only"
+      ],
+      "properties": {
+        "requires_manual_adapter_code": {
+          "const": false
+        },
+        "requires_environment_variable": {
+          "const": false
+        },
+        "starts_bridge_on_install": {
+          "const": false
+        },
+        "binds_lan_on_install": {
+          "const": false
+        },
+        "advertises_bonjour_on_install": {
+          "const": false
+        },
+        "creates_login_item_on_install": {
+          "const": false
+        },
+        "mints_credentials_on_install": {
+          "const": false
+        },
+        "invokes_private_adapter": {
+          "const": false
+        },
+        "runtime_side_only": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "const": "hermes"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "package": {
+            "properties": {
+              "install_shape": {
+                "const": "hermes_plugin"
+              }
+            }
+          },
+          "adapter_command": {
+            "properties": {
+              "default_command_name": {
+                "const": "hermes-kaka-host-api"
+              },
+              "environment_variable": {
+                "const": "HERMES_KAKA_HOST_API"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "const": "openclaw"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "package": {
+            "properties": {
+              "install_shape": {
+                "const": "openclaw_skill"
+              }
+            }
+          },
+          "adapter_command": {
+            "properties": {
+              "default_command_name": {
+                "const": "openclaw-kaka-host-api"
+              },
+              "environment_variable": {
+                "const": "OPENCLAW_KAKA_HOST_API"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

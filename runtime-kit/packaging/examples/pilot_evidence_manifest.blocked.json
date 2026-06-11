@@ -1,0 +1,118 @@
+{
+  "schema_version": "kaka.host_shell_pilot_evidence_manifest.v1",
+  "surface": "hermes_openclaw_host_shell_pilot_evidence_manifest",
+  "runtime": "hermes",
+  "ok": false,
+  "manifest_status": "blocked_missing_artifacts",
+  "runtime_side_only": true,
+  "phone_api_path": "/mobile/v1",
+  "phone_api_unchanged": true,
+  "p3_4_complete": false,
+  "p3_4_completion_owner": "external_host_shell",
+  "package": {
+    "id": "P3.4-hermes-pilot-evidence",
+    "created_at": "",
+    "archive_filename": "kaka-p3.4-hermes-pilot-evidence.zip",
+    "archive_creation": "external"
+  },
+  "artifacts": [
+    {
+      "id": "preflight_json",
+      "required": true,
+      "path": "artifacts/hermes/preflight.json",
+      "loaded": false,
+      "schema_version": "",
+      "surface": "",
+      "runtime": "",
+      "ok": false,
+      "byte_size": 0,
+      "sha256": "",
+      "blocking_reason": "missing_artifact:preflight"
+    },
+    {
+      "id": "conformance_json",
+      "required": true,
+      "path": "artifacts/hermes/conformance.json",
+      "loaded": false,
+      "schema_version": "",
+      "surface": "",
+      "runtime": "",
+      "ok": false,
+      "byte_size": 0,
+      "sha256": "",
+      "blocking_reason": "missing_artifact:conformance"
+    },
+    {
+      "id": "receipt_json",
+      "required": true,
+      "path": "artifacts/hermes/pilot-receipt.json",
+      "loaded": false,
+      "schema_version": "",
+      "surface": "",
+      "runtime": "",
+      "ok": false,
+      "byte_size": 0,
+      "sha256": "",
+      "blocking_reason": "missing_artifact:receipt"
+    },
+    {
+      "id": "handoff_json",
+      "required": true,
+      "path": "artifacts/hermes/handoff.json",
+      "loaded": false,
+      "schema_version": "",
+      "surface": "",
+      "runtime": "",
+      "ok": false,
+      "byte_size": 0,
+      "sha256": "",
+      "blocking_reason": "missing_artifact:handoff"
+    },
+    {
+      "id": "artifact_review_json",
+      "required": true,
+      "path": "artifacts/hermes/artifact-review.json",
+      "loaded": false,
+      "schema_version": "",
+      "surface": "",
+      "runtime": "",
+      "ok": false,
+      "byte_size": 0,
+      "sha256": "",
+      "blocking_reason": "missing_artifact:artifact_review"
+    }
+  ],
+  "artifact_review_summary": {
+    "provided": false,
+    "review_status": "missing",
+    "can_submit_to_external_review": false,
+    "can_mark_p3_4_complete": false
+  },
+  "archive_gates": {
+    "all_required_artifacts_present": false,
+    "artifact_review_ready": false,
+    "can_create_external_archive": false,
+    "can_mark_p3_4_complete": false,
+    "blocking_reasons": [
+      "missing_artifact:preflight",
+      "missing_artifact:conformance",
+      "missing_artifact:receipt",
+      "missing_artifact:handoff",
+      "missing_artifact:artifact_review",
+      "artifact_review_not_ready"
+    ]
+  },
+  "safety": {
+    "runtime_side_only": true,
+    "phone_api_unchanged": true,
+    "phone_settings_owner": false,
+    "no_proprietary_binary_bundled_by_kaka": true,
+    "does_not_invoke_private_adapter_command": true,
+    "does_not_run_conformance": true,
+    "does_not_fetch_audit_refs": true,
+    "does_not_submit_handoff": true,
+    "does_not_mutate_host_state": true,
+    "does_not_create_archive_by_default": true,
+    "hashes_local_artifact_files_only": true
+  }
+}

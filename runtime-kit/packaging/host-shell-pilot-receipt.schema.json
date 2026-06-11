@@ -1,0 +1,451 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/host-shell-pilot-receipt.schema.json",
+  "title": "Kaka Host Shell Pilot Receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "ok",
+    "status",
+    "runtime_side_only",
+    "phone_api_path",
+    "phone_api_unchanged",
+    "external_binary_required",
+    "binary_owner",
+    "distribution_owner",
+    "private_adapter_command",
+    "distribution",
+    "conformance",
+    "drills",
+    "release_readiness",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_shell_pilot_receipt.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_external_host_shell_pilot"
+    },
+    "runtime": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "status": {
+      "enum": [
+        "ready",
+        "not_ready",
+        "synthetic_only"
+      ]
+    },
+    "runtime_side_only": {
+      "const": true
+    },
+    "phone_api_path": {
+      "const": "/mobile/v1"
+    },
+    "phone_api_unchanged": {
+      "const": true
+    },
+    "external_binary_required": {
+      "const": true
+    },
+    "binary_owner": {
+      "const": "host_shell"
+    },
+    "distribution_owner": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "private_adapter_command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provided",
+        "path",
+        "source",
+        "outside_kaka_repo"
+      ],
+      "properties": {
+        "provided": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "missing",
+            "argument",
+            "environment_variable",
+            "manifest_entrypoint",
+            "well_known_path"
+          ]
+        },
+        "outside_kaka_repo": {
+          "type": "boolean"
+        }
+      }
+    },
+    "distribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "channel",
+        "package_version",
+        "host_api_level",
+        "native_channel_verified",
+        "signature_verified",
+        "update_feed_verified"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "package_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "host_api_level": {
+          "type": "string",
+          "minLength": 1
+        },
+        "native_channel_verified": {
+          "type": "boolean"
+        },
+        "signature_verified": {
+          "type": "boolean"
+        },
+        "update_feed_verified": {
+          "type": "boolean"
+        },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "native_channel_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "signature_subject": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "notarization_team_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "update_feed_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          }
+        }
+      }
+    },
+    "conformance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "ran",
+        "ok",
+        "synthetic_only",
+        "summary"
+      ],
+      "properties": {
+        "required": {
+          "const": true
+        },
+        "ran": {
+          "type": "boolean"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "synthetic_only": {
+          "type": "boolean"
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "total",
+            "passed",
+            "failed"
+          ],
+          "properties": {
+            "total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "passed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "failed": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "drills": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "install_verified",
+        "update_verified",
+        "failure_recovery_verified",
+        "release_notes_verified"
+      ],
+      "properties": {
+        "install_verified": {
+          "type": "boolean"
+        },
+        "update_verified": {
+          "type": "boolean"
+        },
+        "failure_recovery_verified": {
+          "type": "boolean"
+        },
+        "release_notes_verified": {
+          "type": "boolean"
+        },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "install_receipt_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "update_receipt_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "failure_recovery_receipt_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "release_notes_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          }
+        }
+      }
+    },
+    "release_readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "can_start_external_pilot",
+        "can_mark_p3_4_complete",
+        "blocking_reasons"
+      ],
+      "properties": {
+        "can_start_external_pilot": {
+          "type": "boolean"
+        },
+        "can_mark_p3_4_complete": {
+          "type": "boolean"
+        },
+        "blocking_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "phone_api_unchanged",
+        "phone_settings_owner",
+        "no_proprietary_binary_bundled_by_kaka"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "phone_api_unchanged": {
+          "const": true
+        },
+        "phone_settings_owner": {
+          "const": false
+        },
+        "no_proprietary_binary_bundled_by_kaka": {
+          "const": true
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "ready"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "private_adapter_command": {
+            "properties": {
+              "provided": {
+                "const": true
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "outside_kaka_repo": {
+                "const": true
+              }
+            }
+          },
+          "distribution": {
+            "properties": {
+              "native_channel_verified": {
+                "const": true
+              },
+              "signature_verified": {
+                "const": true
+              },
+              "update_feed_verified": {
+                "const": true
+              }
+            }
+          },
+          "conformance": {
+            "properties": {
+              "ran": {
+                "const": true
+              },
+              "ok": {
+                "const": true
+              },
+              "synthetic_only": {
+                "const": false
+              }
+            }
+          },
+          "drills": {
+            "properties": {
+              "install_verified": {
+                "const": true
+              },
+              "update_verified": {
+                "const": true
+              },
+              "failure_recovery_verified": {
+                "const": true
+              },
+              "release_notes_verified": {
+                "const": true
+              }
+            }
+          },
+          "release_readiness": {
+            "properties": {
+              "can_start_external_pilot": {
+                "const": true
+              },
+              "can_mark_p3_4_complete": {
+                "const": true
+              },
+              "blocking_reasons": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ok": {
+            "const": true
+          }
+        },
+        "required": [
+          "ok"
+        ]
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "const": "ready"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "not_ready",
+              "synthetic_only"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "ok": {
+            "const": false
+          },
+          "release_readiness": {
+            "properties": {
+              "can_mark_p3_4_complete": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

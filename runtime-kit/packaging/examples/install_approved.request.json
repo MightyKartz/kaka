@@ -1,0 +1,58 @@
+{
+  "schema_version": "kaka.host_private_adapter_request.v1",
+  "surface": "hermes_openclaw_host_private_adapter_command",
+  "runtime": "hermes",
+  "action_id": "install_runtime_package",
+  "adapter": "host_native_install",
+  "approved": true,
+  "runtime_side_only": true,
+  "state": {
+    "installed": false,
+    "start_with_runtime": false,
+    "port_conflict": false,
+    "process_state": "stopped",
+    "process_supervision": "not_configured",
+    "health_status": "unknown"
+  },
+  "host_action": {
+    "id": "install_runtime_package",
+    "owner": "host_native_adapter",
+    "adapter": "host_native_install",
+    "mutates_host_state": true,
+    "requires_explicit_user_approval": true,
+    "runtime_side_only": true,
+    "enabled": true,
+    "label": "Install",
+    "style": "secondary"
+  },
+  "safety": {
+    "phone_api_unchanged": true,
+    "runtime_side_only": true,
+    "phone_settings_owner": false,
+    "no_autostart_on_install": true,
+    "no_login_item_creation_by_runtime_kit": true
+  },
+  "forbidden_phone_safe_fields": [
+    "runtime_store_path",
+    "recall_search_endpoint",
+    "provider_keys",
+    "auth_env_files",
+    "mobile_tokens",
+    "tls_private_key_paths",
+    "env_file",
+    "auth_file",
+    "auth_files",
+    "provider_credentials",
+    "mobile_bearer_token",
+    "tls_private_key_path",
+    "hidden_prompt",
+    "hidden_prompts",
+    "raw_embeddings",
+    "index_rows",
+    "retrieval_index_rows",
+    "task_logs",
+    "raw_provider_responses",
+    "process_ids",
+    "host_log_paths"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": "kaka.host_private_adapter_request.v1",
+  "surface": "hermes_openclaw_host_private_adapter_command",
+  "runtime": "hermes",
+  "action_id": "run_health_check",
+  "adapter": "host_native_health_check",
+  "approved": false,
+  "runtime_side_only": true,
+  "state": {
+    "installed": true,
+    "start_with_runtime": false,
+    "port_conflict": false,
+    "process_state": "running",
+    "process_supervision": "host_managed",
+    "health_status": "unknown"
+  },
+  "host_action": {
+    "id": "run_health_check",
+    "owner": "host_native_adapter",
+    "adapter": "host_native_health_check",
+    "mutates_host_state": false,
+    "requires_explicit_user_approval": false,
+    "runtime_side_only": true,
+    "enabled": true,
+    "label": "Health Check",
+    "style": "secondary",
+    "url": "http://127.0.0.1:8765/mobile/v1/health"
+  },
+  "safety": {
+    "phone_api_unchanged": true,
+    "runtime_side_only": true,
+    "phone_settings_owner": false,
+    "no_autostart_on_install": true,
+    "no_login_item_creation_by_runtime_kit": true
+  },
+  "forbidden_phone_safe_fields": [
+    "runtime_store_path",
+    "recall_search_endpoint",
+    "provider_keys",
+    "auth_env_files",
+    "mobile_tokens",
+    "tls_private_key_paths",
+    "env_file",
+    "auth_file",
+    "auth_files",
+    "provider_credentials",
+    "mobile_bearer_token",
+    "tls_private_key_path",
+    "hidden_prompt",
+    "hidden_prompts",
+    "raw_embeddings",
+    "index_rows",
+    "retrieval_index_rows",
+    "task_logs",
+    "raw_provider_responses",
+    "process_ids",
+    "host_log_paths"
+  ]
+}

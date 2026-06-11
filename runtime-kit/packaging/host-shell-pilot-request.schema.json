@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/host-shell-pilot-request.schema.json",
+  "title": "Kaka Host Shell Pilot Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "ok",
+    "request_status",
+    "runtime_side_only",
+    "phone_api_path",
+    "phone_api_unchanged",
+    "p3_4_complete",
+    "p3_4_completion_owner",
+    "pilot_request",
+    "target_host",
+    "required_action_ids",
+    "required_capabilities",
+    "required_host_deliverables",
+    "required_audit_refs",
+    "expected_runtime_kit_artifacts",
+    "acceptance_gates",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_shell_pilot_request.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_host_shell_pilot_request"
+    },
+    "runtime": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "ok": {
+      "const": true
+    },
+    "request_status": {
+      "const": "ready_to_send"
+    },
+    "runtime_side_only": {
+      "const": true
+    },
+    "phone_api_path": {
+      "const": "/mobile/v1"
+    },
+    "phone_api_unchanged": {
+      "const": true
+    },
+    "p3_4_complete": {
+      "const": false
+    },
+    "p3_4_completion_owner": {
+      "const": "external_host_shell"
+    },
+    "pilot_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "audience",
+        "purpose",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "audience": {
+          "type": "string"
+        },
+        "purpose": {
+          "const": "request_external_host_shell_pilot_materials"
+        },
+        "status": {
+          "const": "waiting_for_host_owned_materials"
+        }
+      }
+    },
+    "target_host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default_command_name",
+        "environment_variable",
+        "manifest_key",
+        "well_known_paths",
+        "expected_private_adapter_command_path",
+        "accepted_discovery_sources"
+      ],
+      "properties": {
+        "default_command_name": {
+          "enum": [
+            "hermes-kaka-host-api",
+            "openclaw-kaka-host-api"
+          ]
+        },
+        "environment_variable": {
+          "enum": [
+            "HERMES_KAKA_HOST_API",
+            "OPENCLAW_KAKA_HOST_API"
+          ]
+        },
+        "manifest_key": {
+          "const": "host_private_adapter.command"
+        },
+        "well_known_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "expected_private_adapter_command_path": {
+          "type": "string"
+        },
+        "accepted_discovery_sources": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "explicit_cli_argument",
+              "runtime_environment_variable",
+              "manifest_entrypoint",
+              "well_known_path"
+            ]
+          }
+        }
+      }
+    },
+    "required_action_ids": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "install_runtime_package",
+          "enable_start_with_runtime",
+          "disable_start_with_runtime",
+          "update_runtime_package",
+          "uninstall_runtime_package",
+          "open_runtime_logs",
+          "run_health_check",
+          "repair_port_conflict",
+          "supervise_bridge"
+        ]
+      }
+    },
+    "required_capabilities": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "distribution",
+          "install",
+          "login_item",
+          "update",
+          "uninstall",
+          "logs",
+          "health",
+          "port_repair",
+          "supervision"
+        ]
+      }
+    },
+    "required_host_deliverables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "owner",
+          "required",
+          "status",
+          "requested_value",
+          "description",
+          "blocking_reason"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "const": "host_shell"
+          },
+          "required": {
+            "const": true
+          },
+          "status": {
+            "const": "requested"
+          },
+          "requested_value": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "blocking_reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "required_audit_refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "distribution",
+        "drills"
+      ],
+      "properties": {
+        "distribution": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "native_channel_ref",
+              "signature_subject",
+              "notarization_team_id",
+              "update_feed_ref"
+            ]
+          }
+        },
+        "drills": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "install_receipt_ref",
+              "update_receipt_ref",
+              "failure_recovery_receipt_ref",
+              "release_notes_ref"
+            ]
+          }
+        }
+      }
+    },
+    "expected_runtime_kit_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "owner",
+          "required",
+          "command",
+          "output_schema",
+          "suggested_path",
+          "acceptance_note"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "const": "runtime_kit"
+          },
+          "required": {
+            "const": true
+          },
+          "command": {
+            "enum": [
+              "host-shell-pilot-preflight",
+              "host-private-adapter-conformance",
+              "host-shell-pilot-report",
+              "host-shell-pilot-handoff",
+              "host-shell-pilot-artifact-review"
+            ]
+          },
+          "output_schema": {
+            "type": "string"
+          },
+          "suggested_path": {
+            "type": "string"
+          },
+          "acceptance_note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "acceptance_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "can_start_external_review",
+        "requires_host_owned_private_adapter_command",
+        "requires_conformance_passed",
+        "requires_handoff_ready_to_submit",
+        "requires_artifact_review_ready",
+        "can_mark_p3_4_complete",
+        "blocking_reason"
+      ],
+      "properties": {
+        "can_start_external_review": {
+          "const": false
+        },
+        "requires_host_owned_private_adapter_command": {
+          "const": true
+        },
+        "requires_conformance_passed": {
+          "const": true
+        },
+        "requires_handoff_ready_to_submit": {
+          "const": true
+        },
+        "requires_artifact_review_ready": {
+          "const": true
+        },
+        "can_mark_p3_4_complete": {
+          "const": false
+        },
+        "blocking_reason": {
+          "const": "waiting_for_host_owned_materials"
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "phone_api_unchanged",
+        "phone_settings_owner",
+        "no_proprietary_binary_bundled_by_kaka",
+        "does_not_invoke_private_adapter_command",
+        "does_not_run_conformance",
+        "does_not_fetch_audit_refs",
+        "does_not_mutate_host_state",
+        "does_not_submit_handoff"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "phone_api_unchanged": {
+          "const": true
+        },
+        "phone_settings_owner": {
+          "const": false
+        },
+        "no_proprietary_binary_bundled_by_kaka": {
+          "const": true
+        },
+        "does_not_invoke_private_adapter_command": {
+          "const": true
+        },
+        "does_not_run_conformance": {
+          "const": true
+        },
+        "does_not_fetch_audit_refs": {
+          "const": true
+        },
+        "does_not_mutate_host_state": {
+          "const": true
+        },
+        "does_not_submit_handoff": {
+          "const": true
+        }
+      }
+    }
+  }
+}

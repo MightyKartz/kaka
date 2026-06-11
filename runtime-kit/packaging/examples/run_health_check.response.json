@@ -1,0 +1,19 @@
+{
+  "schema_version": "kaka.host_private_adapter_response.v1",
+  "ok": true,
+  "mutated_host_state": false,
+  "state": {
+    "installed": true,
+    "start_with_runtime": false,
+    "process_state": "running",
+    "process_supervision": "host_managed",
+    "health_status": "healthy",
+    "port_conflict": false
+  },
+  "detail": {
+    "private_api_called": true,
+    "private_api_provider": "hermes",
+    "host_api_level": "v1",
+    "checked_bridge": true
+  }
+}

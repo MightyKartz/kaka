@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/settings-preview.schema.json",
+  "title": "Kaka Runtime Settings Preview",
+  "type": "object",
+  "required": [
+    "bridge",
+    "surface",
+    "bridge_enabled",
+    "runtime",
+    "retention",
+    "runtime_side_ui",
+    "actions",
+    "phone_safe_summary"
+  ],
+  "properties": {
+    "bridge": {
+      "const": "Kaka Mobile Bridge"
+    },
+    "surface": {
+      "const": "runtime_side_settings_preview"
+    },
+    "bridge_enabled": {
+      "type": "boolean"
+    },
+    "runtime": {
+      "type": "string"
+    },
+    "bind_url": {
+      "type": "string"
+    },
+    "lan_exposed": {
+      "type": "boolean"
+    },
+    "bonjour": {
+      "type": "boolean"
+    },
+    "pairing_page": {
+      "type": "string"
+    },
+    "runtime_store_path": {
+      "type": "string"
+    },
+    "retention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_assets_days",
+        "output_assets_days",
+        "task_history_days"
+      ],
+      "properties": {
+        "input_assets_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650
+        },
+        "output_assets_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650
+        },
+        "task_history_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650
+        }
+      }
+    },
+    "recall_search_provider": {
+      "enum": [
+        "local",
+        "fixture",
+        "runtime_http"
+      ]
+    },
+    "recall_search_endpoint": {
+      "type": "string"
+    },
+    "runtime_side_ui": {
+      "type": "object",
+      "required": [
+        "surface",
+        "consumer_ui",
+        "process_ownership",
+        "controls"
+      ],
+      "properties": {
+        "surface": {
+          "const": "hermes_openclaw_settings"
+        },
+        "consumer_ui": {
+          "type": "object",
+          "required": [
+            "schema_version",
+            "surface",
+            "title",
+            "status_badges",
+            "primary_actions",
+            "sections",
+            "warnings",
+            "safe_summary"
+          ],
+          "properties": {
+            "schema_version": {
+              "const": "kaka.runtime_consumer_ui.v1"
+            },
+            "surface": {
+              "const": "hermes_openclaw_consumer_runtime_ui"
+            },
+            "title": {
+              "type": "string"
+            },
+            "subtitle": {
+              "type": "string"
+            },
+            "status_badges": {
+              "type": "array"
+            },
+            "primary_actions": {
+              "type": "array"
+            },
+            "empty_state": {},
+            "sections": {
+              "type": "array"
+            },
+            "warnings": {
+              "type": "array"
+            },
+            "safe_summary": {
+              "type": "object"
+            }
+          }
+        },
+        "process_ownership": {
+          "type": "object",
+          "required": [
+            "schema_version",
+            "surface",
+            "owner",
+            "state",
+            "actions",
+            "warnings",
+            "runtime_side_only"
+          ],
+          "properties": {
+            "schema_version": {
+              "const": "kaka.runtime_process_ownership.v1"
+            },
+            "surface": {
+              "const": "hermes_openclaw_process_ownership"
+            },
+            "owner": {
+              "type": "string"
+            },
+            "state": {
+              "type": "object"
+            },
+            "actions": {
+              "type": "array"
+            },
+            "warnings": {
+              "type": "array"
+            },
+            "runtime_side_only": {
+              "const": true
+            }
+          }
+        },
+        "controls": {
+          "type": "object",
+          "required": [
+            "bridge_enabled",
+            "start_with_runtime",
+            "install_runtime_package",
+            "update_runtime_package",
+            "uninstall_runtime_package",
+            "open_runtime_logs",
+            "run_health_check",
+            "repair_port_conflict",
+            "bind_mode",
+            "bonjour_enabled",
+            "local_store_enabled",
+            "runtime_store_path",
+            "input_assets_days",
+            "output_assets_days",
+            "task_history_days",
+            "recall_search_provider",
+            "recall_search_endpoint"
+          ],
+          "properties": {
+            "input_assets_days": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "value",
+                "minimum",
+                "maximum"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "stepper"
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3650
+                },
+                "minimum": {
+                  "const": 1
+                },
+                "maximum": {
+                  "const": 3650
+                }
+              }
+            },
+            "output_assets_days": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "value",
+                "minimum",
+                "maximum"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "stepper"
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3650
+                },
+                "minimum": {
+                  "const": 1
+                },
+                "maximum": {
+                  "const": 3650
+                }
+              }
+            },
+            "task_history_days": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "value",
+                "minimum",
+                "maximum"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "stepper"
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3650
+                },
+                "minimum": {
+                  "const": 1
+                },
+                "maximum": {
+                  "const": 3650
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "actions": {
+      "type": "object",
+      "required": [
+        "start_bridge",
+        "stop_bridge",
+        "show_qr"
+      ],
+      "properties": {
+        "start_bridge": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "stop_bridge": {
+          "type": "string"
+        },
+        "show_qr": {
+          "type": "string"
+        }
+      }
+    },
+    "phone_safe_summary": {
+      "type": "object",
+      "required": [
+        "recall_store_enabled",
+        "recall_store_owner",
+        "semantic_recall_mode"
+      ],
+      "properties": {
+        "recall_store_enabled": {
+          "type": "boolean"
+        },
+        "recall_store_owner": {
+          "enum": [
+            "mock_bridge",
+            "runtime"
+          ]
+        },
+        "semantic_recall_mode": {
+          "enum": [
+            "local_deterministic",
+            "provider_backed"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

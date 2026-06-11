@@ -1,0 +1,460 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/host-shell-pilot-runbook.schema.json",
+  "title": "Kaka Host Shell Pilot Runbook",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "ok",
+    "runbook_status",
+    "runtime_side_only",
+    "phone_api_path",
+    "phone_api_unchanged",
+    "p3_4_complete",
+    "p3_4_completion_owner",
+    "brief",
+    "pilot_target",
+    "preflight",
+    "ordered_steps",
+    "command_artifacts",
+    "evidence_requirements",
+    "acceptance_gates",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_shell_pilot_runbook.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_host_shell_pilot_runbook"
+    },
+    "runtime": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "runbook_status": {
+      "enum": [
+        "ready_for_conformance",
+        "blocked"
+      ]
+    },
+    "runtime_side_only": {
+      "const": true
+    },
+    "phone_api_path": {
+      "const": "/mobile/v1"
+    },
+    "phone_api_unchanged": {
+      "const": true
+    },
+    "p3_4_complete": {
+      "const": false
+    },
+    "p3_4_completion_owner": {
+      "const": "external_host_shell"
+    },
+    "brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goal",
+        "current_blocker",
+        "requested_host_owner_action",
+        "non_goals"
+      ],
+      "properties": {
+        "goal": {
+          "const": "prepare_external_host_shell_pilot"
+        },
+        "current_blocker": {
+          "type": "string"
+        },
+        "requested_host_owner_action": {
+          "enum": [
+            "provide_private_adapter_command",
+            "install_or_open_host_shell",
+            "resolve_preflight_blockers",
+            "run_host_private_adapter_conformance"
+          ]
+        },
+        "non_goals": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "does_not_complete_p3_4",
+              "does_not_bundle_proprietary_host_binary",
+              "does_not_expose_private_host_api_to_phone"
+            ]
+          },
+          "allOf": [
+            {
+              "contains": {
+                "const": "does_not_complete_p3_4"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "pilot_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default_command_name",
+        "environment_variable",
+        "manifest_key",
+        "well_known_paths",
+        "distribution_source",
+        "distribution_channel",
+        "package_version",
+        "host_api_level"
+      ],
+      "properties": {
+        "default_command_name": {
+          "enum": [
+            "hermes-kaka-host-api",
+            "openclaw-kaka-host-api"
+          ]
+        },
+        "environment_variable": {
+          "enum": [
+            "HERMES_KAKA_HOST_API",
+            "OPENCLAW_KAKA_HOST_API"
+          ]
+        },
+        "manifest_key": {
+          "const": "host_private_adapter.command"
+        },
+        "well_known_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "distribution_source": {
+          "enum": [
+            "local_checkout",
+            "signed_download",
+            "host_store",
+            "enterprise_distribution"
+          ]
+        },
+        "distribution_channel": {
+          "type": "string"
+        },
+        "package_version": {
+          "type": "string"
+        },
+        "host_api_level": {
+          "type": "string"
+        }
+      }
+    },
+    "preflight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "can_run_conformance",
+        "blocking_reasons",
+        "host_shell_detected",
+        "private_adapter_command"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "ready_for_conformance",
+            "blocked"
+          ]
+        },
+        "can_run_conformance": {
+          "type": "boolean"
+        },
+        "blocking_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "host_shell_detected": {
+          "type": "boolean"
+        },
+        "private_adapter_command": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "provided",
+            "source",
+            "path"
+          ],
+          "properties": {
+            "provided": {
+              "type": "boolean"
+            },
+            "source": {
+              "enum": [
+                "argument",
+                "environment_variable",
+                "manifest_entrypoint",
+                "well_known_path",
+                "missing"
+              ]
+            },
+            "path": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "ordered_steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "owner",
+          "required",
+          "status",
+          "output_schema",
+          "blocking_reason"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "host_shell_pilot_preflight",
+              "host_private_adapter_conformance",
+              "distribution_and_signing_evidence",
+              "install_update_failure_drills",
+              "host_shell_pilot_report",
+              "host_shell_pilot_handoff"
+            ]
+          },
+          "owner": {
+            "enum": [
+              "runtime_kit",
+              "host_shell"
+            ]
+          },
+          "required": {
+            "const": true
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "blocked",
+              "waiting_for_host_evidence",
+              "waiting_for_conformance_and_evidence",
+              "provided"
+            ]
+          },
+          "output_schema": {
+            "enum": [
+              "kaka.host_shell_pilot_preflight.v1",
+              "kaka.host_private_adapter_conformance.v1",
+              "kaka.host_shell_pilot_receipt.v1",
+              "kaka.host_shell_pilot_handoff.v1"
+            ]
+          },
+          "blocking_reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "command_artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "host_shell_pilot_preflight",
+        "host_private_adapter_conformance",
+        "host_shell_pilot_report",
+        "host_shell_pilot_handoff"
+      ],
+      "properties": {
+        "host_shell_pilot_preflight": {
+          "$ref": "#/$defs/command"
+        },
+        "host_private_adapter_conformance": {
+          "$ref": "#/$defs/command"
+        },
+        "host_shell_pilot_report": {
+          "$ref": "#/$defs/command"
+        },
+        "host_shell_pilot_handoff": {
+          "$ref": "#/$defs/command"
+        }
+      }
+    },
+    "evidence_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "complete",
+        "distribution",
+        "drills"
+      ],
+      "properties": {
+        "required": {
+          "const": true
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "distribution": {
+          "$ref": "#/$defs/evidence_group"
+        },
+        "drills": {
+          "$ref": "#/$defs/evidence_group"
+        }
+      }
+    },
+    "acceptance_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "can_run_conformance",
+        "can_emit_ready_receipt",
+        "can_submit_handoff",
+        "can_mark_p3_4_complete",
+        "blocking_reasons"
+      ],
+      "properties": {
+        "can_run_conformance": {
+          "type": "boolean"
+        },
+        "can_emit_ready_receipt": {
+          "const": false
+        },
+        "can_submit_handoff": {
+          "const": false
+        },
+        "can_mark_p3_4_complete": {
+          "const": false
+        },
+        "blocking_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "phone_api_unchanged",
+        "phone_settings_owner",
+        "no_proprietary_binary_bundled_by_kaka",
+        "does_not_invoke_private_adapter_command",
+        "does_not_run_conformance",
+        "does_not_fetch_audit_refs",
+        "does_not_mutate_host_state"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "phone_api_unchanged": {
+          "const": true
+        },
+        "phone_settings_owner": {
+          "const": false
+        },
+        "no_proprietary_binary_bundled_by_kaka": {
+          "const": true
+        },
+        "does_not_invoke_private_adapter_command": {
+          "const": true
+        },
+        "does_not_run_conformance": {
+          "const": true
+        },
+        "does_not_fetch_audit_refs": {
+          "const": true
+        },
+        "does_not_mutate_host_state": {
+          "const": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "command": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items",
+        "provided",
+        "missing"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "owner",
+              "required",
+              "provided",
+              "cli_flag",
+              "receipt_path"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "owner": {
+                "const": "host_shell"
+              },
+              "required": {
+                "const": true
+              },
+              "provided": {
+                "type": "boolean"
+              },
+              "cli_flag": {
+                "type": "string"
+              },
+              "receipt_path": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "provided": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

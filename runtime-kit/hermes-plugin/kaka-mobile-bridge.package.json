@@ -1,0 +1,497 @@
+{
+  "schema_version": "kaka.runtime_shell_manifest.v1",
+  "id": "kaka-mobile-bridge",
+  "runtime": "hermes",
+  "display_name": "Kaka Mobile Bridge",
+  "description": "Runtime-side shell for explicitly starting, stopping, pairing, and configuring the local Kaka Mobile Bridge from Hermes.",
+  "install": {
+    "enabled_by_default": false,
+    "auto_start_on_install": false,
+    "requires_explicit_start": true
+  },
+  "defaults": {
+    "lan_exposed": false,
+    "bonjour": false,
+    "start_with_runtime": false
+  },
+  "consumer_ui": {
+    "source": "settings_preview.runtime_side_ui.consumer_ui",
+    "schema_version": "kaka.runtime_consumer_ui.v1",
+    "surface": "hermes_openclaw_consumer_runtime_ui",
+    "required_sections": [
+      "process",
+      "connection",
+      "pairing",
+      "memory",
+      "retrieval"
+    ],
+    "required_primary_actions": [
+      "start_bridge",
+      "stop_bridge",
+      "show_qr",
+      "revoke_mobile_tokens"
+    ]
+  },
+  "process_ownership": {
+    "source": "settings_preview.runtime_side_ui.process_ownership",
+    "schema_version": "kaka.runtime_process_ownership.v1",
+    "surface": "hermes_openclaw_process_ownership",
+    "required_actions": [
+      "install_runtime_package",
+      "enable_start_with_runtime",
+      "disable_start_with_runtime",
+      "update_runtime_package",
+      "uninstall_runtime_package",
+      "open_runtime_logs",
+      "run_health_check",
+      "repair_port_conflict"
+    ],
+    "requires_explicit_user_approval": true
+  },
+  "host_package": {
+    "source": "kaka_mobile_runtime_kit host-package-preview",
+    "schema_version": "kaka.runtime_host_package.v1",
+    "surface": "hermes_openclaw_host_package",
+    "required_actions": [
+      "install_runtime_package",
+      "enable_start_with_runtime",
+      "disable_start_with_runtime",
+      "update_runtime_package",
+      "uninstall_runtime_package",
+      "open_runtime_logs",
+      "run_health_check",
+      "repair_port_conflict",
+      "supervise_bridge"
+    ],
+    "requires_host_native_adapter": true
+  },
+  "host_adapter": {
+    "source": "kaka_mobile_runtime_kit host-adapter-run",
+    "schema_version": "kaka.host_adapter_action_result.v1",
+    "surface": "hermes_openclaw_host_adapter_binding",
+    "adapter_modes": [
+      "mock",
+      "private"
+    ],
+    "required_actions": [
+      "install_runtime_package",
+      "enable_start_with_runtime",
+      "disable_start_with_runtime",
+      "update_runtime_package",
+      "uninstall_runtime_package",
+      "open_runtime_logs",
+      "run_health_check",
+      "repair_port_conflict",
+      "supervise_bridge"
+    ],
+    "requires_explicit_user_approval_for_mutations": true
+  },
+  "host_private_adapter": {
+    "source": "host_adapter.private_adapter_command",
+    "request_schema": "kaka.host_private_adapter_request.v1",
+    "response_schema": "kaka.host_private_adapter_response.v1",
+    "required_capabilities": [
+      "distribution",
+      "install",
+      "login_item",
+      "update",
+      "uninstall",
+      "logs",
+      "health",
+      "port_repair",
+      "supervision"
+    ],
+    "runtime_side_only": true,
+    "requires_explicit_user_approval_for_mutations": true
+  },
+  "host_private_adapter_package": {
+    "source": "host_package.private_adapter_package",
+    "schema_version": "kaka.host_private_adapter_package.v1",
+    "runtime_side_only": true,
+    "binary_owner": "host_shell",
+    "distribution_owner": "hermes",
+    "requires_conformance_passed": true,
+    "phone_api_path": "/mobile/v1"
+  },
+  "host_extension_preview": {
+    "source": "host-extension-preview",
+    "schema_version": "kaka.host_extension_preview.v1",
+    "ordinary_user_install": true,
+    "install_shape": "hermes_plugin",
+    "extension_package_owner": "host_shell",
+    "manual_adapter_code_required": false,
+    "environment_variable_required": false,
+    "adapter_command_visibility": "extension_internal",
+    "ordinary_user_source": "extension_internal_bundle",
+    "developer_fallback_source": "explicit_command_or_env",
+    "pairing_ux": "host_ui_qr_or_bonjour",
+    "requires_p3_2_conformance": true,
+    "requires_p3_4_external_pilot_evidence": true,
+    "phone_api_unchanged": true
+  },
+  "host_extension_readiness": {
+    "source": "host-extension-readiness",
+    "schema_version": "kaka.host_extension_readiness.v1",
+    "ordinary_user_install": true,
+    "manual_adapter_code_required": false,
+    "environment_variable_required": false,
+    "adapter_command_visibility": "extension_internal",
+    "phone_api_unchanged": true
+  },
+  "host_extension_starter_kit": {
+    "source": "host-extension-starter-kit",
+    "schema_version": "kaka.host_extension_starter_kit.v1",
+    "ordinary_user_install": true,
+    "install_shape": "hermes_plugin",
+    "manual_adapter_code_required": false,
+    "environment_variable_required": false,
+    "adapter_command_visibility": "extension_internal",
+    "starter_kit_contains_proprietary_implementation": false,
+    "final_distribution_requires_host_signature": true,
+    "phone_api_unchanged": true,
+    "non_mutating": true,
+    "does_not_install_package": true,
+    "does_not_invoke_private_adapter": true
+  },
+  "host_extension_install_package": {
+    "source": "host-extension-install-package",
+    "schema_version": "kaka.host_extension_install_package.v1",
+    "surface": "hermes_openclaw_host_extension_install_package",
+    "ordinary_user_install": true,
+    "install_shape": "hermes_plugin",
+    "manual_adapter_code_required": false,
+    "environment_variable_required": false,
+    "adapter_command_visibility": "extension_internal",
+    "handoff_contains_proprietary_implementation": false,
+    "final_distribution_requires_host_signature": true,
+    "phone_api_unchanged": true,
+    "non_mutating": true,
+    "does_not_install_package": true,
+    "does_not_invoke_private_adapter": true,
+    "requires_host_ui_acceptance": true,
+    "requires_install_drill_runbook": true,
+    "requires_tls_readiness": true,
+    "requires_codex_developer_plugin_source": true
+  },
+  "host_plugin_skill_devkit": {
+    "source": "host-plugin-skill-devkit",
+    "schema_version": "kaka.host_plugin_skill_devkit.v1",
+    "surface": "hermes_openclaw_host_plugin_skill_devkit",
+    "developer_kit_only": true,
+    "ordinary_user_install": false,
+    "runtime_side_only": true,
+    "non_mutating": true,
+    "install_shape": "hermes_plugin",
+    "manual_adapter_code_required": false,
+    "environment_variable_required": false,
+    "adapter_command_visibility": "extension_internal",
+    "contains_proprietary_implementation": false,
+    "codex_automation_user_install_surface": false,
+    "does_not_install_package": true,
+    "does_not_sign_package": true,
+    "does_not_publish_package": true,
+    "does_not_invoke_private_adapter": true,
+    "does_not_run_conformance": true,
+    "phone_api_path": "/mobile/v1",
+    "private_host_api_exposed": false,
+    "phone_api_unchanged": true,
+    "final_distribution_requires_host_signature": true,
+    "requires_conformance_report": true,
+    "requires_evidence_manifest": true,
+    "can_mark_p3_4_complete": false
+  },
+  "host_codex_developer_plugin_source": {
+    "source": "host-codex-developer-plugin-source",
+    "schema_version": "kaka.host_codex_developer_plugin_source.v1",
+    "surface": "hermes_openclaw_host_codex_developer_plugin_source",
+    "developer_only": true,
+    "ordinary_user_install": false,
+    "plugin_name": "kaka-host-extension-developer-hermes",
+    "source_scope": "explicit_output_dir",
+    "updates_marketplace": false,
+    "writes_user_home": false,
+    "installs_codex_plugin": false,
+    "install_shape": "hermes_plugin",
+    "phone_api_path": "/mobile/v1",
+    "private_host_api_exposed": false,
+    "phone_api_unchanged": true,
+    "does_not_install_package": true,
+    "does_not_start_bridge": true,
+    "does_not_invoke_private_adapter": true,
+    "does_not_run_conformance": true
+  },
+  "host_private_adapter_conformance": {
+    "source": "kaka_mobile_runtime_kit host-private-adapter-conformance",
+    "report_schema": "kaka.host_private_adapter_conformance.v1",
+    "runtime_side_only": true,
+    "requires_configured_private_adapter_command": true,
+    "phone_api_path": "/mobile/v1"
+  },
+  "host_shell_pilot_receipt": {
+    "source": "host_shell_pilot_report",
+    "schema_version": "kaka.host_shell_pilot_receipt.v1",
+    "runtime_side_only": true,
+    "binary_owner": "host_shell",
+    "external_binary_required": true,
+    "requires_real_external_command": true,
+    "phone_api_path": "/mobile/v1"
+  },
+  "host_shell_pilot_handoff": {
+    "source": "host_shell_pilot_handoff",
+    "schema_version": "kaka.host_shell_pilot_handoff.v1",
+    "runtime_side_only": true,
+    "requires_pilot_receipt": true,
+    "requires_all_audit_refs": true,
+    "phone_api_path": "/mobile/v1"
+  },
+  "host_shell_pilot_request": {
+    "source": "host_shell_pilot_request",
+    "schema_version": "kaka.host_shell_pilot_request.v1",
+    "runtime_side_only": true,
+    "non_mutating": true,
+    "does_not_invoke_private_adapter_command": true,
+    "does_not_run_conformance": true,
+    "does_not_fetch_audit_refs": true,
+    "phone_api_path": "/mobile/v1"
+  },
+  "host_shell_pilot_evidence_manifest": {
+    "source": "host_shell_pilot_evidence_manifest",
+    "schema_version": "kaka.host_shell_pilot_evidence_manifest.v1",
+    "runtime_side_only": true,
+    "non_mutating": true,
+    "does_not_invoke_private_adapter_command": true,
+    "does_not_run_conformance": true,
+    "does_not_fetch_audit_refs": true,
+    "does_not_submit_handoff": true,
+    "does_not_create_archive_by_default": true,
+    "phone_api_path": "/mobile/v1"
+  },
+  "host_shell_pilot_preflight": {
+    "source": "host_shell_pilot_preflight",
+    "schema_version": "kaka.host_shell_pilot_preflight.v1",
+    "runtime_side_only": true,
+    "non_mutating": true,
+    "does_not_invoke_private_adapter_command": true,
+    "phone_api_path": "/mobile/v1"
+  },
+  "host_shell_pilot_runbook": {
+    "source": "host_shell_pilot_runbook",
+    "schema_version": "kaka.host_shell_pilot_runbook.v1",
+    "runtime_side_only": true,
+    "non_mutating": true,
+    "does_not_invoke_private_adapter_command": true,
+    "does_not_run_conformance": true,
+    "phone_api_path": "/mobile/v1"
+  },
+  "host_shell_pilot_artifact_review": {
+    "source": "host_shell_pilot_artifact_review",
+    "schema_version": "kaka.host_shell_pilot_artifact_review.v1",
+    "runtime_side_only": true,
+    "non_mutating": true,
+    "does_not_invoke_private_adapter_command": true,
+    "does_not_run_conformance": true,
+    "does_not_fetch_audit_refs": true,
+    "phone_api_path": "/mobile/v1"
+  },
+  "entrypoints": {
+    "settings_preview": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "settings-preview",
+      "--runtime",
+      "hermes"
+    ],
+    "package_preview": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "package-preview",
+      "--runtime",
+      "hermes"
+    ],
+    "host_package_preview": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-package-preview",
+      "--runtime",
+      "hermes"
+    ],
+    "host_extension_preview": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-extension-preview",
+      "--runtime",
+      "hermes"
+    ],
+    "host_extension_readiness": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-extension-readiness",
+      "--runtime",
+      "hermes"
+    ],
+    "host_extension_starter_kit": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-extension-starter-kit",
+      "--runtime",
+      "hermes"
+    ],
+    "host_extension_install_package": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-extension-install-package",
+      "--runtime",
+      "hermes"
+    ],
+    "host_plugin_skill_devkit": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-plugin-skill-devkit",
+      "--runtime",
+      "hermes"
+    ],
+    "host_codex_developer_plugin_source": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-codex-developer-plugin-source",
+      "--runtime",
+      "hermes"
+    ],
+    "host_adapter_run": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-adapter-run",
+      "--runtime",
+      "hermes"
+    ],
+    "host_shell_pilot_report": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-shell-pilot-report",
+      "--runtime",
+      "hermes"
+    ],
+    "host_shell_pilot_handoff": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-shell-pilot-handoff",
+      "--runtime",
+      "hermes"
+    ],
+    "host_shell_pilot_request": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-shell-pilot-request",
+      "--runtime",
+      "hermes"
+    ],
+    "host_shell_pilot_evidence_manifest": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-shell-pilot-evidence-manifest",
+      "--runtime",
+      "hermes"
+    ],
+    "host_shell_pilot_preflight": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-shell-pilot-preflight",
+      "--runtime",
+      "hermes"
+    ],
+    "host_shell_pilot_runbook": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-shell-pilot-runbook",
+      "--runtime",
+      "hermes"
+    ],
+    "host_shell_pilot_artifact_review": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "host-shell-pilot-artifact-review",
+      "--runtime",
+      "hermes"
+    ],
+    "start_bridge": [
+      "python3",
+      "-m",
+      "kaka_mobile_runtime_kit",
+      "start",
+      "--runtime",
+      "hermes"
+    ]
+  },
+  "controls": [
+    "bridge_enabled",
+    "start_with_runtime",
+    "install_runtime_package",
+    "update_runtime_package",
+    "uninstall_runtime_package",
+    "open_runtime_logs",
+    "run_health_check",
+    "repair_port_conflict",
+    "bind_mode",
+    "bonjour_enabled",
+    "pairing_mode",
+    "qr_ttl_seconds",
+    "trusted_local_tls",
+    "revoke_mobile_tokens",
+    "local_store_enabled",
+    "runtime_store_path",
+    "recall_search_provider",
+    "recall_search_endpoint"
+  ],
+  "runtime_side_values": [
+    "runtime_store_path",
+    "recall_search_endpoint",
+    "env_file",
+    "auth_file",
+    "auth_files",
+    "provider_credentials",
+    "mobile_bearer_token",
+    "tls_private_key_path",
+    "hidden_prompt",
+    "hidden_prompts"
+  ],
+  "forbidden_phone_safe_fields": [
+    "runtime_store_path",
+    "recall_search_endpoint",
+    "provider_keys",
+    "auth_env_files",
+    "mobile_tokens",
+    "tls_private_key_paths",
+    "env_file",
+    "auth_file",
+    "auth_files",
+    "provider_credentials",
+    "mobile_bearer_token",
+    "tls_private_key_path",
+    "hidden_prompt",
+    "hidden_prompts",
+    "raw_embeddings",
+    "index_rows",
+    "task_logs",
+    "retrieval_index_rows",
+    "raw_provider_responses",
+    "process_ids",
+    "host_log_paths"
+  ]
+}

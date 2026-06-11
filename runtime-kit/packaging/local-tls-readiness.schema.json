@@ -1,0 +1,324 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/local-tls-readiness.schema.json",
+  "title": "Kaka Local TLS Readiness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "status",
+    "ready_for_production_pairing",
+    "missing_inputs",
+    "certificate",
+    "trust",
+    "renewal",
+    "phone_api",
+    "gates",
+    "safety"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "blocked"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ready_for_production_pairing": {
+            "const": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "ready_for_production_pairing"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ready_for_production_pairing": {
+            "const": true
+          },
+          "missing_inputs": {
+            "maxItems": 0
+          },
+          "certificate": {
+            "properties": {
+              "label": {
+                "minLength": 1
+              },
+              "certificate_ref": {
+                "minLength": 1
+              },
+              "public_key_sha256": {
+                "pattern": "^[A-Fa-f0-9]{64}$"
+              },
+              "expires_at": {
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+              }
+            }
+          },
+          "trust": {
+            "properties": {
+              "tls_trust_state": {
+                "const": "configured"
+              },
+              "trust_store_ref": {
+                "minLength": 1
+              }
+            }
+          },
+          "renewal": {
+            "properties": {
+              "renewal_procedure_ref": {
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ready_for_production_pairing": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "const": "ready_for_production_pairing"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.local_tls_readiness.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_local_tls_readiness"
+    },
+    "runtime": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "status": {
+      "enum": [
+        "blocked",
+        "ready_for_production_pairing"
+      ]
+    },
+    "ready_for_production_pairing": {
+      "type": "boolean"
+    },
+    "missing_inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "tls_trust_state",
+              "tls_certificate_label",
+              "tls_certificate_ref",
+              "tls_public_key_sha256",
+              "tls_expires_at",
+              "trust_store_ref",
+              "renewal_procedure_ref"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "certificate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "certificate_ref",
+        "public_key_sha256",
+        "expires_at"
+      ],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "certificate_ref": {
+          "type": "string",
+          "not": {
+            "pattern": "(?i)(-----begin|private key|private_key|tls_private_key|bearer |token=|secret|mobile_|sk-|/users/|~/|\\.key$|key\\.pem$)"
+          }
+        },
+        "public_key_sha256": {
+          "type": "string"
+        },
+        "expires_at": {
+          "type": "string",
+          "pattern": "^$|^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        }
+      }
+    },
+    "trust": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tls_trust_state",
+        "trust_store_ref"
+      ],
+      "properties": {
+        "tls_trust_state": {
+          "type": "string"
+        },
+        "trust_store_ref": {
+          "type": "string",
+          "not": {
+            "pattern": "(?i)(-----begin|private key|private_key|tls_private_key|bearer |token=|secret|mobile_|sk-|/users/|~/|\\.key$|key\\.pem$)"
+          }
+        }
+      }
+    },
+    "renewal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "renewal_procedure_ref"
+      ],
+      "properties": {
+        "renewal_procedure_ref": {
+          "type": "string",
+          "not": {
+            "pattern": "(?i)(-----begin|private key|private_key|tls_private_key|bearer |token=|secret|mobile_|sk-|/users/|~/|\\.key$|key\\.pem$)"
+          }
+        }
+      }
+    },
+    "phone_api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_path",
+        "private_host_api_exposed",
+        "phone_api_unchanged"
+      ],
+      "properties": {
+        "base_path": {
+          "const": "/mobile/v1"
+        },
+        "private_host_api_exposed": {
+          "const": false
+        },
+        "phone_api_unchanged": {
+          "const": true
+        }
+      }
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requires_trusted_local_tls",
+        "requires_non_secret_certificate_ref",
+        "can_start_bridge",
+        "can_bind_lan",
+        "can_advertise_bonjour",
+        "can_mint_mobile_token"
+      ],
+      "properties": {
+        "requires_trusted_local_tls": {
+          "const": true
+        },
+        "requires_non_secret_certificate_ref": {
+          "const": true
+        },
+        "can_start_bridge": {
+          "const": false
+        },
+        "can_bind_lan": {
+          "const": false
+        },
+        "can_advertise_bonjour": {
+          "const": false
+        },
+        "can_mint_mobile_token": {
+          "const": false
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "does_not_generate_certificate",
+        "does_not_install_certificate",
+        "does_not_modify_keychain",
+        "does_not_read_private_key",
+        "does_not_start_bridge",
+        "does_not_bind_lan",
+        "does_not_advertise_bonjour",
+        "does_not_mint_credentials",
+        "does_not_fetch_refs",
+        "private_key_path_redacted"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "does_not_generate_certificate": {
+          "const": true
+        },
+        "does_not_install_certificate": {
+          "const": true
+        },
+        "does_not_modify_keychain": {
+          "const": true
+        },
+        "does_not_read_private_key": {
+          "const": true
+        },
+        "does_not_start_bridge": {
+          "const": true
+        },
+        "does_not_bind_lan": {
+          "const": true
+        },
+        "does_not_advertise_bonjour": {
+          "const": true
+        },
+        "does_not_mint_credentials": {
+          "const": true
+        },
+        "does_not_fetch_refs": {
+          "const": true
+        },
+        "private_key_path_redacted": {
+          "const": true
+        }
+      }
+    }
+  }
+}

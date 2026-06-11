@@ -1,0 +1,122 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kaka.local/schemas/host-private-adapter-response.schema.json",
+  "title": "Kaka Runtime Host Private Adapter Response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "ok",
+    "mutated_host_state",
+    "state",
+    "detail"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_private_adapter_response.v1"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "mutated_host_state": {
+      "type": "boolean"
+    },
+    "state": {
+      "type": "object",
+      "required": [
+        "installed",
+        "start_with_runtime",
+        "process_state",
+        "process_supervision",
+        "health_status",
+        "port_conflict"
+      ],
+      "properties": {
+        "installed": {
+          "type": "boolean"
+        },
+        "start_with_runtime": {
+          "type": "boolean"
+        },
+        "process_state": {
+          "enum": [
+            "stopped",
+            "running",
+            "unhealthy",
+            "unknown"
+          ]
+        },
+        "process_supervision": {
+          "enum": [
+            "not_configured",
+            "host_managed",
+            "misconfigured"
+          ]
+        },
+        "health_status": {
+          "enum": [
+            "unknown",
+            "healthy",
+            "unhealthy"
+          ]
+        },
+        "port_conflict": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "detail": {
+      "type": "object",
+      "required": [
+        "private_api_called"
+      ],
+      "properties": {
+        "private_api_called": {
+          "type": "boolean"
+        },
+        "private_api_provider": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "host_api_level": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "url": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "target": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "checked_bridge": {
+          "type": "boolean"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "error": {
+      "type": "object",
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 256
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

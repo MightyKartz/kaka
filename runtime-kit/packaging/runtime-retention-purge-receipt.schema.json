@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/runtime-retention-purge-receipt.schema.json",
+  "title": "Kaka Runtime Retention Purge Receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "mode",
+    "applied",
+    "generated_at",
+    "policy",
+    "cutoffs",
+    "eligible",
+    "deleted",
+    "preserved",
+    "recall_untouched",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.runtime_retention_purge_receipt.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_runtime_retention_purge"
+    },
+    "runtime": {
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "dry_run",
+        "apply"
+      ]
+    },
+    "applied": {
+      "type": "boolean"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_assets_days",
+        "output_assets_days",
+        "task_history_days"
+      ],
+      "properties": {
+        "input_assets_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650
+        },
+        "output_assets_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650
+        },
+        "task_history_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650
+        }
+      }
+    },
+    "cutoffs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_assets_before",
+        "output_assets_before",
+        "task_history_before"
+      ],
+      "properties": {
+        "input_assets_before": {
+          "type": "string"
+        },
+        "output_assets_before": {
+          "type": "string"
+        },
+        "task_history_before": {
+          "type": "string"
+        }
+      }
+    },
+    "eligible": {
+      "$ref": "#/$defs/purgeGroups"
+    },
+    "deleted": {
+      "$ref": "#/$defs/purgeGroups"
+    },
+    "preserved": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "active_task_ids",
+        "untracked_asset_ids",
+        "asset_purge_status"
+      ],
+      "properties": {
+        "active_task_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "untracked_asset_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "asset_purge_status": {
+          "enum": [
+            "complete",
+            "partial_missing_asset_timestamps",
+            "skipped_missing_asset_timestamps"
+          ]
+        }
+      }
+    },
+    "recall_untouched": {
+      "const": true
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "phone_api_path",
+        "phone_api_unchanged",
+        "phone_settings_owner",
+        "no_mobile_bridge_purge_endpoint",
+        "no_automatic_cleanup",
+        "no_recall_purge"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "phone_api_path": {
+          "const": "/mobile/v1"
+        },
+        "phone_api_unchanged": {
+          "const": true
+        },
+        "phone_settings_owner": {
+          "const": false
+        },
+        "no_mobile_bridge_purge_endpoint": {
+          "const": true
+        },
+        "no_automatic_cleanup": {
+          "const": true
+        },
+        "no_recall_purge": {
+          "const": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "purgeGroups": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_asset_ids",
+        "output_asset_ids",
+        "task_ids",
+        "task_event_ids"
+      ],
+      "properties": {
+        "input_asset_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "output_asset_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "task_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "task_event_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
