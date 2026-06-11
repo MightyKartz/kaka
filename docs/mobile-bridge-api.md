@@ -4,11 +4,25 @@
 
 The Mobile Bridge is the stable HTTPS boundary between Agent Pocket and a user-owned compatible agent runtime, such as Hermes, OpenClaw, or a sidecar that exposes the same contract. The iPhone app is a thin visual client: it pairs with a runtime, uploads photos and visible shared PDF payloads, starts `image_intake`, shows suggested skills in an image conversation, accepts visible Share Extension inbox items, starts universal `intake` tasks for text, links, and PDFs, starts photo-edit or vision tasks for the user's instruction, watches progress, and downloads edited images when needed. The runtime owns model credentials, workflow selection, vision analysis, crop planning, local image rendering, memory, approvals, and tool execution.
 
-The broader Pocket Agents direction keeps the same boundary for future input types: share-sheet items, screenshots, pasted text, links, voice notes, and permissioned context snapshots flow through Mobile Bridge as explicit user-initiated intake tasks. Phase A implements the additive `/mobile/v1/tasks/intake` contract beside the existing `image_intake`, `vision`, and `photo_edit` paths. Existing image clients should continue using `image_intake`.
+The broader Pocket Agents direction keeps the same boundary for future input types: share-sheet items, screenshots, pasted text, links, visible voice-transcribed notes, and permissioned context snapshots flow through Mobile Bridge as explicit user-initiated intake tasks. Phase A implements the additive `/mobile/v1/tasks/intake` contract beside the existing `image_intake`, `vision`, and `photo_edit` paths. Existing image clients should continue using `image_intake`.
 
 Base path: `/mobile/v1`
 
 Clients must tolerate unknown response fields. Servers must preserve backward compatibility for `/mobile/v1` during Phase 1.
+
+## Ordinary User Boundary
+
+Ordinary users should install Kaka through a host-native Hermes Plugin or
+OpenClaw Skill/sidecar. The phone pairs with the runtime-hosted **Kaka Mobile
+Bridge** endpoint and then uses only `/mobile/v1`.
+
+Hermes/OpenClaw private APIs, private adapter commands, provider configuration,
+raw logs, package paths, update channels, Codex developer plugin/skill source,
+and host install roots stay on the Mac/runtime side. They are not Mobile Bridge
+request fields, response fields, pairing prerequisites, or iPhone UI settings.
+
+Codex plugin/skill automation may help host engineers scaffold and validate
+the host-native package, but it must not become the public user install path.
 
 ## Authentication
 
@@ -83,14 +97,31 @@ Recommended TXT keys:
 - `runtime`: runtime identifier such as `hermes`, `openclaw`, or another compatible value.
 - `scheme`: `http` for local development, `https` for trusted local TLS.
 - `endpoint`: optional full endpoint URL; if omitted, clients compose `scheme://host:port`.
+- `pairing_page`: optional runtime-side QR page URL, such as `/mobile/v1/pairing/qr.html`.
 - `pairing_payload`: optional full QR pairing JSON.
 - `pairing_code` and `expires_at`: optional fields clients can use to build a pairing payload when `pairing_payload` is omitted.
+- `trusted_local_tls_required`: optional boolean-like value (`true` or `1`) for HTTPS runtimes that require trusted local TLS.
+- `tls_public_key_sha256`: optional non-secret 64-hex SHA-256 fingerprint for the host-owned TLS public key.
+- `tls_certificate_label`: optional non-secret certificate label shown to users.
 
 Discovery must not mint long-lived credentials by itself. Clients should show discovered runtimes as confirmation cards and exchange a one-time pairing code through `/pairing/exchange` only after the user chooses a runtime.
 
-Development and mock runtimes may also expose `GET /mobile/v1/pairing/dev` without bearer auth. It returns the current local pairing payload so a client can recover when Bonjour TXT records contain a one-time development code that has already been exchanged. Production deployments should prefer short-lived QR or trusted local TLS pairing flows.
+Production runtimes may expose `GET /mobile/v1/pairing/qr` and `GET /mobile/v1/pairing/qr.html` as explicit runtime-side QR actions. Those routes issue short-lived single-use pairing payloads with 60-300 second expiry. Development and mock runtimes may also expose `GET /mobile/v1/pairing/dev` without bearer auth so a client can recover when Bonjour TXT records contain a one-time development code that has already been exchanged.
 
 Runtime plugins and skills must treat bridge startup as an explicit user action. Installing a Hermes/OpenClaw skill or plugin must not silently bind a LAN port, advertise Bonjour, or create a login item. A runtime may offer **Start with Hermes/OpenClaw** later, but it must be opt-in and reversible.
+
+The P3.12 Host Extension Starter Kit is a host-side packaging scaffold for that
+plugin/skill user path. It helps Hermes/OpenClaw host teams ship an installable
+extension, but it does not add phone-side private host APIs or require ordinary
+users to write adapter code, export `HERMES_KAKA_HOST_API` /
+`OPENCLAW_KAKA_HOST_API`, or paste Runtime Kit command chains.
+
+Follow-up installation work should keep the same split. The public user package
+is a host-native Hermes Plugin or OpenClaw Skill/sidecar. Codex plugin/skill
+automation, if generated, is host-team developer tooling only and must not
+become a Mobile Bridge pairing prerequisite. The phone protocol remains
+`/mobile/v1`: it does not install host extensions, call private Hermes/OpenClaw
+APIs, receive private adapter command paths, or manage Codex plugin/skill roots.
 
 Recommended runtime-side controls:
 
@@ -99,6 +130,100 @@ Recommended runtime-side controls:
 - **Advertise on Local Network**: enables Bonjour only after user approval.
 - **Stop Bridge**: shuts down the listener and advertisement.
 - **Revoke iPhone**: revokes the mobile token for a paired device.
+
+## Runtime-Owned Persistence
+
+Runtime persistence is a runtime launcher/server concern, not a mobile API field. The runtime-persistence execution slice adds a development option named `--runtime-store-path` for `kaka_mobile_runtime_kit start` and the bridge server. The iPhone must not send, choose, or display the SQLite path in Mobile Bridge requests.
+
+A runtime launched with `--runtime-store-path` keeps Recall records, Recall retrieval-index receipts, runtime task records, and task events in a local SQLite database on the Mac/runtime side. Without that option, development and mock bridges may continue to use deterministic in-memory stores for tests.
+
+The Mobile Bridge contract stays the same in both modes. The phone asks for Recall list/search/export/delete, runtime settings/status, and task list/approval/cancel/events; the runtime owns storage, retention, search implementation, deletion, and restart durability.
+
+`GET /mobile/v1/runtime/settings`
+
+This endpoint lets the phone display runtime-owned persistence and retrieval status without owning those settings. It must not expose provider keys, provider endpoints, hidden prompts, bearer tokens, raw embeddings, SQLite paths, or unrelated task logs.
+
+Response:
+
+```json
+{
+  "recall_store": {
+    "enabled": true,
+    "owner": "runtime",
+    "label": "Local Kaka Recall and task store",
+    "phone_can_change": false
+  },
+  "semantic_recall": {
+    "available": true,
+    "owner": "runtime",
+    "mode": "provider_backed",
+    "provider_label": "Runtime provider"
+  },
+  "retention": {
+    "input_assets_days": 7,
+    "output_assets_days": 30,
+    "task_history_days": 30
+  },
+  "connection_security": {
+    "pairing_code_ttl_seconds": 120,
+    "mobile_token_ttl_seconds": null,
+    "mobile_token_revocation_supported": true,
+    "trusted_local_tls_required": true,
+    "tls_trust_state": "configured",
+    "tls_certificate_label": "Kaka Local Runtime",
+    "tls_public_key_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+}
+```
+
+`semantic_recall.mode` is `local_deterministic` for the built-in fallback and `provider_backed` when the runtime has explicitly configured a runtime-owned Recall search provider. `connection_security` is phone-safe status only: it may include QR TTL, token TTL, revocation support, TLS trust state, certificate label, and the non-secret TLS public-key SHA-256 fingerprint, but not raw bearer tokens, raw certificates, certificate chain paths, or TLS private key paths. The mobile settings response intentionally does not include the SQLite file path or provider endpoint. Runtime Kit CLI dry-run, `settings-preview`, `local-tls-readiness`, or a native Hermes/OpenClaw runtime-side UI may show those runtime-side settings and non-secret certificate refs to the Mac/runtime user, but the phone only sees store status, retrieval mode, connection security status, and non-secret labels.
+
+P3.10a is a runtime-side transport serving change only. When the runtime owner
+starts the bridge with host-owned certificate files, Runtime Kit can serve Mobile
+Bridge over local HTTPS, but it does not add a new Mobile Bridge endpoint and
+must not expose certificate chain paths, private key paths, trust-store
+internals, or raw certificate material through phone-facing responses.
+
+P3.10b carries that non-secret public-key fingerprint into pairing payloads and
+the iOS saved connection. The iOS client uses system trust by default; when an
+HTTPS pairing payload includes a valid `tls_public_key_sha256`, it creates a
+pinned `URLSession` trust policy for pairing, health checks, restore, and later
+bridge requests. Required local TLS payloads without a valid pin are treated as
+certificate failures. Local HTTP development endpoints remain allowed only for
+local/private hosts.
+
+P3.9 makes the existing `retention.input_assets_days`,
+`retention.output_assets_days`, and `retention.task_history_days` values
+runtime-configurable from the Hermes/OpenClaw host shell. The phone still treats
+this object as read-only status. There is no `POST` or
+`PUT /mobile/v1/runtime/settings`, and do not treat P3.9 as automatic deletion
+or cleanup enforcement; asset/task purge behavior and deletion receipts are
+separate runtime-owned slices.
+
+P3.14 adds that runtime-owned cleanup slice as `retention-purge`, a Runtime Kit
+CLI/action that emits `kaka.runtime_retention_purge_receipt.v1` receipts with
+dry-run/apply semantics. It is not a Mobile Bridge endpoint: there is still no
+`/mobile/v1/runtime/purge`, no phone-side settings write, and no automatic
+cleanup on server start or install. The current implementation deletes only old
+terminal task history from `SQLiteRuntimeStore`, preserves active tasks and
+Recall. P3.22 adds timestamp-aware mock bridge in-memory input/output asset
+purge receipts: uploaded input assets and photo-edit output assets carry
+runtime-side `role` and `created_at` metadata, appear in `eligible` during
+dry-run, and are removed only on explicit runtime-side apply. Untimestamped
+assets remain preserved as `untracked_asset_ids`. P3.24 adds the same explicit
+retention boundary for SQLite-backed input/output assets when Runtime Kit is
+configured with a runtime store. `/mobile/v1/assets` upload/download response
+shape stays unchanged, `/mobile/v1/runtime/purge` still does not exist, and
+purge receipts contain IDs only rather than raw bytes, SQLite paths, provider
+details, tokens, or task result variants.
+
+P3.25 adds store-backed task-detail persistence without adding endpoints or
+changing `/mobile/v1/assets`. `GET /mobile/v1/tasks/{id}` rehydrates phone-safe
+completed photo-edit result detail after a bridge restart. Persisted task
+metadata may store variant IDs, labels, asset IDs, explanation, and allowlisted
+structured recipe/status fields. `download_url` is rebuilt from `asset_id` for
+the task-detail response, not stored. Task lists remain summary-only, and
+store-backed completed task events expose only `variant_count`.
 
 ## Capabilities
 
@@ -118,7 +243,7 @@ Response:
   "tasks": {
     "photo_edit": {
       "max_upload_mb": 30,
-      "accepted_mime_types": ["image/jpeg", "image/heic", "image/png"],
+      "accepted_mime_types": ["image/jpeg"],
       "styles": ["natural_enhance", "portrait_polish", "product_shot", "social_cover"],
       "provider": "recipe_local",
       "renderer": "local_parametric",
@@ -128,7 +253,7 @@ Response:
       "supports_crop_candidates": false,
       "supports_upscale_policy": true,
       "supports_sse": true,
-      "return_variants_max": 3
+      "return_variants_max": 2
     },
     "vision": {
       "max_upload_mb": 30,
@@ -147,6 +272,7 @@ Response:
       "accepted_types": ["text", "url", "image", "pdf"],
       "provider": "heuristic_universal_intake",
       "supports_context_snapshot": true,
+      "supports_voice_followup": true,
       "supports_recall_actions": true,
       "supports_sse": false
     }
@@ -159,11 +285,27 @@ Response:
 }
 ```
 
+For the default `recipe_local` renderer, `photo_edit.return_variants_max` is
+currently `2`, matching `variant_clean_pro` and `variant_social_pop`, and
+`photo_edit.accepted_mime_types` is JPEG-only because the normal iOS photo-edit
+path JPEG-normalizes camera/library inputs before upload. Generic asset upload,
+`vision`, `image_intake`, and universal intake remain separate broader
+boundaries. P3.27 `local-renderer-backend-capability-manifest` is a Runtime Kit
+planning artifact for future local renderer backends; it does not change this
+Mobile Bridge capability shape, add endpoints, enable Core Image/ImageMagick/
+OpenCV/libvips, or change `/mobile/v1`.
+
 ## Universal Intake Task
 
 `POST /mobile/v1/tasks/intake`
 
-This additive endpoint handles visible user-shared non-camera items. The iOS Phase A app stores Share Extension payloads in an App Group inbox first; it does not silently upload shared content from the extension. The main app submits visible text and URL inbox items to this endpoint after the user is connected to a runtime. For `pdf`, the main app uploads the shared PDF payload from the visible Inbox action, then starts `/mobile/v1/tasks/intake` with the returned `asset_id`. Shared image payloads, including screenshots represented as images, keep routing through `image_intake` so the existing image conversation remains intact.
+This additive endpoint handles visible user-shared non-camera items. The iOS Phase A app stores Share Extension payloads in an App Group inbox first; it does not silently upload shared content from the extension. The main app submits visible text and URL inbox items to this endpoint after the user is connected to a runtime.
+
+P3.36b Explicit Paste-to-Inbox Courier uses the same boundary: the phone reads clipboard text only after the user taps the visible Inbox Paste button, creates a pending `.text` or http/https `.url` item with `source.surface = "paste"`, and still waits for visible Inbox `Send` before this endpoint is called.
+
+B.1 voice follow-up, P3.30 Voice-to-Inbox Draft, and P3.32 Inbox Voice Instruction use the same text boundary: Kaka records only while the user explicitly presses the push-to-talk control, transcribes on device with iOS Speech, shows an editable transcript, and sends the reviewed transcript as text. P3.32 saves the reviewed transcript into the selected `KakaInboxItem.note`; P3.33 adds local edit, clear, and send-preview UI for that note; P3.34 adds deterministic local template chips that write selected template text into the same note; the existing submitter sends the note as `note` and `user_instruction` only after the user taps visible Inbox `Send`. For `pdf`, the main app uploads the shared PDF payload from the visible Inbox action, then starts `/mobile/v1/tasks/intake` with the returned `asset_id`. Shared image payloads, including screenshots represented as images, keep routing through `image_intake` so the existing image conversation stays intact.
+
+`supports_voice_followup: true` means the runtime can accept text follow-up submitted from the visible voice UI and may return a short `summary` that the phone can read aloud. It does not mean B.1, P3.30, or P3.32 uploads raw microphone audio. Raw audio stays local and temporary; always-on listening, hidden background transcription, automatic Inbox submission, and automatic Recall writes are out of scope.
 
 Request for text:
 
@@ -193,6 +335,64 @@ Request for URL:
   "source": {
     "surface": "share_extension",
     "host_app": "Safari"
+  }
+}
+```
+
+Request for pasted text after visible Inbox Send:
+
+```json
+{
+  "kind": "text",
+  "text": "Rewrite this message in a calmer tone.",
+  "source_app": "Clipboard",
+  "source": {
+    "surface": "paste",
+    "host_app": "Clipboard"
+  }
+}
+```
+
+Request for pasted URL after visible Inbox Send:
+
+```json
+{
+  "kind": "url",
+  "url": "https://example.com/article",
+  "source_app": "Clipboard",
+  "source": {
+    "surface": "paste",
+    "host_app": "Clipboard"
+  }
+}
+```
+
+Request for URL with Inbox Voice Instruction:
+
+```json
+{
+  "kind": "url",
+  "url": "https://example.com/article",
+  "note": "Summarize first and extract next actions.",
+  "source": {
+    "surface": "share_extension",
+    "host_app": "Safari"
+  },
+  "user_instruction": "Summarize first and extract next actions."
+}
+```
+
+Request for Voice-to-Inbox text:
+
+```json
+{
+  "kind": "text",
+  "text": "Summarize this receipt before I send it.",
+  "locale": "en-US",
+  "source_app": "Kaka Voice",
+  "source": {
+    "surface": "voice",
+    "host_app": "Kaka Voice"
   }
 }
 ```
@@ -274,7 +474,7 @@ Forward-compatible capability shape:
 {
   "tasks": {
     "intake": {
-      "accepted_types": ["image", "screenshot", "text", "url", "pdf", "audio"],
+      "accepted_types": ["image", "screenshot", "text", "url", "pdf"],
       "supports_context_snapshot": true,
       "supports_voice_followup": true,
       "supports_recall_actions": true,
@@ -299,9 +499,12 @@ Forward-compatible request shape:
   "context_snapshot": {
     "timestamp": "2026-06-04T11:00:00Z",
     "timezone": "Asia/Shanghai",
-    "motion": "stationary",
+    "motion": "walking",
     "network": "wifi",
-    "battery": "normal"
+    "battery": "normal",
+    "location_label": "not_requested",
+    "location_precision": "none",
+    "calendar_availability": "busy_soon"
   },
   "user_instruction": "Summarize this and remember it if useful."
 }
@@ -311,9 +514,25 @@ Current Context Snapshot contract:
 
 - The client omits `context_snapshot` unless the user opts in for that task.
 - The client also omits `context_snapshot` unless `GET /mobile/v1/capabilities` includes `"supports_context_snapshot": true` for `tasks.intake`.
-- Snapshot fields use snake_case and omit unavailable values.
-- The current iOS collector is minimal by design: timestamp, timezone, locale, and source surface. Future collectors may add coarse `network`, `battery`, `motion`, and `location_label` values after visible permission handling.
+- Snapshot fields use snake_case and omit unavailable values, or include stable
+  payload sentinel values such as `permission_denied`, `not_requested`, or
+  `unavailable`. P3.23 keeps those payload values stable while the iPhone preview
+  maps them to readable labels for the user; P3.29 adds motion/calendar values
+  inside the same fields.
+- The current iOS collector is task-scoped and permission-aware. It may include a one-shot coarse `network` path status, conservative `battery`, one-shot current `motion`, `location_label`, `location_precision`, and one-shot 30-minute `calendar_availability` after visible preview.
+- Runtime/mock bridge handling must treat `context_snapshot` as an allowlisted
+  payload. Unknown keys, nested containers, coordinates, network identifiers,
+  and calendar event details must not be stored or echoed.
 - A snapshot is task-scoped input. It is not written to Recall unless the user separately confirms a Recall action.
+
+| Field | Owner | Allowed shape | Must not include |
+| --- | --- | --- | --- |
+| `network` | iPhone | Coarse state such as `wifi`, `cellular`, `offline`, `constrained`, `unknown`, or `unavailable`. | SSID, BSSID, carrier, IP address, hostnames. |
+| `battery` | iPhone | Coarse state such as `normal`, `low`, `critical`, `full`, `charging`, `charging_80_percent`, or `unavailable`. | Battery health history, serial/device identifiers, fine-grained telemetry. |
+| `motion` | iPhone | One-shot current labels such as `stationary`, `walking`, `running`, `driving`, `unknown`, `permission_denied`, `not_requested`, or `unavailable`. | Background motion history, accelerometer samples, routes, confidence, or continuous tracking. |
+| `location_label` | iPhone | Authorization/status sentinel today, such as `available`, `permission_denied`, `not_requested`, or `unavailable`. Future user-visible coarse labels may include `near_home` or `near_office`. | Coordinates, address book details, precise places by default. |
+| `location_precision` | iPhone | `coarse`, `precise`, `none`, or `unknown`. | Latitude/longitude or raw location accuracy values. |
+| `calendar_availability` | iPhone | One-shot next-30-minute labels such as `free`, `busy`, `busy_soon`, `write_only`, `permission_denied`, `not_requested`, or `unavailable`. | Event titles, attendees, notes, locations, descriptions, calendar identifiers, or calendar bodies. |
 
 ```json
 {
@@ -324,8 +543,10 @@ Current Context Snapshot contract:
     "source_surface": "share_extension",
     "network": "wifi",
     "battery": "normal",
-    "motion": "stationary",
-    "location_label": "near home"
+    "motion": "walking",
+    "location_label": "not_requested",
+    "location_precision": "none",
+    "calendar_availability": "busy_soon"
   }
 }
 ```
@@ -368,13 +589,59 @@ Design rules for this API:
 
 - `image_intake` remains valid for existing clients.
 - Universal intake must be user-initiated from camera, share sheet, paste, file picker, or visible voice UI.
+- P3.36b Explicit Paste-to-Inbox Courier uses this same universal intake boundary after creating a pending Inbox item from a visible Paste action. It adds no paste-specific `/mobile/v1` endpoint, background pasteboard reader, URL fetcher, automatic submission path, or automatic Recall write.
+- B.1 voice input is on-device transcription into editable text; raw microphone audio is not uploaded through Mobile Bridge.
+- P3.32 Inbox Voice Instruction is a client-side note update before visible
+  `Send`; runtimes should treat the submitted value as ordinary
+  `note`/`user_instruction` text, not as an audio capability or a separate task
+  trigger.
+- P3.33 Inbox Instruction Polish is also client-side: edit, clear, and
+  send-preview controls do not change request fields or trigger runtime work.
+- P3.34 Inbox Instruction Templates is also client-side: template chips write
+  deterministic text into `KakaInboxItem.note` and do not add request fields or
+  trigger runtime work.
+- P3.37 Inbox Result Review Provenance is also client-side: after a visible
+  Inbox `Send` completes, Kaka may show source/context review copy and pass the
+  existing `source_task_id` plus `source_inbox_item_id` to explicit Recall
+  actions. It adds no result-review endpoint, automatic Recall write, runtime
+  schema change, Files picker, provider call, or host package behavior.
+- P3.38 Explicit Files-to-Inbox Import also stays client-side: the visible file
+  picker creates a pending Inbox item from one user-selected PDF or image, and
+  runtime upload still waits for visible Inbox `Send`. It does not add a file
+  import endpoint, background file access, automatic submission, automatic
+  Recall, or Host Extension behavior.
+- P3.39 Inbox Pending Item Discard is client-side/local store behavior only: a
+  visible Inbox row action removes one pending item before `Send` through the
+  existing Inbox store. P3.40 Inbox Discard Confirmation is also client-side:
+  the row action opens a visible confirmation dialog, and only the destructive
+  confirm action calls the existing local discard path. Cancel or dismissal
+  leaves the pending item untouched. These slices do not add a discard endpoint,
+  runtime task cancel, asset upload, Recall action/delete, App Intent, or Host
+  Extension behavior.
+- P3.41 Inbox Action Feedback Banner is client-side presentation only: Inbox
+  renders existing local `state`/`progressText` feedback for failures and
+  in-flight submission progress. It does not add retry, runtime task cancel,
+  automatic submission, Recall action/write/delete, endpoint/schema changes, App
+  Intent behavior, or Host Extension behavior.
+- P3.42 Inbox Pending Item Review Details is client-side presentation only:
+  pending Inbox rows may expand a local read-only details section from existing
+  `KakaInboxItem` metadata before visible `Send`. It does not add endpoints,
+  request fields, response fields, runtime capabilities, automatic submission,
+  Recall behavior, URL fetch, file reads, PDF/OCR parsing, App Intent behavior,
+  or Host Extension behavior.
+- Host-native Hermes Plugin / OpenClaw Skill packaging and optional Codex
+  developer plugin/skill automation are host-team/runtime-side concerns. They
+  must not add Mobile Bridge endpoints, request fields, response fields,
+  private host API fields, adapter command paths, marketplace metadata, or
+  user-home Codex paths to `/mobile/v1`; Kaka iPhone still pairs and talks only
+  through the Mobile Bridge contract.
 - Context snapshots are optional and task-scoped unless the user chooses a Recall action.
 - Recall actions must be explicit and reversible where the runtime controls storage.
 - Clients must tolerate unknown `kind`, `suggestions`, and context fields.
 
 ## Recall Actions
 
-Recall D.0 is explicit-action only. The client must not automatically remember intake results, image conversations, or Context Snapshot payloads. `remember` and `forget` actions should be shown to the user and confirmed before submission; `use_once` may be submitted directly for current-task use and must not create a persisted Recall item. Search/retrieval, export, and retrieval-index deletion are future D.1 contract work.
+Recall is explicit-action only. The client must not automatically remember intake results, image conversations, or Context Snapshot payloads. `remember` and `forget` actions should be shown to the user and confirmed before submission; `use_once` may be submitted directly for current-task use and must not create a persisted Recall item. D.1 adds browse/search/export foundations and deletion receipts for runtime-owned retrieval indexes. Storage remains runtime-owned: the iPhone can request Recall operations, but it does not own the database, retention policy, or retrieval index.
 
 `POST /mobile/v1/recall/actions`
 
@@ -436,10 +703,100 @@ When both `source_task_id` and `source_inbox_item_id` are present on a `forget` 
 
 `GET /mobile/v1/recall/items`
 
+Optional query parameters:
+
+- `query`: user-entered search text. The runtime may match summary, extracted text, and provenance labels.
+- `limit`: positive integer result limit. Clients should default to 25 when showing a browse surface.
+
 Response:
 
 ```json
 {
+  "items": [
+    {
+      "item_id": "recall_0001",
+      "summary": "Remember that launch summaries should be in Chinese.",
+      "created_at": "2026-06-05T00:00:00Z",
+      "provenance": {
+        "source_task_id": "task_intake_01"
+      }
+    }
+  ]
+}
+```
+
+`POST /mobile/v1/recall/search`
+
+Semantic Recall search is additive to the D.1 browse endpoint. Clients should use it for non-empty user search queries and fall back to `GET /mobile/v1/recall/items?query=...&limit=...` if the runtime does not support semantic search. Runtime Kit provides deterministic local scoring by default and can route ranking through an explicitly configured runtime-owned provider such as `runtime_http`; provider errors fall back to deterministic local scoring when safe. P3.21 adds a read-only `recall-retrieval-readiness` Runtime Kit artifact for production packaging materials, and P3.26 adds `recall-retrieval-material-intake` for reviewing a local host/runtime-supplied materials manifest. Neither artifact changes this Mobile Bridge request or response shape, invokes providers, fetches refs, exposes provider endpoints/keys to iPhone, or includes retrieval internals in Recall export.
+
+Request:
+
+```json
+{
+  "query": "launch summary language",
+  "limit": 5,
+  "context": {
+    "source_surface": "voice",
+    "source_task_id": "task_123"
+  }
+}
+```
+
+Response:
+
+```json
+{
+  "query": "launch summary language",
+  "mode": "semantic",
+  "retrieval_mode": "provider_backed",
+  "items": [
+    {
+      "item": {
+        "item_id": "recall_0001",
+        "summary": "Answer launch summaries in Chinese.",
+        "created_at": "2026-06-05T09:30:00Z",
+        "provenance": {
+          "source_task_id": "task_123"
+        }
+      },
+      "score": 0.91,
+      "match_reason": "Matched Recall terms: launch, summary."
+    }
+  ]
+}
+```
+
+`mode` remains `semantic` for Swift/client compatibility. `retrieval_mode` is additive and may be `local_deterministic` or `provider_backed`. `score` is a runtime-owned ranking signal for ordering and diagnostics. Clients may show `match_reason`, but should not show raw score unless product design explicitly calls for it. Search responses are allowlisted to `item`, `score`, and `match_reason`; they must not include raw embeddings, retrieval-index rows, provider endpoints, provider keys, hidden prompts, SQLite paths, raw provider responses, or unrelated task logs. Runtime-side provider requests are likewise limited to the query, limit, and sanitized Recall candidates; outbound provenance is allowlisted to `source_task_id`, `source_inbox_item_id`, and `source_surface`.
+
+`GET /mobile/v1/recall/export`
+
+Exports a JSON package of the user-visible Recall metadata, summaries, timestamps, and provenance currently retained by the runtime. The export is a Recall API response, not a database dump. P3.20 adds additive `schema_version` and `artifact_policy` fields so host/runtime tests can verify the export boundary while older Swift clients can continue decoding `format`, `generated_at`, and `items`. Provider keys, provider endpoints, hidden model prompts, bearer/mobile tokens, SQLite paths, raw embeddings, retrieval-index rows, raw provider responses, and unrelated task logs must never be exported through this endpoint.
+
+Response:
+
+```json
+{
+  "schema_version": "kaka.recall_export.v1",
+  "format": "json",
+  "generated_at": "2026-06-05T10:00:00Z",
+  "artifact_policy": {
+    "classification": "user_recall_export",
+    "artifact_kind": "recall_export_json",
+    "runtime_owned_source": true,
+    "database_dump": false,
+    "phone_safe": true,
+    "item_fields": ["item_id", "summary", "created_at", "provenance"],
+    "provenance_fields": ["source_task_id", "source_inbox_item_id", "source_surface"],
+    "forbidden_fields": [
+      "raw_embeddings",
+      "retrieval_index_rows",
+      "provider_keys",
+      "bearer_tokens",
+      "runtime_store_path",
+      "hidden_prompts",
+      "raw_provider_responses"
+    ]
+  },
   "items": [
     {
       "item_id": "recall_0001",
@@ -460,15 +817,26 @@ Response:
 ```json
 {
   "status": "forgotten",
-  "deleted_item_ids": ["recall_0001"]
+  "deleted_item_ids": ["recall_0001"],
+  "deleted_index_ids": ["embedding_recall_0001"]
 }
 ```
 
-Repeated delete calls should be deterministic and return an empty `deleted_item_ids` array once there is no matching item.
+Repeated delete calls should be deterministic and return empty `deleted_item_ids` and `deleted_index_ids` arrays once there is no matching item. `deleted_index_ids` is a deletion receipt: it means the runtime removed retrieval-index records associated with the deleted Recall item. It is not a command for the iPhone to delete local index data.
 
 ## Runtime Task Inbox
 
 Task Inbox E.0 makes runtime work visible and controllable inside Kaka before App Intents or Live Activity are enabled.
+
+Task records and task events are also runtime-owned. After the Runtime Kit SQLite store is connected, task status, approvals, cancellation, completion state, and event history should survive bridge/server recreation when the bridge is launched with `--runtime-store-path`. The iPhone displays and acts on the Mobile Bridge responses; it does not become the production task-state store.
+
+P3.25 extends that runtime-owned task durability to safe result detail for
+completed photo-edit tasks. The detail endpoint may include rehydrated
+`variants`, `explanation`, and allowlisted recipe/status fields, but task list
+responses should continue to omit result detail. Store-backed event streams
+expose only `variant_count` for completed photo-edit tasks, not asset IDs,
+download URLs, runtime paths, provider endpoints, tokens, raw bytes, or private
+host data.
 
 `GET /mobile/v1/tasks`
 
@@ -536,11 +904,24 @@ Response:
 }
 ```
 
-Task Inbox E.0 is in-app only. App Intents and Live Activity should wait until task state, approval semantics, and cancellation semantics are stable.
+Task Inbox E.1 adds iOS system surfaces without changing the Mobile Bridge task API. App Intents open Kaka to visible Inbox or Tasks review surfaces through an app handoff; they do not submit inbox items, approve tasks, cancel tasks, collect Context Snapshot data, or change runtime/provider settings in the background. Approval and cancellation still go through the existing Mobile Bridge endpoints after the app shows the current task state.
+
+Action Button support reuses the same foreground App Intent handoff and only opens visible Inbox or Tasks review surfaces. It does not add Mobile Bridge fields, endpoints, or hidden task actions.
+
+Live Activity state is a phone-safe projection of runtime task state. The `title` value is generated by the iPhone from task phase and must not copy the runtime-controlled task title. The allowed system-surface fields are:
+
+- `task_id`
+- `title`
+- `phase`
+- `approval_needed`
+
+The projection must not include `message`, `progress`, `updated_at`, bearer tokens, provider endpoints or keys, hidden prompts, task logs, asset bytes, Context Snapshot fields, Recall content, embeddings, retrieval-index rows, or runtime SQLite paths.
+
+The WidgetKit Live Activity extension renders only this projection on the Lock Screen and Dynamic Island. It does not add task approval or cancellation endpoints; those actions still require opening Kaka and using the visible Task Inbox state.
 
 ## Pairing QR Payload
 
-The QR code encodes JSON:
+`GET /mobile/v1/pairing/qr` returns the current production QR JSON payload. `GET /mobile/v1/pairing/qr.html` renders a scannable QR page for the runtime-side UI. The QR code encodes JSON:
 
 ```json
 {
@@ -549,11 +930,18 @@ The QR code encodes JSON:
   "runtime": "hermes",
   "display_name": "Kartz MacBook Runtime",
   "pairing_code": "pair_01JPHOTO",
-  "expires_at": "2026-05-30T16:30:00Z"
+  "expires_at": "2026-05-30T16:30:00Z",
+  "trusted_local_tls_required": true,
+  "tls_public_key_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "tls_certificate_label": "Kaka Local Runtime"
 }
 ```
 
 The app must reject expired payloads and remote non-HTTPS endpoints before exchanging the code.
+When `trusted_local_tls_required` is true, the payload must use an HTTPS endpoint
+and include a valid `tls_public_key_sha256`; otherwise the app treats the pairing
+attempt as a certificate failure instead of silently falling back to default
+trust.
 
 ## Pairing Exchange
 
@@ -588,6 +976,20 @@ Server requirements:
 - Pairing codes are single-use.
 - The returned token is scoped to mobile bridge access.
 - The runtime can revoke tokens.
+
+## Pairing Revocation
+
+`POST /mobile/v1/pairing/revoke`
+
+The request requires the current bearer token. The runtime revokes that mobile token and returns:
+
+```json
+{
+  "status": "revoked"
+}
+```
+
+After revocation, every bearer-protected endpoint must return `401 unauthorized` for that token. Runtime-side Hermes/OpenClaw UI may expose a **Revoke iPhone** control backed by this lifecycle, but raw mobile tokens must not appear in phone-safe settings or logs.
 
 ## Asset Upload
 
