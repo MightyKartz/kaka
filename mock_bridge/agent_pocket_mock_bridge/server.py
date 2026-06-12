@@ -26,6 +26,7 @@ from agent_pocket_mock_bridge.app import (
     build_vision_provider,
     create_app,
 )
+from agent_pocket_mock_bridge.anthropic_provider import build_anthropic_provider
 from agent_pocket_mock_bridge.photo_providers import build_photo_provider
 from kaka_mobile_runtime_kit.pairing import (
     InMemoryPairingStore,
@@ -196,6 +197,7 @@ def create_http_server(
 def build_app_for_provider(
     photo_provider: str = "fixture",
     photo_pack_root: str = "photo-pack",
+    provider: str = "fake",
     vision_provider: str = "fixture",
     vision_endpoint: str = "",
     runtime_id: str = "hermes",
@@ -213,9 +215,15 @@ def build_app_for_provider(
     output_assets_days: int = DEFAULT_OUTPUT_ASSETS_DAYS,
     task_history_days: int = DEFAULT_TASK_HISTORY_DAYS,
 ) -> MockBridgeApp:
+    intelligence_provider = None
+    if provider == "anthropic":
+        intelligence_provider = build_anthropic_provider()
+    elif provider != "fake":
+        raise ValueError(f"Unsupported provider: {provider}")
     return create_app(
         photo_provider=build_photo_provider(photo_provider, photo_pack_root=photo_pack_root),
-        vision_provider=build_vision_provider(vision_provider, endpoint=vision_endpoint),
+        vision_provider=intelligence_provider or build_vision_provider(vision_provider, endpoint=vision_endpoint),
+        intake_provider=intelligence_provider,
         runtime_id=runtime_id,
         runtime_display_name=runtime_display_name,
         pairing_scheme=pairing_scheme,
@@ -354,6 +362,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--tls-private-key-path", default="")
     parser.add_argument("--runtime", default="hermes", help="Runtime identifier published through Bonjour.")
     parser.add_argument(
+        "--provider",
+        default="fake",
+        choices=["fake", "anthropic"],
+        help="General intelligence provider for vision and intake. Default keeps deterministic fake behavior.",
+    )
+    parser.add_argument(
         "--photo-provider",
         default="fixture",
         choices=["fixture", "script", "recipe_local", "openai"],
@@ -483,6 +497,8 @@ def main(argv=None) -> int:
 
 def validate_server_config(args: argparse.Namespace) -> List[str]:
     errors: List[str] = []
+    if str(getattr(args, "provider", "fake")).strip() == "anthropic" and not os.environ.get("ANTHROPIC_API_KEY"):
+        errors.append("--provider anthropic requires ANTHROPIC_API_KEY in the runtime environment.")
     if (
         str(getattr(args, "recall_search_provider", "")).strip() == "runtime_http"
         and not str(getattr(args, "recall_search_endpoint", "")).strip()
@@ -569,10 +585,23 @@ def _build_app_with_optional_vision(args: argparse.Namespace) -> MockBridgeApp:
         "task_history_days": int(getattr(args, "task_history_days", DEFAULT_TASK_HISTORY_DAYS)),
     }
     recall_kwargs = _recall_search_kwargs_from_args(args)
+    intelligence_provider = str(getattr(args, "provider", "fake")).strip() or "fake"
+    if intelligence_provider == "anthropic":
+        return build_app_for_provider(
+            args.photo_provider,
+            photo_pack_root=args.photo_pack_root,
+            provider=intelligence_provider,
+            **runtime_kwargs,
+            **retention_kwargs,
+            **recall_kwargs,
+            **store_kwargs,
+            **pairing_kwargs,
+        )
     if args.vision_provider == "fixture" and not args.vision_endpoint:
         return build_app_for_provider(
             args.photo_provider,
             photo_pack_root=args.photo_pack_root,
+            provider=intelligence_provider,
             **runtime_kwargs,
             **retention_kwargs,
             **recall_kwargs,
@@ -582,6 +611,7 @@ def _build_app_with_optional_vision(args: argparse.Namespace) -> MockBridgeApp:
     return build_app_for_provider(
         args.photo_provider,
         photo_pack_root=args.photo_pack_root,
+        provider=intelligence_provider,
         vision_provider=args.vision_provider,
         vision_endpoint=args.vision_endpoint,
         **runtime_kwargs,

@@ -62,6 +62,38 @@ PYTHONPATH=mock_bridge python3 -m agent_pocket_mock_bridge.server \
 
 The mock bridge publishes `_agent-pocket._tcp` with a runtime identifier such as `hermes` or `openclaw` and the development `pair_dev` pairing code. If the advertised code was already used, Agent Pocket refreshes `/mobile/v1/pairing/dev` and retries with the current local QA code.
 
+## 使用真实 Claude API 运行
+
+The mock bridge can be started as a minimal real runtime for vision and intake by explicitly opting in to the Anthropic provider. The default remains deterministic fake behavior for CI and local tests.
+
+Install the official SDK in the runtime Python environment:
+
+```bash
+python3 -m pip install anthropic
+```
+
+Set the API key only in the runtime process environment:
+
+```bash
+export ANTHROPIC_API_KEY=<your-anthropic-api-key>
+export KAKA_MODEL=claude-opus-4-8
+```
+
+`KAKA_MODEL` is optional and defaults to `claude-opus-4-8`; the provider uses `max_tokens=16000` by default.
+
+Start the bridge with the explicit provider flag:
+
+```bash
+PYTHONPATH=mock_bridge:runtime-kit python3 -m agent_pocket_mock_bridge.server \
+  --host 127.0.0.1 \
+  --port 8765 \
+  --provider anthropic
+```
+
+For LAN testing, use the same `--provider anthropic` flag with the existing `--host 0.0.0.0`, `--bonjour`, and `--bonjour-host` options. If `ANTHROPIC_API_KEY` is missing, startup fails with a configuration error instead of falling back to fake responses.
+
+The key stays on the Mac/runtime side. The iPhone continues to call only `/mobile/v1`, and Mobile Bridge requests, responses, pairing payloads, QA status, and task results must never contain `ANTHROPIC_API_KEY` or raw provider responses.
+
 ## First iPhone Connection
 
 The first-run connection flow is user-initiated:
