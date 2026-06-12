@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import html
+import inspect
 import json
 import threading
 from dataclasses import dataclass
@@ -137,6 +138,25 @@ class VisionProvider(Protocol):
         mode: str,
         instruction: str,
         locale: Optional[str],
+    ) -> Mapping[str, Any]:
+        ...
+
+
+class IntakeProvider(Protocol):
+    def image_intake(
+        self,
+        source_bytes: bytes,
+        mime_type: str,
+        locale: Optional[str] = None,
+    ) -> Mapping[str, Any]:
+        ...
+
+    def universal_intake(
+        self,
+        intake_type: str,
+        payload: Mapping[str, Any],
+        source_bytes: Optional[bytes] = None,
+        mime_type: str = "",
     ) -> Mapping[str, Any]:
         ...
 
@@ -496,6 +516,7 @@ class MockBridgeApp:
         mobile_token: str = DEV_MOBILE_TOKEN,
         photo_provider: Optional[PhotoProvider] = None,
         vision_provider: Optional[VisionProvider] = None,
+        intake_provider: Optional[IntakeProvider] = None,
         advertised_endpoint: str = "",
         runtime_id: str = "hermes",
         runtime_display_name: str = DEV_DISPLAY_NAME,
@@ -515,6 +536,7 @@ class MockBridgeApp:
         self.mobile_token = mobile_token
         self.photo_provider = photo_provider or FixturePhotoProvider()
         self.vision_provider = vision_provider or FixtureVisionProvider()
+        self.intake_provider = intake_provider
         self.advertised_endpoint = advertised_endpoint.strip().rstrip("/")
         self.runtime_id = runtime_id.strip() or "hermes"
         self.runtime_display_name = runtime_display_name.strip() or DEV_DISPLAY_NAME
@@ -1159,12 +1181,12 @@ class MockBridgeApp:
                 "image_intake": {
                     "max_upload_mb": 30,
                     "accepted_mime_types": ["image/jpeg", "image/heic", "image/png"],
-                    "provider": "heuristic_image_intake",
+                    "provider": self._image_intake_provider_name(),
                     "supports_sse": True,
                 },
                 "intake": {
                     "accepted_types": ["text", "url", "image", "pdf"],
-                    "provider": "heuristic_universal_intake",
+                    "provider": self._intake_provider_name(),
                     "supports_context_snapshot": True,
                     "supports_voice_followup": True,
                     "supports_recall_actions": True,
@@ -1319,13 +1341,16 @@ class MockBridgeApp:
         task_id = self._next_task_id()
         provider_name = self._vision_provider_name()
         try:
+            analyze_kwargs: Dict[str, Any] = {
+                "source_bytes": source_asset["bytes"],
+                "mode": mode,
+                "instruction": str(payload.get("instruction", "")),
+                "locale": payload.get("locale"),
+            }
+            if "mime_type" in inspect.signature(self.vision_provider.analyze).parameters:
+                analyze_kwargs["mime_type"] = str(source_asset.get("mime_type", ""))
             vision_result = _sanitize_vision_result(
-                self.vision_provider.analyze(
-                    source_bytes=source_asset["bytes"],
-                    mode=mode,
-                    instruction=str(payload.get("instruction", "")),
-                    locale=payload.get("locale"),
-                )
+                self.vision_provider.analyze(**analyze_kwargs)
             )
         except Exception:
             task = {
@@ -1376,6 +1401,7 @@ class MockBridgeApp:
             return self._error("not_found", "The source asset does not exist.", 404)
 
         task_id = self._next_task_id()
+        provider_name = self._image_intake_provider_name()
         try:
             image_intake = self._build_image_intake_result_for_asset(asset_id, payload)
         except Exception:
@@ -1385,7 +1411,7 @@ class MockBridgeApp:
                 "progress": 1.0,
                 "message": "The image intake provider failed. Check runtime logs.",
                 "failure_code": "image_intake_failed",
-                "provider": "heuristic_image_intake",
+                "provider": provider_name,
                 "result_type": "image_intake",
             }
             self.tasks[task_id] = task
@@ -1405,7 +1431,7 @@ class MockBridgeApp:
             "message": "Completed.",
             "result_type": "image_intake",
             "image_intake": image_intake,
-            "provider": "heuristic_image_intake",
+            "provider": provider_name,
         }
         self.tasks[task_id] = task
         self._store_runtime_task(task)
@@ -1435,6 +1461,7 @@ class MockBridgeApp:
             return self._error("invalid_intake_payload", "URL intake requires a non-empty url field.", 400)
 
         task_id = self._next_task_id()
+        provider_name = self._intake_provider_name()
         try:
             intake = self._build_universal_intake_result(intake_type, payload)
         except Exception:
@@ -1444,7 +1471,7 @@ class MockBridgeApp:
                 "progress": 1.0,
                 "message": "The universal intake provider failed. Check runtime logs.",
                 "failure_code": "intake_failed",
-                "provider": "heuristic_universal_intake",
+                "provider": provider_name,
                 "result_type": "intake",
             }
             self.tasks[task_id] = task
@@ -1458,7 +1485,7 @@ class MockBridgeApp:
             "message": "Completed.",
             "result_type": "intake",
             "intake": intake,
-            "provider": "heuristic_universal_intake",
+            "provider": provider_name,
         }
         image_intake = intake.get("image_intake")
         if isinstance(image_intake, Mapping):
@@ -2022,6 +2049,39 @@ class MockBridgeApp:
 
     def _build_universal_intake_result(self, intake_type: str, payload: Mapping[str, Any]) -> Dict[str, Any]:
         metadata = self._universal_intake_metadata(payload)
+        if self.intake_provider is not None:
+            asset = self._get_asset(self._source_asset_id(payload))
+            source_bytes = asset.get("bytes") if asset is not None else None
+            mime_type = str(metadata.get("mime_type") or (asset or {}).get("mime_type") or "")
+            result = _sanitize_universal_intake_result(
+                self.intake_provider.universal_intake(
+                    intake_type=intake_type,
+                    payload=payload,
+                    source_bytes=source_bytes,
+                    mime_type=mime_type,
+                ),
+                fallback_title=f"{intake_type.title()} ready",
+                fallback_summary="Kaka received this item for runtime intake.",
+            )
+            result.update(
+                {
+                    "kind": intake_type,
+                    "type": intake_type,
+                    "metadata": metadata,
+                }
+            )
+            image_intake = result.get("image_intake")
+            if isinstance(image_intake, Mapping):
+                result["image_intake"] = _sanitize_image_intake_result(
+                    image_intake,
+                    fallback_title=str(result.get("title", "Image ready")),
+                    fallback_summary=str(result.get("summary", "Kaka can inspect this image.")),
+                )
+                result["image_intake"]["suggestions"] = self._capability_aware_intake_suggestions(
+                    result["image_intake"].get("suggestions", [])
+                )
+            return result
+
         if intake_type == "text":
             text_value = self._source_text(payload)
             result = {
@@ -2083,6 +2143,18 @@ class MockBridgeApp:
         source_asset = self._get_asset(asset_id)
         if source_asset is None:
             raise KeyError(asset_id)
+        if self.intake_provider is not None:
+            image_intake = _sanitize_image_intake_result(
+                self.intake_provider.image_intake(
+                    source_bytes=source_asset["bytes"],
+                    mime_type=str(source_asset.get("mime_type", "")),
+                    locale=payload.get("locale"),
+                )
+            )
+            image_intake["suggestions"] = self._capability_aware_intake_suggestions(
+                image_intake.get("suggestions", [])
+            )
+            return image_intake
         image_intake = dict(
             build_image_intake_result(
                 image_bytes=source_asset["bytes"],
@@ -2408,6 +2480,22 @@ class MockBridgeApp:
             return str(explicit)
         return type(self.vision_provider).__name__
 
+    def _image_intake_provider_name(self) -> str:
+        if self.intake_provider is None:
+            return "heuristic_image_intake"
+        explicit = getattr(self.intake_provider, "provider_name", None)
+        if explicit:
+            return str(explicit)
+        return type(self.intake_provider).__name__
+
+    def _intake_provider_name(self) -> str:
+        if self.intake_provider is None:
+            return "heuristic_universal_intake"
+        explicit = getattr(self.intake_provider, "provider_name", None)
+        if explicit:
+            return str(explicit)
+        return type(self.intake_provider).__name__
+
     def _count_request(self, name: str) -> None:
         self.request_counts[name] = self.request_counts.get(name, 0) + 1
 
@@ -2479,6 +2567,113 @@ def _safe_match_reason(value: Any) -> str:
     text = str(value or "").strip()
     if not text or _contains_runtime_secret_marker(text):
         return "Matched runtime Recall provider."
+    return text
+
+
+def _sanitize_image_intake_result(
+    value: Mapping[str, Any],
+    fallback_title: str = "Image ready",
+    fallback_summary: str = "Kaka can inspect this image and suggest visual skills.",
+) -> Dict[str, Any]:
+    image_type = str(value.get("image_type") or value.get("type") or "photo").strip() or "photo"
+    title = _safe_provider_text(value.get("title"), fallback_title)
+    summary = _safe_provider_text(value.get("summary"), fallback_summary)
+    return {
+        "image_type": image_type,
+        "title": title,
+        "summary": summary,
+        "confidence": _safe_confidence(value.get("confidence"), default=0.5),
+        "suggestions": _sanitize_image_intake_suggestions(value.get("suggestions")),
+    }
+
+
+def _sanitize_image_intake_suggestions(value: Any) -> List[Dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    suggestions: List[Dict[str, Any]] = []
+    for raw_suggestion in value:
+        if not isinstance(raw_suggestion, Mapping):
+            continue
+        skill = str(raw_suggestion.get("skill", "")).strip()
+        title = _safe_provider_text(raw_suggestion.get("title"), skill.replace("_", " ").title())
+        if not skill or not title:
+            continue
+        suggestion: Dict[str, Any] = {
+            "skill": skill,
+            "title": title,
+            "reason": _safe_provider_text(raw_suggestion.get("reason"), ""),
+            "confidence": _safe_confidence(raw_suggestion.get("confidence"), default=0.5),
+            "is_available": bool(raw_suggestion.get("is_available", True)),
+        }
+        suggestions.append(suggestion)
+    return suggestions
+
+
+def _sanitize_universal_intake_result(
+    value: Mapping[str, Any],
+    fallback_title: str,
+    fallback_summary: str,
+) -> Dict[str, Any]:
+    result: Dict[str, Any] = {
+        "title": _safe_provider_text(value.get("title"), fallback_title),
+        "summary": _safe_provider_text(value.get("summary"), fallback_summary),
+        "suggestions": _sanitize_universal_intake_suggestions(value.get("suggestions")),
+    }
+    image_intake = value.get("image_intake")
+    if isinstance(image_intake, Mapping):
+        result["image_intake"] = dict(image_intake)
+    return result
+
+
+def _sanitize_universal_intake_suggestions(value: Any) -> List[Dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    suggestions: List[Dict[str, Any]] = []
+    for raw_suggestion in value:
+        if not isinstance(raw_suggestion, Mapping):
+            continue
+        suggestion_id = str(raw_suggestion.get("id", raw_suggestion.get("skill", ""))).strip()
+        label = _safe_provider_text(raw_suggestion.get("label", raw_suggestion.get("title")), "")
+        if not suggestion_id or not label:
+            continue
+        suggestions.append(
+            {
+                "id": suggestion_id,
+                "label": label,
+                "requires_confirmation": bool(raw_suggestion.get("requires_confirmation", False)),
+                "is_available": bool(raw_suggestion.get("is_available", True)),
+            }
+        )
+    return suggestions
+
+
+def _safe_confidence(value: Any, default: float) -> float:
+    try:
+        confidence = float(value)
+    except (TypeError, ValueError):
+        confidence = default
+    return round(max(0.0, min(1.0, confidence)), 2)
+
+
+def _safe_provider_text(value: Any, fallback: str) -> str:
+    if value is None:
+        return fallback
+    text = str(value).strip()
+    if not text:
+        return fallback
+    lowered = text.lower()
+    unsafe_markers = (
+        "anthropic_api_key",
+        "openai_api_key",
+        "api_key",
+        "bearer ",
+        "sk-",
+        "raw_provider_response",
+        "hidden_prompt",
+        "task_logs",
+    )
+    if any(marker in lowered for marker in unsafe_markers):
+        return fallback
     return text
 
 
@@ -2586,6 +2781,7 @@ def create_app(
     mobile_token: str = DEV_MOBILE_TOKEN,
     photo_provider: Optional[PhotoProvider] = None,
     vision_provider: Optional[VisionProvider] = None,
+    intake_provider: Optional[IntakeProvider] = None,
     advertised_endpoint: str = "",
     runtime_id: str = "hermes",
     runtime_display_name: str = DEV_DISPLAY_NAME,
@@ -2607,6 +2803,7 @@ def create_app(
         mobile_token=mobile_token,
         photo_provider=photo_provider,
         vision_provider=vision_provider,
+        intake_provider=intake_provider,
         advertised_endpoint=advertised_endpoint,
         runtime_id=runtime_id,
         runtime_display_name=runtime_display_name,
