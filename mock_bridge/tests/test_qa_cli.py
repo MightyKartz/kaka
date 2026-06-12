@@ -934,6 +934,51 @@ def test_cli_smoke_real_provider_real_requires_anthropic_key(capsys, monkeypatch
     assert "ANTHROPIC_API_KEY" in report["error"]["message"]
 
 
+def test_cli_smoke_real_provider_hermes_requires_hermes_key(capsys, monkeypatch):
+    monkeypatch.delenv("KAKA_HERMES_API_KEY", raising=False)
+
+    exit_code = main(["smoke-real-provider", "--provider", "hermes"])
+
+    report = json.loads(capsys.readouterr().err)
+    assert exit_code == 2
+    assert report["ok"] is False
+    assert report["mode"] == "hermes"
+    assert report["provider"] == "hermes"
+    assert report["error"]["code"] == "missing_hermes_api_key"
+    assert "KAKA_HERMES_API_KEY" in report["error"]["message"]
+
+
+def test_cli_smoke_real_provider_hermes_dispatches_manual_provider(monkeypatch, capsys):
+    captured = {}
+    monkeypatch.setenv("KAKA_HERMES_API_KEY", "secret-runtime-key")
+
+    def fake_smoke_real_provider(**kwargs):
+        captured.update(kwargs)
+        return {
+            "schema_version": "kaka.smoke_real_provider.v1",
+            "surface": "mock_bridge_server_smoke",
+            "ok": True,
+            "mode": kwargs["mode"],
+            "provider": "hermes",
+            "base_url": "http://127.0.0.1:8765",
+            "steps": [],
+            "artifacts": {},
+            "tasks": {},
+            "recall": {},
+        }
+
+    monkeypatch.setattr(qa_module, "run_smoke_real_provider", fake_smoke_real_provider)
+
+    exit_code = main(["smoke-real-provider", "--provider", "hermes", "--timeout", "5"])
+
+    report = json.loads(capsys.readouterr().out)
+    rendered = json.dumps(report, sort_keys=True)
+    assert exit_code == 0
+    assert captured["mode"] == "hermes"
+    assert report["provider"] == "hermes"
+    assert "secret-runtime-key" not in rendered
+
+
 def test_build_physical_qa_commands_includes_bridge_launch_app_launch_and_waits():
     commands = build_physical_qa_commands(
         host="192.0.2.10",

@@ -1,8 +1,10 @@
 from pathlib import Path
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 import subprocess
 import sys
+import threading
 
 import pytest
 
@@ -136,6 +138,46 @@ def test_runtime_bridge_anthropic_provider_lan_bonjour_sqlite_dry_run_command(tm
     assert "secret-runtime-key" not in rendered
 
 
+def test_runtime_bridge_hermes_provider_lan_bonjour_sqlite_dry_run_command(tmp_path, capsys, monkeypatch):
+    store_path = tmp_path / "kaka-runtime.sqlite3"
+    monkeypatch.setenv("KAKA_HERMES_API_KEY", "secret-runtime-key")
+    monkeypatch.setenv("KAKA_HERMES_BASE_URL", "http://127.0.0.1:8642/v1")
+    monkeypatch.setenv("KAKA_HERMES_MODEL", "jiqimao")
+
+    exit_code = main(
+        [
+            "start",
+            "--provider",
+            "hermes",
+            "--runtime-store-path",
+            str(store_path),
+            "--lan",
+            "--bonjour",
+            "--bonjour-host",
+            "192.168.1.10",
+            "--dry-run",
+        ]
+    )
+
+    summary = json.loads(capsys.readouterr().out)
+    command = summary["command"]
+    rendered = json.dumps(summary, sort_keys=True)
+    assert exit_code == 0
+    assert summary["provider"] == "hermes"
+    assert command[command.index("--provider") + 1] == "hermes"
+    assert command[command.index("--runtime-store-path") + 1] == str(store_path)
+    assert command[command.index("--host") + 1] == "0.0.0.0"
+    assert "--bonjour" in command
+    assert command[command.index("--bonjour-host") + 1] == "192.168.1.10"
+    assert summary["provider_environment"]["api_key_env_var"] == "KAKA_HERMES_API_KEY"
+    assert summary["provider_environment"]["api_key_state"] == "set"
+    assert summary["provider_environment"]["base_url_env_var"] == "KAKA_HERMES_BASE_URL"
+    assert summary["provider_environment"]["base_url"] == "http://127.0.0.1:8642/v1"
+    assert summary["provider_environment"]["model_env_var"] == "KAKA_HERMES_MODEL"
+    assert summary["provider_environment"]["model_state"] == "set"
+    assert "secret-runtime-key" not in rendered
+
+
 def test_runtime_start_requires_anthropic_key_outside_dry_run(capsys, monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
@@ -145,6 +187,17 @@ def test_runtime_start_requires_anthropic_key_outside_dry_run(capsys, monkeypatc
     assert exit_code == 2
     assert "ANTHROPIC_API_KEY" in captured.err
     assert "anthropic" in captured.err
+
+
+def test_runtime_start_requires_hermes_key_outside_dry_run(capsys, monkeypatch):
+    monkeypatch.delenv("KAKA_HERMES_API_KEY", raising=False)
+
+    exit_code = main(["start", "--provider", "hermes"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert "KAKA_HERMES_API_KEY" in captured.err
+    assert "hermes" in captured.err
 
 
 def test_runtime_start_dry_run_warns_without_anthropic_key(capsys, monkeypatch):
@@ -161,6 +214,25 @@ def test_runtime_start_dry_run_warns_without_anthropic_key(capsys, monkeypatch):
         {
             "id": "missing_anthropic_api_key",
             "message": "Set ANTHROPIC_API_KEY in the runtime environment before starting without --dry-run.",
+        }
+    ]
+
+
+def test_runtime_start_dry_run_warns_without_hermes_key(capsys, monkeypatch):
+    monkeypatch.delenv("KAKA_HERMES_API_KEY", raising=False)
+
+    exit_code = main(["start", "--provider", "hermes", "--dry-run"])
+
+    summary = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert summary["provider"] == "hermes"
+    assert summary["provider_environment"]["api_key_env_var"] == "KAKA_HERMES_API_KEY"
+    assert summary["provider_environment"]["api_key_state"] == "missing"
+    assert summary["provider_environment"]["base_url"] == "http://127.0.0.1:8642/v1"
+    assert summary["warnings"] == [
+        {
+            "id": "missing_hermes_api_key",
+            "message": "Set KAKA_HERMES_API_KEY in the runtime environment before starting without --dry-run.",
         }
     ]
 
@@ -454,6 +526,26 @@ def test_runtime_settings_preview_anthropic_provider_reports_env_name_without_se
     assert preview["provider_environment"]["api_key_state"] == "set"
     assert controls["provider"]["value"] == "anthropic"
     assert controls["provider_environment"]["value"]["api_key_env_var"] == "ANTHROPIC_API_KEY"
+    assert "--provider" in preview["actions"]["start_bridge"]
+    assert "secret-runtime-key" not in rendered
+
+
+def test_runtime_settings_preview_hermes_provider_reports_base_url_without_secret(monkeypatch):
+    monkeypatch.setenv("KAKA_HERMES_API_KEY", "secret-runtime-key")
+    monkeypatch.setenv("KAKA_HERMES_BASE_URL", "http://127.0.0.1:8642/v1/")
+
+    preview = build_runtime_settings_preview(BridgeConfig(provider="hermes"))
+
+    rendered = json.dumps(preview, sort_keys=True)
+    controls = preview["runtime_side_ui"]["controls"]
+    assert preview["provider"] == "hermes"
+    assert preview["provider_environment"]["api_key_env_var"] == "KAKA_HERMES_API_KEY"
+    assert preview["provider_environment"]["api_key_state"] == "set"
+    assert preview["provider_environment"]["base_url_env_var"] == "KAKA_HERMES_BASE_URL"
+    assert preview["provider_environment"]["base_url"] == "http://127.0.0.1:8642/v1"
+    assert controls["provider"]["value"] == "hermes"
+    assert controls["provider"]["options"] == ["fake", "anthropic", "hermes"]
+    assert controls["provider_environment"]["value"]["base_url"] == "http://127.0.0.1:8642/v1"
     assert "--provider" in preview["actions"]["start_bridge"]
     assert "secret-runtime-key" not in rendered
 
@@ -782,7 +874,7 @@ def test_runtime_settings_preview_freezes_control_contract_defaults():
     assert controls["provider"] == {
         "kind": "menu",
         "value": "fake",
-        "options": ["fake", "anthropic"],
+        "options": ["fake", "anthropic", "hermes"],
     }
     assert controls["provider_environment"]["kind"] == "status"
     assert controls["provider_environment"]["value"] == {
@@ -1735,6 +1827,79 @@ def test_doctor_report_checks_anthropic_provider_key_without_printing_secret():
 
     assert report["checks"]["anthropic_provider"]["ok"] is True
     assert report["checks"]["anthropic_provider"]["env_var"] == "ANTHROPIC_API_KEY"
+    assert "secret-runtime-key" not in rendered
+
+
+def test_doctor_report_checks_hermes_health_with_bearer_without_printing_secret():
+    received = {}
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, format, *args):
+            return
+
+        def do_GET(self):
+            received["path"] = self.path
+            received["authorization"] = self.headers.get("Authorization", "")
+            body = json.dumps({"ok": True}).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base_url = f"http://127.0.0.1:{server.server_address[1]}/v1"
+
+    try:
+        report = doctor_report(
+            Path("."),
+            photo_pack_root="photo-pack",
+            provider="hermes",
+            env={
+                "KAKA_HERMES_API_KEY": "secret-runtime-key",
+                "KAKA_HERMES_BASE_URL": base_url,
+            },
+        )
+    finally:
+        server.shutdown()
+        thread.join(timeout=2)
+        server.server_close()
+
+    rendered = json.dumps(report, sort_keys=True)
+    check = report["checks"]["hermes_provider"]
+    assert report["ok"] is True
+    assert check["ok"] is True
+    assert check["env_var"] == "KAKA_HERMES_API_KEY"
+    assert check["base_url"] == base_url
+    assert check["health_url"] == f"{base_url.removesuffix('/v1')}/health"
+    assert check["health_probe"] == "reachable"
+    assert received == {
+        "path": "/health",
+        "authorization": "Bearer secret-runtime-key",
+    }
+    assert "secret-runtime-key" not in rendered
+
+
+def test_doctor_report_hermes_unreachable_prompts_manual_api_server_enablement():
+    report = doctor_report(
+        Path("."),
+        photo_pack_root="photo-pack",
+        provider="hermes",
+        env={
+            "KAKA_HERMES_API_KEY": "secret-runtime-key",
+            "KAKA_HERMES_BASE_URL": "http://127.0.0.1:9/v1",
+        },
+    )
+
+    rendered = json.dumps(report, ensure_ascii=False, sort_keys=True)
+    check = report["checks"]["hermes_provider"]
+    assert report["ok"] is False
+    assert check["ok"] is False
+    assert check["health_probe"] == "unreachable"
+    assert "需要手动启用 Hermes API server" in check["detail"]
+    assert "docs/hermes-local-integration-notes.md" in check["detail"]
     assert "secret-runtime-key" not in rendered
 
 

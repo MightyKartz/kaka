@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from ipaddress import ip_address
 from pathlib import Path
 from typing import Mapping, Sequence
+from urllib import error as urllib_error
+from urllib import request as urllib_request
 from urllib.parse import urlsplit
 
 from .host_adapter import (
@@ -54,10 +56,12 @@ DEFAULT_BONJOUR_NAME = "Kaka Mobile Bridge"
 DEFAULT_INPUT_ASSETS_DAYS = 7
 DEFAULT_OUTPUT_ASSETS_DAYS = 30
 DEFAULT_TASK_HISTORY_DAYS = 30
+DEFAULT_HERMES_BASE_URL = "http://127.0.0.1:8642/v1"
+HERMES_SETUP_DOC = "docs/hermes-local-integration-notes.md"
 RETENTION_MIN_DAYS = 1
 RETENTION_MAX_DAYS = 3650
 PROVIDER_CHOICES = ("fixture", "script", "recipe_local", "openai")
-INTELLIGENCE_PROVIDER_CHOICES = ("fake", "anthropic")
+INTELLIGENCE_PROVIDER_CHOICES = ("fake", "anthropic", "hermes")
 VISION_PROVIDER_CHOICES = ("fixture", "runtime_http")
 RECALL_SEARCH_PROVIDER_CHOICES = ("local", "fixture", "runtime_http")
 PAIRING_MODE_CHOICES = ("development", "production")
@@ -264,6 +268,23 @@ def build_provider_environment_summary(
             "model_env_var": "KAKA_MODEL",
             "default_model": "claude-opus-4-8",
         }
+    if config.provider == "hermes":
+        base_url = _hermes_base_url(values)
+        model = str(values.get("KAKA_HERMES_MODEL", "")).strip()
+        return {
+            "provider": "hermes",
+            "required_env_vars": ["KAKA_HERMES_API_KEY"],
+            "api_key_env_var": "KAKA_HERMES_API_KEY",
+            "api_key_state": "set" if str(values.get("KAKA_HERMES_API_KEY", "")).strip() else "missing",
+            "base_url_env_var": "KAKA_HERMES_BASE_URL",
+            "base_url_state": "set" if str(values.get("KAKA_HERMES_BASE_URL", "")).strip() else "default",
+            "base_url": base_url,
+            "default_base_url": DEFAULT_HERMES_BASE_URL,
+            "model_env_var": "KAKA_HERMES_MODEL",
+            "model_state": "set" if model else "model_discovery",
+            "default_model": "",
+            "setup_doc": HERMES_SETUP_DOC,
+        }
     return {
         "provider": config.provider,
         "required_env_vars": [],
@@ -286,7 +307,29 @@ def build_provider_warnings(config: BridgeConfig, env: Mapping[str, str] | None 
                 "message": "Set ANTHROPIC_API_KEY in the runtime environment before starting without --dry-run.",
             }
         ]
+    if (
+        config.provider == "hermes"
+        and provider_environment.get("api_key_state") == "missing"
+    ):
+        return [
+            {
+                "id": "missing_hermes_api_key",
+                "message": "Set KAKA_HERMES_API_KEY in the runtime environment before starting without --dry-run.",
+            }
+        ]
     return []
+
+
+def _hermes_base_url(values: Mapping[str, str]) -> str:
+    configured = str(values.get("KAKA_HERMES_BASE_URL", "")).strip() or DEFAULT_HERMES_BASE_URL
+    return configured.rstrip("/")
+
+
+def _hermes_health_url(base_url: str) -> str:
+    base = base_url.rstrip("/")
+    if base.endswith("/v1"):
+        base = base[:-3]
+    return f"{base}/health"
 
 
 def build_runtime_connection_security_summary(config: BridgeConfig) -> Mapping[str, object]:
@@ -1047,6 +1090,12 @@ def validate_start_config(
         and build_provider_environment_summary(config, env=env).get("api_key_state") == "missing"
     ):
         errors.append("--provider anthropic requires ANTHROPIC_API_KEY in the runtime environment.")
+    if (
+        require_provider_credentials
+        and config.provider == "hermes"
+        and build_provider_environment_summary(config, env=env).get("api_key_state") == "missing"
+    ):
+        errors.append("--provider hermes requires KAKA_HERMES_API_KEY in the runtime environment.")
     if config.photo_provider not in PROVIDER_CHOICES:
         errors.append(f"Unsupported photo provider: {config.photo_provider}")
     if config.vision_provider not in VISION_PROVIDER_CHOICES:
@@ -1174,15 +1223,97 @@ def doctor_report(
             "env_var": "ANTHROPIC_API_KEY",
             "required_for": "--provider anthropic",
         }
+    if provider == "hermes":
+        provider_environment = build_provider_environment_summary(BridgeConfig(provider=provider), env=env)
+        checks["hermes_provider"] = _doctor_hermes_provider_check(provider_environment, env=env)
     required = ("python", "mock_bridge_directory", "photo_pack_directory", "recipe_local_adapter", "mock_bridge_import")
     if provider == "anthropic":
         required = (*required, "anthropic_provider")
+    if provider == "hermes":
+        required = (*required, "hermes_provider")
     ok = all(bool(checks[name]["ok"]) for name in required)
     return {
         "ok": ok,
         "scope": "local Kaka Mobile Bridge launcher",
         "secrets": "not inspected or printed",
         "checks": checks,
+    }
+
+
+def _doctor_hermes_provider_check(
+    provider_environment: Mapping[str, object],
+    *,
+    env: Mapping[str, str] | None = None,
+) -> Mapping[str, object]:
+    values = os.environ if env is None else env
+    api_key = str(values.get("KAKA_HERMES_API_KEY", "")).strip()
+    base_url = str(provider_environment.get("base_url", DEFAULT_HERMES_BASE_URL)).rstrip("/")
+    health_url = _hermes_health_url(base_url)
+    common = {
+        "env_var": "KAKA_HERMES_API_KEY",
+        "base_url_env_var": "KAKA_HERMES_BASE_URL",
+        "base_url": base_url,
+        "health_url": health_url,
+        "setup_doc": HERMES_SETUP_DOC,
+        "required_for": "--provider hermes",
+    }
+    if not api_key:
+        return {
+            **common,
+            "ok": False,
+            "detail": "missing KAKA_HERMES_API_KEY in the runtime environment",
+            "health_probe": "skipped",
+        }
+
+    probe = _probe_hermes_health(health_url, api_key)
+    return {
+        **common,
+        **probe,
+    }
+
+
+def _probe_hermes_health(
+    health_url: str,
+    api_key: str,
+    timeout_seconds: float = 2.0,
+) -> Mapping[str, object]:
+    request = urllib_request.Request(
+        health_url,
+        headers={
+            "Accept": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+        method="GET",
+    )
+    try:
+        with urllib_request.urlopen(request, timeout=timeout_seconds) as response:
+            response.read(2048)
+            status = int(getattr(response, "status", 200))
+    except urllib_error.HTTPError as error:
+        return {
+            "ok": False,
+            "detail": f"Hermes API server /health returned HTTP {error.code}; check KAKA_HERMES_API_KEY and Hermes API server.",
+            "health_probe": "unhealthy",
+            "http_status": int(error.code),
+        }
+    except (urllib_error.URLError, TimeoutError, OSError) as error:
+        return {
+            "ok": False,
+            "detail": f"需要手动启用 Hermes API server; see {HERMES_SETUP_DOC}. ({type(error).__name__})",
+            "health_probe": "unreachable",
+        }
+    if 200 <= status < 300:
+        return {
+            "ok": True,
+            "detail": "Hermes API server /health is reachable.",
+            "health_probe": "reachable",
+            "http_status": status,
+        }
+    return {
+        "ok": False,
+        "detail": f"Hermes API server /health returned HTTP {status}; check Hermes API server.",
+        "health_probe": "unhealthy",
+        "http_status": status,
     }
 
 
