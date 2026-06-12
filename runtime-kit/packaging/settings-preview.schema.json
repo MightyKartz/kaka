@@ -8,6 +8,8 @@
     "surface",
     "bridge_enabled",
     "runtime",
+    "provider",
+    "provider_environment",
     "retention",
     "runtime_side_ui",
     "actions",
@@ -25,6 +27,54 @@
     },
     "runtime": {
       "type": "string"
+    },
+    "provider": {
+      "enum": [
+        "fake",
+        "anthropic"
+      ]
+    },
+    "provider_environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "required_env_vars",
+        "api_key_env_var",
+        "api_key_state",
+        "model_env_var",
+        "default_model"
+      ],
+      "properties": {
+        "provider": {
+          "enum": [
+            "fake",
+            "anthropic"
+          ]
+        },
+        "required_env_vars": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "api_key_env_var": {
+          "type": "string"
+        },
+        "api_key_state": {
+          "enum": [
+            "not_required",
+            "missing",
+            "set"
+          ]
+        },
+        "model_env_var": {
+          "type": "string"
+        },
+        "default_model": {
+          "type": "string"
+        }
+      }
     },
     "bind_url": {
       "type": "string"
@@ -177,6 +227,8 @@
             "uninstall_runtime_package",
             "open_runtime_logs",
             "run_health_check",
+            "provider",
+            "provider_environment",
             "repair_port_conflict",
             "bind_mode",
             "bonjour_enabled",
@@ -189,6 +241,87 @@
             "recall_search_endpoint"
           ],
           "properties": {
+            "provider": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "value",
+                "options"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "menu"
+                },
+                "value": {
+                  "enum": [
+                    "fake",
+                    "anthropic"
+                  ]
+                },
+                "options": {
+                  "const": [
+                    "fake",
+                    "anthropic"
+                  ]
+                }
+              }
+            },
+            "provider_environment": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "value"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "status"
+                },
+                "value": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "provider",
+                    "required_env_vars",
+                    "api_key_env_var",
+                    "api_key_state",
+                    "model_env_var",
+                    "default_model"
+                  ],
+                  "properties": {
+                    "provider": {
+                      "enum": [
+                        "fake",
+                        "anthropic"
+                      ]
+                    },
+                    "required_env_vars": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "api_key_env_var": {
+                      "type": "string"
+                    },
+                    "api_key_state": {
+                      "enum": [
+                        "not_required",
+                        "missing",
+                        "set"
+                      ]
+                    },
+                    "model_env_var": {
+                      "type": "string"
+                    },
+                    "default_model": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
             "input_assets_days": {
               "type": "object",
               "additionalProperties": false,

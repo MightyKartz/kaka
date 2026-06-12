@@ -57,6 +57,7 @@ DEFAULT_TASK_HISTORY_DAYS = 30
 RETENTION_MIN_DAYS = 1
 RETENTION_MAX_DAYS = 3650
 PROVIDER_CHOICES = ("fixture", "script", "recipe_local", "openai")
+INTELLIGENCE_PROVIDER_CHOICES = ("fake", "anthropic")
 VISION_PROVIDER_CHOICES = ("fixture", "runtime_http")
 RECALL_SEARCH_PROVIDER_CHOICES = ("local", "fixture", "runtime_http")
 PAIRING_MODE_CHOICES = ("development", "production")
@@ -115,6 +116,7 @@ class BridgeConfig:
     bonjour_name: str = DEFAULT_BONJOUR_NAME
     pairing_code: str = "pair_dev"
     runtime: str = "hermes"
+    provider: str = "fake"
     installed: bool = False
     start_with_runtime: bool = False
     process_state: str = "stopped"
@@ -172,13 +174,17 @@ def build_server_command(config: BridgeConfig) -> list[str]:
         str(config.port),
         "--runtime",
         config.runtime,
+    ]
+    if config.provider != "fake":
+        command.extend(["--provider", config.provider])
+    command.extend([
         "--photo-provider",
         config.photo_provider,
         "--photo-pack-root",
         config.photo_pack_root,
         "--vision-provider",
         config.vision_provider,
-    ]
+    ])
     if config.vision_endpoint:
         command.extend(["--vision-endpoint", config.vision_endpoint])
     if config.recall_search_provider != "local":
@@ -242,6 +248,45 @@ def build_phone_safe_runtime_summary(config: BridgeConfig) -> Mapping[str, objec
         if config.recall_search_provider != "local"
         else "local_deterministic",
     }
+
+
+def build_provider_environment_summary(
+    config: BridgeConfig,
+    env: Mapping[str, str] | None = None,
+) -> Mapping[str, object]:
+    values = os.environ if env is None else env
+    if config.provider == "anthropic":
+        return {
+            "provider": "anthropic",
+            "required_env_vars": ["ANTHROPIC_API_KEY"],
+            "api_key_env_var": "ANTHROPIC_API_KEY",
+            "api_key_state": "set" if str(values.get("ANTHROPIC_API_KEY", "")).strip() else "missing",
+            "model_env_var": "KAKA_MODEL",
+            "default_model": "claude-opus-4-8",
+        }
+    return {
+        "provider": config.provider,
+        "required_env_vars": [],
+        "api_key_env_var": "",
+        "api_key_state": "not_required",
+        "model_env_var": "",
+        "default_model": "",
+    }
+
+
+def build_provider_warnings(config: BridgeConfig, env: Mapping[str, str] | None = None) -> list[Mapping[str, str]]:
+    provider_environment = build_provider_environment_summary(config, env=env)
+    if (
+        config.provider == "anthropic"
+        and provider_environment.get("api_key_state") == "missing"
+    ):
+        return [
+            {
+                "id": "missing_anthropic_api_key",
+                "message": "Set ANTHROPIC_API_KEY in the runtime environment before starting without --dry-run.",
+            }
+        ]
+    return []
 
 
 def build_runtime_connection_security_summary(config: BridgeConfig) -> Mapping[str, object]:
@@ -522,6 +567,7 @@ def build_runtime_settings_preview(
     command = build_server_command(config)
     local_store_enabled = bool(config.runtime_store_path.strip())
     qr_ttl_seconds = min(max(int(config.pairing_code_ttl_seconds), 60), 300)
+    provider_environment = build_provider_environment_summary(config)
     consumer_ui = build_runtime_consumer_ui(
         config,
         bridge_enabled=bridge_enabled,
@@ -536,6 +582,8 @@ def build_runtime_settings_preview(
         "surface": "runtime_side_settings_preview",
         "bridge_enabled": bridge_enabled,
         "runtime": config.runtime,
+        "provider": config.provider,
+        "provider_environment": provider_environment,
         "bind_url": f"{config.scheme}://{config.bind_host}:{config.port}",
         "lan_exposed": config.lan,
         "bonjour": config.bonjour,
@@ -583,6 +631,15 @@ def build_runtime_settings_preview(
                     "kind": "button",
                     "style": "secondary",
                     "enabled": bridge_enabled,
+                },
+                "provider": {
+                    "kind": "menu",
+                    "value": config.provider,
+                    "options": list(INTELLIGENCE_PROVIDER_CHOICES),
+                },
+                "provider_environment": {
+                    "kind": "status",
+                    "value": provider_environment,
                 },
                 "repair_port_conflict": {
                     "kind": "button",
@@ -694,6 +751,10 @@ def build_runtime_settings_preview_command(
         str(config.port),
         "--runtime",
         config.runtime,
+    ]
+    if config.provider != "fake":
+        command.extend(["--provider", config.provider])
+    command.extend([
         "--photo-provider",
         config.photo_provider,
         "--photo-pack-root",
@@ -702,7 +763,7 @@ def build_runtime_settings_preview_command(
         config.vision_provider,
         "--recall-search-provider",
         config.recall_search_provider,
-    ]
+    ])
     if bridge_enabled:
         command.append("--bridge-enabled")
     if config.lan:
@@ -974,8 +1035,18 @@ def validate_start_config(
     config: BridgeConfig,
     *,
     require_tls_serving_files: bool = True,
+    require_provider_credentials: bool = True,
+    env: Mapping[str, str] | None = None,
 ) -> list[str]:
     errors: list[str] = []
+    if config.provider not in INTELLIGENCE_PROVIDER_CHOICES:
+        errors.append(f"Unsupported provider: {config.provider}")
+    if (
+        require_provider_credentials
+        and config.provider == "anthropic"
+        and build_provider_environment_summary(config, env=env).get("api_key_state") == "missing"
+    ):
+        errors.append("--provider anthropic requires ANTHROPIC_API_KEY in the runtime environment.")
     if config.photo_provider not in PROVIDER_CHOICES:
         errors.append(f"Unsupported photo provider: {config.photo_provider}")
     if config.vision_provider not in VISION_PROVIDER_CHOICES:
@@ -1052,7 +1123,12 @@ def _is_tailscale_cgnat(address) -> bool:
     return address.version == 4 and int(ip_address("100.64.0.0")) <= int(address) <= int(ip_address("100.127.255.255"))
 
 
-def doctor_report(repo_root: Path, photo_pack_root: str = "photo-pack") -> Mapping[str, object]:
+def doctor_report(
+    repo_root: Path,
+    photo_pack_root: str = "photo-pack",
+    provider: str = "fake",
+    env: Mapping[str, str] | None = None,
+) -> Mapping[str, object]:
     root = repo_root.resolve()
     mock_bridge_dir = root / "mock_bridge"
     photo_pack_dir = root / photo_pack_root
@@ -1086,7 +1162,21 @@ def doctor_report(repo_root: Path, photo_pack_root: str = "photo-pack") -> Mappi
         "ok": import_ok,
         "detail": import_detail,
     }
+    if provider == "anthropic":
+        provider_environment = build_provider_environment_summary(BridgeConfig(provider=provider), env=env)
+        checks["anthropic_provider"] = {
+            "ok": provider_environment["api_key_state"] == "set",
+            "detail": (
+                "ANTHROPIC_API_KEY is set in the runtime environment."
+                if provider_environment["api_key_state"] == "set"
+                else "missing ANTHROPIC_API_KEY in the runtime environment"
+            ),
+            "env_var": "ANTHROPIC_API_KEY",
+            "required_for": "--provider anthropic",
+        }
     required = ("python", "mock_bridge_directory", "photo_pack_directory", "recipe_local_adapter", "mock_bridge_import")
+    if provider == "anthropic":
+        required = (*required, "anthropic_provider")
     ok = all(bool(checks[name]["ok"]) for name in required)
     return {
         "ok": ok,
@@ -1097,7 +1187,7 @@ def doctor_report(repo_root: Path, photo_pack_root: str = "photo-pack") -> Mappi
 
 
 def run_doctor(args: argparse.Namespace) -> int:
-    report = doctor_report(Path(args.repo_root), photo_pack_root=args.photo_pack_root)
+    report = doctor_report(Path(args.repo_root), photo_pack_root=args.photo_pack_root, provider=args.provider)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if report["ok"] else 1
 
@@ -1109,7 +1199,7 @@ def run_pairing_url(args: argparse.Namespace) -> int:
 
 def run_start(args: argparse.Namespace) -> int:
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config)
+    errors = validate_start_config(config, require_provider_credentials=not bool(args.dry_run))
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1131,6 +1221,8 @@ def run_start(args: argparse.Namespace) -> int:
             scheme=config.scheme,
         ),
         "pairing_mode": config.pairing_mode,
+        "provider": config.provider,
+        "provider_environment": build_provider_environment_summary(config),
         "photo_provider": config.photo_provider,
         "vision_provider": config.vision_provider,
         "recall_search_provider": config.recall_search_provider,
@@ -1142,6 +1234,7 @@ def run_start(args: argparse.Namespace) -> int:
         "recall_store_owner": "runtime" if config.runtime_store_path.strip() else "mock_bridge",
         "retention": build_retention_policy(config),
         "phone_safe_summary": phone_safe_summary,
+        "warnings": build_provider_warnings(config),
         "command": command,
     }
     print(json.dumps(summary, ensure_ascii=False, indent=2), flush=True)
@@ -1153,7 +1246,7 @@ def run_start(args: argparse.Namespace) -> int:
 
 def run_settings_preview(args: argparse.Namespace) -> int:
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config, require_tls_serving_files=False)
+    errors = validate_start_config(config, require_tls_serving_files=False, require_provider_credentials=False)
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1170,7 +1263,7 @@ def run_connection_qa_preview(args: argparse.Namespace) -> int:
     from .connection_qa import build_connection_qa_preview
 
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config, require_tls_serving_files=False)
+    errors = validate_start_config(config, require_tls_serving_files=False, require_provider_credentials=False)
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1185,7 +1278,7 @@ def run_connection_qa_preview(args: argparse.Namespace) -> int:
 
 def run_package_preview(args: argparse.Namespace) -> int:
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config, require_tls_serving_files=False)
+    errors = validate_start_config(config, require_tls_serving_files=False, require_provider_credentials=False)
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1200,7 +1293,7 @@ def run_package_preview(args: argparse.Namespace) -> int:
 
 def run_host_package_preview(args: argparse.Namespace) -> int:
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config, require_tls_serving_files=False)
+    errors = validate_start_config(config, require_tls_serving_files=False, require_provider_credentials=False)
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1431,7 +1524,7 @@ def run_retention_purge(args: argparse.Namespace) -> int:
 
 def run_host_adapter_run(args: argparse.Namespace) -> int:
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config, require_tls_serving_files=False)
+    errors = validate_start_config(config, require_tls_serving_files=False, require_provider_credentials=False)
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1458,7 +1551,7 @@ def run_host_private_adapter_conformance(args: argparse.Namespace) -> int:
     )
 
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config, require_tls_serving_files=False)
+    errors = validate_start_config(config, require_tls_serving_files=False, require_provider_credentials=False)
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1477,7 +1570,7 @@ def run_host_shell_pilot_report(args: argparse.Namespace) -> int:
     from .host_shell_pilot import build_host_shell_pilot_receipt
 
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config, require_tls_serving_files=False)
+    errors = validate_start_config(config, require_tls_serving_files=False, require_provider_credentials=False)
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1514,7 +1607,7 @@ def run_host_shell_pilot_handoff(args: argparse.Namespace) -> int:
     from .host_shell_pilot_handoff import build_host_shell_pilot_handoff
 
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config, require_tls_serving_files=False)
+    errors = validate_start_config(config, require_tls_serving_files=False, require_provider_credentials=False)
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1551,7 +1644,7 @@ def run_host_shell_pilot_preflight(args: argparse.Namespace) -> int:
     from .host_shell_pilot_preflight import build_host_shell_pilot_preflight
 
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config, require_tls_serving_files=False)
+    errors = validate_start_config(config, require_tls_serving_files=False, require_provider_credentials=False)
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1571,7 +1664,7 @@ def run_host_shell_pilot_runbook(args: argparse.Namespace) -> int:
     from .host_shell_pilot_runbook import build_host_shell_pilot_runbook
 
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config, require_tls_serving_files=False)
+    errors = validate_start_config(config, require_tls_serving_files=False, require_provider_credentials=False)
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1666,7 +1759,7 @@ def run_host_shell_pilot_evidence_manifest(args: argparse.Namespace) -> int:
 
 def run_process_preview(args: argparse.Namespace) -> int:
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config, require_tls_serving_files=False)
+    errors = validate_start_config(config, require_tls_serving_files=False, require_provider_credentials=False)
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1690,6 +1783,7 @@ def bridge_config_from_args(args: argparse.Namespace) -> BridgeConfig:
         bonjour_name=args.bonjour_name,
         pairing_code=args.pairing_code,
         runtime=args.runtime,
+        provider=getattr(args, "provider", "fake"),
         installed=args.installed,
         start_with_runtime=args.start_with_runtime,
         process_state=args.process_state,
@@ -1748,6 +1842,15 @@ def _add_retention_policy_arguments(parser_for_command: argparse.ArgumentParser)
     parser_for_command.add_argument("--task-history-days", default=DEFAULT_TASK_HISTORY_DAYS, type=int)
 
 
+def _add_intelligence_provider_arguments(parser_for_command: argparse.ArgumentParser) -> None:
+    parser_for_command.add_argument(
+        "--provider",
+        default="fake",
+        choices=INTELLIGENCE_PROVIDER_CHOICES,
+        help="General intelligence provider for vision and intake. Default keeps deterministic fake behavior.",
+    )
+
+
 def _add_host_package_distribution_arguments(parser_for_command: argparse.ArgumentParser) -> None:
     parser_for_command.add_argument(
         "--distribution-source",
@@ -1769,6 +1872,7 @@ def build_parser() -> argparse.ArgumentParser:
     doctor = subparsers.add_parser("doctor", help="Check local runtime-kit prerequisites without printing secrets.")
     doctor.add_argument("--repo-root", default=".", help="Kaka repository root.")
     doctor.add_argument("--photo-pack-root", default="photo-pack", help="Photo Pack root relative to repo root.")
+    _add_intelligence_provider_arguments(doctor)
     doctor.set_defaults(func=run_doctor)
 
     start = subparsers.add_parser("start", help="Explicitly start the local Mobile Bridge.")
@@ -1781,6 +1885,7 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("--bonjour-name", default=DEFAULT_BONJOUR_NAME, help="Bonjour display name.")
     start.add_argument("--pairing-code", default="pair_dev", help="Development pairing code.")
     start.add_argument("--runtime", default="hermes", help="Runtime id, for example hermes, openclaw, or sidecar.")
+    _add_intelligence_provider_arguments(start)
     start.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     start.add_argument("--photo-pack-root", default="photo-pack")
     start.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
@@ -1815,6 +1920,7 @@ def build_parser() -> argparse.ArgumentParser:
     settings.add_argument("--bonjour-name", default=DEFAULT_BONJOUR_NAME, help="Bonjour display name.")
     settings.add_argument("--pairing-code", default="pair_dev", help="Development pairing code.")
     settings.add_argument("--runtime", default="hermes", help="Runtime id, for example hermes, openclaw, or sidecar.")
+    _add_intelligence_provider_arguments(settings)
     settings.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     settings.add_argument("--photo-pack-root", default="photo-pack")
     settings.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
@@ -1853,6 +1959,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=HOST_PACKAGE_RUNTIME_CHOICES,
         help="Host package runtime id.",
     )
+    _add_intelligence_provider_arguments(connection_qa)
     connection_qa.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     connection_qa.add_argument("--photo-pack-root", default="photo-pack")
     connection_qa.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
@@ -1885,6 +1992,7 @@ def build_parser() -> argparse.ArgumentParser:
     package.add_argument("--bonjour-name", default=DEFAULT_BONJOUR_NAME, help="Bonjour display name.")
     package.add_argument("--pairing-code", default="pair_dev", help="Development pairing code.")
     package.add_argument("--runtime", default="hermes", help="Runtime id, for example hermes, openclaw, or sidecar.")
+    _add_intelligence_provider_arguments(package)
     package.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     package.add_argument("--photo-pack-root", default="photo-pack")
     package.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
@@ -1923,6 +2031,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=HOST_PACKAGE_RUNTIME_CHOICES,
         help="Host package runtime id.",
     )
+    _add_intelligence_provider_arguments(host_package)
     host_package.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     host_package.add_argument("--photo-pack-root", default="photo-pack")
     host_package.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
@@ -2200,6 +2309,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=HOST_PACKAGE_RUNTIME_CHOICES,
         help="Host package runtime id.",
     )
+    _add_intelligence_provider_arguments(host_adapter)
     host_adapter.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     host_adapter.add_argument("--photo-pack-root", default="photo-pack")
     host_adapter.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
@@ -2255,6 +2365,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=HOST_PACKAGE_RUNTIME_CHOICES,
         help="Host package runtime id.",
     )
+    _add_intelligence_provider_arguments(host_private_conformance)
     host_private_conformance.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     host_private_conformance.add_argument("--photo-pack-root", default="photo-pack")
     host_private_conformance.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
@@ -2312,6 +2423,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=HOST_PACKAGE_RUNTIME_CHOICES,
         help="Host package runtime id.",
     )
+    _add_intelligence_provider_arguments(host_shell_pilot)
     host_shell_pilot.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     host_shell_pilot.add_argument("--photo-pack-root", default="photo-pack")
     host_shell_pilot.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
@@ -2380,6 +2492,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=HOST_PACKAGE_RUNTIME_CHOICES,
         help="Host package runtime id.",
     )
+    _add_intelligence_provider_arguments(host_shell_handoff)
     host_shell_handoff.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     host_shell_handoff.add_argument("--photo-pack-root", default="photo-pack")
     host_shell_handoff.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
@@ -2448,6 +2561,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=HOST_PACKAGE_RUNTIME_CHOICES,
         help="Host package runtime id.",
     )
+    _add_intelligence_provider_arguments(host_shell_preflight)
     host_shell_preflight.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     host_shell_preflight.add_argument("--photo-pack-root", default="photo-pack")
     host_shell_preflight.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
@@ -2509,6 +2623,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=HOST_PACKAGE_RUNTIME_CHOICES,
         help="Host package runtime id.",
     )
+    _add_intelligence_provider_arguments(host_shell_runbook)
     host_shell_runbook.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     host_shell_runbook.add_argument("--photo-pack-root", default="photo-pack")
     host_shell_runbook.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
@@ -2715,6 +2830,7 @@ def build_parser() -> argparse.ArgumentParser:
     process.add_argument("--bonjour-name", default=DEFAULT_BONJOUR_NAME, help="Bonjour display name.")
     process.add_argument("--pairing-code", default="pair_dev", help="Development pairing code.")
     process.add_argument("--runtime", default="hermes", help="Runtime id, for example hermes, openclaw, or sidecar.")
+    _add_intelligence_provider_arguments(process)
     process.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     process.add_argument("--photo-pack-root", default="photo-pack")
     process.add_argument("--vision-provider", default="fixture", choices=VISION_PROVIDER_CHOICES)
