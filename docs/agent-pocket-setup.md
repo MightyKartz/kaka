@@ -94,6 +94,38 @@ For LAN testing, use the same `--provider anthropic` flag with the existing `--h
 
 The key stays on the Mac/runtime side. The iPhone continues to call only `/mobile/v1`, and Mobile Bridge requests, responses, pairing payloads, QA status, and task results must never contain `ANTHROPIC_API_KEY` or raw provider responses.
 
+## 使用本机 Hermes 运行
+
+The mock bridge can also use a local Hermes API server as a minimal real runtime for image intake, vision skills, and universal intake. This is explicit opt-in only; the default provider remains deterministic fake behavior.
+
+Enable the Hermes API server yourself before starting Kaka. See [Hermes Local Integration Notes](hermes-local-integration-notes.md) for the read-only survey and the Hermes-side settings. Kaka does not modify Hermes config or start/restart Hermes for you.
+
+Set only runtime-side environment variables:
+
+```bash
+export KAKA_HERMES_BASE_URL=http://127.0.0.1:8642/v1
+export KAKA_HERMES_API_KEY=<redacted>
+export KAKA_HERMES_MODEL=jiqimao
+export KAKA_HERMES_TIMEOUT_SECONDS=60
+```
+
+`KAKA_HERMES_BASE_URL` defaults to `http://127.0.0.1:8642/v1`. `KAKA_HERMES_MODEL` is optional; if unset, startup probes `GET /v1/models` and uses the returned model id. `KAKA_HERMES_TIMEOUT_SECONDS` is optional.
+
+Start the bridge with the explicit provider flag:
+
+```bash
+PYTHONPATH=mock_bridge:runtime-kit python3 -m agent_pocket_mock_bridge.server \
+  --host 127.0.0.1 \
+  --port 8765 \
+  --provider hermes
+```
+
+For LAN testing, combine `--provider hermes` with the same `--host 0.0.0.0`, `--bonjour`, and `--bonjour-host` options used by the local mock bridge. If `KAKA_HERMES_API_KEY` is missing, or if the Hermes `/health` or `/v1/models` startup probes fail, startup fails instead of falling back to fake responses.
+
+The key stays on the Mac/runtime side. The iPhone continues to call only `/mobile/v1`; pairing payloads, capabilities, task results, QA status, logs, and Recall data must never include `KAKA_HERMES_API_KEY`.
+
+Do not point Kaka at the Hermes dashboard or raw proxy. `127.0.0.1:9120` is the web dashboard, not the agent API. `127.0.0.1:8645` is the `hermes proxy` raw upstream proxy, not the Kaka provider target.
+
 ## First iPhone Connection
 
 The first-run connection flow is user-initiated:

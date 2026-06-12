@@ -356,12 +356,27 @@ def test_server_cli_accepts_explicit_anthropic_provider():
     assert args.provider == "anthropic"
 
 
+def test_server_cli_accepts_explicit_hermes_provider():
+    args = server_module.build_parser().parse_args(["--provider", "hermes"])
+
+    assert args.provider == "hermes"
+
+
 def test_server_cli_requires_anthropic_api_key_for_anthropic_provider(monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     args = server_module.build_parser().parse_args(["--provider", "anthropic"])
 
     assert server_module.validate_server_config(args) == [
         "--provider anthropic requires ANTHROPIC_API_KEY in the runtime environment."
+    ]
+
+
+def test_server_cli_requires_hermes_api_key_for_hermes_provider(monkeypatch):
+    monkeypatch.delenv("KAKA_HERMES_API_KEY", raising=False)
+    args = server_module.build_parser().parse_args(["--provider", "hermes"])
+
+    assert server_module.validate_server_config(args) == [
+        "--provider hermes requires KAKA_HERMES_API_KEY in the runtime environment."
     ]
 
 
@@ -389,6 +404,32 @@ def test_server_builds_app_with_anthropic_provider(monkeypatch):
 
     assert app.vision_provider.provider_name == "anthropic"
     assert app.intake_provider.provider_name == "anthropic"
+
+
+def test_server_builds_app_with_hermes_provider(monkeypatch):
+    class FakeHermesProvider:
+        provider_name = "hermes"
+
+        def analyze(self, source_bytes, mode, instruction, locale):
+            return {"mode": mode, "title": "ok", "summary": "ok"}
+
+        def image_intake(self, source_bytes, mime_type, locale=None):
+            return {
+                "image_type": "photo",
+                "title": "Photo",
+                "summary": "Photo ready.",
+                "suggestions": [],
+            }
+
+        def universal_intake(self, intake_type, payload, source_bytes=None, mime_type=""):
+            return {"title": "Ready", "summary": "Ready.", "suggestions": []}
+
+    monkeypatch.setattr(server_module, "build_hermes_provider", lambda: FakeHermesProvider(), raising=False)
+
+    app = build_app_for_provider(provider="hermes")
+
+    assert app.vision_provider.provider_name == "hermes"
+    assert app.intake_provider.provider_name == "hermes"
 
 
 def test_server_cli_requires_recall_search_endpoint_for_runtime_http_provider():
