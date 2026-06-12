@@ -1464,13 +1464,13 @@ class MockBridgeApp:
         provider_name = self._intake_provider_name()
         try:
             intake = self._build_universal_intake_result(intake_type, payload)
-        except Exception:
+        except Exception as exc:
             task = {
                 "task_id": task_id,
                 "status": "failed",
                 "progress": 1.0,
                 "message": "The universal intake provider failed. Check runtime logs.",
-                "failure_code": "intake_failed",
+                "failure_code": _safe_failure_code(exc, "intake_failed"),
                 "provider": provider_name,
                 "result_type": "intake",
             }
@@ -2568,6 +2568,15 @@ def _safe_match_reason(value: Any) -> str:
     if not text or _contains_runtime_secret_marker(text):
         return "Matched runtime Recall provider."
     return text
+
+
+def _safe_failure_code(exc: BaseException, fallback: str) -> str:
+    value = str(getattr(exc, "failure_code", "") or "").strip()
+    if not value or len(value) > 80:
+        return fallback
+    if not all(char.islower() or char.isdigit() or char == "_" for char in value):
+        return fallback
+    return value
 
 
 def _sanitize_image_intake_result(

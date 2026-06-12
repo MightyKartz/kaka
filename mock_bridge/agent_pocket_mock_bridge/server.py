@@ -27,6 +27,7 @@ from agent_pocket_mock_bridge.app import (
     create_app,
 )
 from agent_pocket_mock_bridge.anthropic_provider import build_anthropic_provider
+from agent_pocket_mock_bridge.hermes_provider import build_hermes_provider
 from agent_pocket_mock_bridge.photo_providers import build_photo_provider
 from kaka_mobile_runtime_kit.pairing import (
     InMemoryPairingStore,
@@ -218,6 +219,8 @@ def build_app_for_provider(
     intelligence_provider = None
     if provider == "anthropic":
         intelligence_provider = build_anthropic_provider()
+    elif provider == "hermes":
+        intelligence_provider = build_hermes_provider()
     elif provider != "fake":
         raise ValueError(f"Unsupported provider: {provider}")
     return create_app(
@@ -364,7 +367,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--provider",
         default="fake",
-        choices=["fake", "anthropic"],
+        choices=["fake", "anthropic", "hermes"],
         help="General intelligence provider for vision and intake. Default keeps deterministic fake behavior.",
     )
     parser.add_argument(
@@ -497,8 +500,11 @@ def main(argv=None) -> int:
 
 def validate_server_config(args: argparse.Namespace) -> List[str]:
     errors: List[str] = []
-    if str(getattr(args, "provider", "fake")).strip() == "anthropic" and not os.environ.get("ANTHROPIC_API_KEY"):
+    provider = str(getattr(args, "provider", "fake")).strip()
+    if provider == "anthropic" and not os.environ.get("ANTHROPIC_API_KEY"):
         errors.append("--provider anthropic requires ANTHROPIC_API_KEY in the runtime environment.")
+    if provider == "hermes" and not os.environ.get("KAKA_HERMES_API_KEY"):
+        errors.append("--provider hermes requires KAKA_HERMES_API_KEY in the runtime environment.")
     if (
         str(getattr(args, "recall_search_provider", "")).strip() == "runtime_http"
         and not str(getattr(args, "recall_search_endpoint", "")).strip()
@@ -586,7 +592,7 @@ def _build_app_with_optional_vision(args: argparse.Namespace) -> MockBridgeApp:
     }
     recall_kwargs = _recall_search_kwargs_from_args(args)
     intelligence_provider = str(getattr(args, "provider", "fake")).strip() or "fake"
-    if intelligence_provider == "anthropic":
+    if intelligence_provider in {"anthropic", "hermes"}:
         return build_app_for_provider(
             args.photo_provider,
             photo_pack_root=args.photo_pack_root,
