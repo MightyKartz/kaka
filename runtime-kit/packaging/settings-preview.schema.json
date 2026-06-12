@@ -31,7 +31,8 @@
     "provider": {
       "enum": [
         "fake",
-        "anthropic"
+        "anthropic",
+        "hermes"
       ]
     },
     "provider_environment": {
@@ -49,7 +50,8 @@
         "provider": {
           "enum": [
             "fake",
-            "anthropic"
+            "anthropic",
+            "hermes"
           ]
         },
         "required_env_vars": {
@@ -71,7 +73,31 @@
         "model_env_var": {
           "type": "string"
         },
+        "model_state": {
+          "enum": [
+            "set",
+            "model_discovery"
+          ]
+        },
         "default_model": {
+          "type": "string"
+        },
+        "base_url_env_var": {
+          "type": "string"
+        },
+        "base_url_state": {
+          "enum": [
+            "set",
+            "default"
+          ]
+        },
+        "base_url": {
+          "type": "string"
+        },
+        "default_base_url": {
+          "type": "string"
+        },
+        "setup_doc": {
           "type": "string"
         }
       }
@@ -256,13 +282,15 @@
                 "value": {
                   "enum": [
                     "fake",
-                    "anthropic"
+                    "anthropic",
+                    "hermes"
                   ]
                 },
                 "options": {
                   "const": [
                     "fake",
-                    "anthropic"
+                    "anthropic",
+                    "hermes"
                   ]
                 }
               }
@@ -293,7 +321,8 @@
                     "provider": {
                       "enum": [
                         "fake",
-                        "anthropic"
+                        "anthropic",
+                        "hermes"
                       ]
                     },
                     "required_env_vars": {
@@ -315,7 +344,31 @@
                     "model_env_var": {
                       "type": "string"
                     },
+                    "model_state": {
+                      "enum": [
+                        "set",
+                        "model_discovery"
+                      ]
+                    },
                     "default_model": {
+                      "type": "string"
+                    },
+                    "base_url_env_var": {
+                      "type": "string"
+                    },
+                    "base_url_state": {
+                      "enum": [
+                        "set",
+                        "default"
+                      ]
+                    },
+                    "base_url": {
+                      "type": "string"
+                    },
+                    "default_base_url": {
+                      "type": "string"
+                    },
+                    "setup_doc": {
                       "type": "string"
                     }
                   }

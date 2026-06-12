@@ -2202,7 +2202,7 @@ def test_settings_preview_schema_freezes_retention_policy_controls_and_phone_saf
     Draft202012Validator.check_schema(settings_schema)
     assert "provider" in settings_schema["required"]
     assert "provider_environment" in settings_schema["required"]
-    assert settings_schema["properties"]["provider"]["enum"] == ["fake", "anthropic"]
+    assert settings_schema["properties"]["provider"]["enum"] == ["fake", "anthropic", "hermes"]
     provider_environment = settings_schema["properties"]["provider_environment"]
     assert provider_environment["additionalProperties"] is False
     assert provider_environment["properties"]["api_key_env_var"]["type"] == "string"
@@ -2232,6 +2232,7 @@ def test_settings_preview_schema_freezes_retention_policy_controls_and_phone_saf
     assert controls["properties"]["provider"]["properties"]["options"]["const"] == [
         "fake",
         "anthropic",
+        "hermes",
     ]
     assert controls["properties"]["provider_environment"]["properties"]["kind"]["const"] == "status"
     for key in ("input_assets_days", "output_assets_days", "task_history_days"):
@@ -2269,6 +2270,7 @@ def test_settings_preview_schema_freezes_retention_policy_controls_and_phone_saf
     validator = Draft202012Validator(settings_schema)
     preview = build_runtime_settings_preview(
         BridgeConfig(
+            provider="hermes",
             runtime_store_path="/Users/kartz/.kaka/mobile-runtime.sqlite3",
             recall_search_provider="runtime_http",
             recall_search_endpoint="http://127.0.0.1:8788/kaka/recall/search",

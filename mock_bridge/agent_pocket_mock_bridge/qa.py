@@ -1414,7 +1414,7 @@ def run_smoke_real_provider(
     photo_pack_root: str = "photo-pack",
 ) -> Mapping[str, Any]:
     normalized_mode = mode.strip() or "fake"
-    provider = "anthropic" if normalized_mode == "real" else "fake"
+    provider = _smoke_real_provider_name(normalized_mode)
     report: dict[str, Any] = {
         "schema_version": "kaka.smoke_real_provider.v1",
         "surface": "mock_bridge_server_smoke",
@@ -1598,6 +1598,30 @@ def run_smoke_real_provider(
         if server is not None:
             server.server_close()
     return report
+
+
+def _smoke_real_provider_name(mode: str) -> str:
+    normalized = mode.strip() or "fake"
+    if normalized == "real":
+        return "anthropic"
+    if normalized in {"fake", "anthropic", "hermes"}:
+        return normalized
+    return "fake"
+
+
+def _smoke_real_provider_mode(mode: str, provider: str = "") -> str:
+    normalized_provider = provider.strip()
+    if normalized_provider:
+        return normalized_provider
+    return mode.strip() or "fake"
+
+
+def _smoke_real_provider_missing_key(provider: str) -> str:
+    if provider == "anthropic" and not str(os.environ.get("ANTHROPIC_API_KEY", "")).strip():
+        return "ANTHROPIC_API_KEY"
+    if provider == "hermes" and not str(os.environ.get("KAKA_HERMES_API_KEY", "")).strip():
+        return "KAKA_HERMES_API_KEY"
+    return ""
 
 
 def _smoke_step(report: dict[str, Any], name: str, action: Callable[[], Mapping[str, Any]]) -> Mapping[str, Any]:
@@ -5867,13 +5891,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     if args.command == "smoke-real-provider":
-        provider = "anthropic" if args.mode == "real" else "fake"
-        if args.mode == "real" and not str(os.environ.get("ANTHROPIC_API_KEY", "")).strip():
+        smoke_mode = _smoke_real_provider_mode(args.mode, getattr(args, "provider", ""))
+        provider = _smoke_real_provider_name(smoke_mode)
+        missing_key = _smoke_real_provider_missing_key(provider)
+        if missing_key:
+            provider_flag = "--real" if smoke_mode == "real" else f"--provider {provider}"
             report = {
                 "schema_version": "kaka.smoke_real_provider.v1",
                 "surface": "mock_bridge_server_smoke",
                 "ok": False,
-                "mode": "real",
+                "mode": smoke_mode,
                 "provider": provider,
                 "base_url": str(args.base_url).rstrip("/"),
                 "steps": [],
@@ -5881,14 +5908,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 "tasks": {},
                 "recall": {},
                 "error": {
-                    "code": "missing_anthropic_api_key",
-                    "message": "ANTHROPIC_API_KEY is required for smoke-real-provider --real.",
+                    "code": f"missing_{provider}_api_key",
+                    "message": f"{missing_key} is required for smoke-real-provider {provider_flag}.",
                 },
             }
             _print_json(report, stream=sys.stderr)
             return 2
         report = run_smoke_real_provider(
-            mode=args.mode,
+            mode=smoke_mode,
             base_url=args.base_url,
             host=args.host,
             port=args.port,
@@ -7689,6 +7716,12 @@ def build_parser() -> argparse.ArgumentParser:
         const="real",
         dest="mode",
         help="Run against the real Anthropic provider. Requires ANTHROPIC_API_KEY and is for manual local QA.",
+    )
+    smoke_real_provider.add_argument(
+        "--provider",
+        choices=["fake", "anthropic", "hermes"],
+        default="",
+        help="Manual provider selection for real-provider smoke. Defaults to --fake; --real remains an Anthropic shortcut.",
     )
     smoke_real_provider.add_argument(
         "--base-url",

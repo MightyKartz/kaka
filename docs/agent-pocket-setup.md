@@ -187,6 +187,39 @@ This command never passes the key as an argument. Runtime Kit only reports the
 environment variable name and whether it is set; the key value stays outside
 preview JSON, logs, pairing payloads, `/mobile/v1` responses, and SQLite.
 
+### 真机 + Hermes
+
+For daily iPhone testing through a local Hermes API server, enable the Hermes API
+server manually first. Use [Hermes Local Integration Notes](hermes-local-integration-notes.md)
+as the setup reference; Kaka and Runtime Kit do not start Hermes, edit Hermes
+configuration, or touch the Hermes dashboard/proxy.
+
+Keep the Hermes bearer only in the Mac/runtime environment:
+
+```bash
+export KAKA_HERMES_BASE_URL=http://127.0.0.1:8642/v1
+export KAKA_HERMES_API_KEY=<redacted>
+export KAKA_HERMES_MODEL=jiqimao
+```
+
+Then start the bridge through Runtime Kit so LAN pairing, Bonjour, and the
+runtime-owned SQLite store all use the same startup path:
+
+```bash
+PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
+  --lan \
+  --bonjour \
+  --bonjour-host "$(ipconfig getifaddr en0)" \
+  --runtime-store-path "$HOME/.kaka/kaka-runtime.sqlite3" \
+  --provider hermes \
+  --runtime hermes
+```
+
+`KAKA_HERMES_API_KEY` is never passed as a command-line argument. Runtime Kit may
+show `KAKA_HERMES_BASE_URL` and whether `KAKA_HERMES_API_KEY` is set, but it must
+not print the key value or include it in preview JSON, logs, pairing payloads,
+`/mobile/v1` responses, or SQLite.
+
 These commands are developer diagnostics. The product goal is to hide them behind a Hermes/OpenClaw **Kaka Mobile Bridge** toggle with **Show QR**, **Stop**, and token revocation controls. Install must not auto-start a bridge; LAN and Bonjour exposure must be explicit.
 
 ## Development Pairing Payload
