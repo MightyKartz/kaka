@@ -135,6 +135,26 @@ PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
   --hermes-profile dev-lead
 ```
 
+### 真机 + 真实模型
+
+For daily iPhone testing against a real Claude-backed runtime, keep
+`ANTHROPIC_API_KEY` exported only in the Mac/runtime environment, then start
+through Runtime Kit so the same LAN pairing and SQLite persistence path is used:
+
+```bash
+PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
+  --lan \
+  --bonjour \
+  --bonjour-host "$(ipconfig getifaddr en0)" \
+  --runtime-store-path "$HOME/.kaka/kaka-runtime.sqlite3" \
+  --provider anthropic \
+  --runtime hermes
+```
+
+This command never passes the key as an argument. Runtime Kit only reports the
+environment variable name and whether it is set; the key value stays outside
+preview JSON, logs, pairing payloads, `/mobile/v1` responses, and SQLite.
+
 These commands are developer diagnostics. The product goal is to hide them behind a Hermes/OpenClaw **Kaka Mobile Bridge** toggle with **Show QR**, **Stop**, and token revocation controls. Install must not auto-start a bridge; LAN and Bonjour exposure must be explicit.
 
 ## Development Pairing Payload

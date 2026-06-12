@@ -2200,6 +2200,17 @@ def test_settings_preview_schema_freezes_retention_policy_controls_and_phone_saf
     settings_schema = json.loads((PACKAGING_DIR / "settings-preview.schema.json").read_text())
 
     Draft202012Validator.check_schema(settings_schema)
+    assert "provider" in settings_schema["required"]
+    assert "provider_environment" in settings_schema["required"]
+    assert settings_schema["properties"]["provider"]["enum"] == ["fake", "anthropic"]
+    provider_environment = settings_schema["properties"]["provider_environment"]
+    assert provider_environment["additionalProperties"] is False
+    assert provider_environment["properties"]["api_key_env_var"]["type"] == "string"
+    assert provider_environment["properties"]["api_key_state"]["enum"] == [
+        "not_required",
+        "missing",
+        "set",
+    ]
     assert "retention" in settings_schema["required"]
     retention = settings_schema["properties"]["retention"]
     assert retention["additionalProperties"] is False
@@ -2216,6 +2227,13 @@ def test_settings_preview_schema_freezes_retention_policy_controls_and_phone_saf
         }
 
     controls = settings_schema["properties"]["runtime_side_ui"]["properties"]["controls"]
+    assert "provider" in controls["required"]
+    assert "provider_environment" in controls["required"]
+    assert controls["properties"]["provider"]["properties"]["options"]["const"] == [
+        "fake",
+        "anthropic",
+    ]
+    assert controls["properties"]["provider_environment"]["properties"]["kind"]["const"] == "status"
     for key in ("input_assets_days", "output_assets_days", "task_history_days"):
         assert key in controls["required"]
         assert controls["properties"][key]["additionalProperties"] is False

@@ -102,6 +102,69 @@ def test_runtime_bridge_can_route_recall_search_to_runtime_http_provider():
     assert command[command.index("--recall-search-endpoint") + 1] == "http://127.0.0.1:8788/kaka/recall/search"
 
 
+def test_runtime_bridge_anthropic_provider_lan_bonjour_sqlite_dry_run_command(tmp_path, capsys, monkeypatch):
+    store_path = tmp_path / "kaka-runtime.sqlite3"
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "secret-runtime-key")
+
+    exit_code = main(
+        [
+            "start",
+            "--provider",
+            "anthropic",
+            "--runtime-store-path",
+            str(store_path),
+            "--lan",
+            "--bonjour",
+            "--bonjour-host",
+            "192.168.1.10",
+            "--dry-run",
+        ]
+    )
+
+    summary = json.loads(capsys.readouterr().out)
+    command = summary["command"]
+    rendered = json.dumps(summary, sort_keys=True)
+    assert exit_code == 0
+    assert summary["provider"] == "anthropic"
+    assert command[command.index("--provider") + 1] == "anthropic"
+    assert command[command.index("--runtime-store-path") + 1] == str(store_path)
+    assert command[command.index("--host") + 1] == "0.0.0.0"
+    assert "--bonjour" in command
+    assert command[command.index("--bonjour-host") + 1] == "192.168.1.10"
+    assert summary["provider_environment"]["api_key_env_var"] == "ANTHROPIC_API_KEY"
+    assert summary["provider_environment"]["api_key_state"] == "set"
+    assert "secret-runtime-key" not in rendered
+
+
+def test_runtime_start_requires_anthropic_key_outside_dry_run(capsys, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    exit_code = main(["start", "--provider", "anthropic"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert "ANTHROPIC_API_KEY" in captured.err
+    assert "anthropic" in captured.err
+
+
+def test_runtime_start_dry_run_warns_without_anthropic_key(capsys, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    exit_code = main(["start", "--provider", "anthropic", "--dry-run"])
+
+    summary = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert summary["provider"] == "anthropic"
+    assert summary["provider_environment"]["api_key_env_var"] == "ANTHROPIC_API_KEY"
+    assert summary["provider_environment"]["api_key_state"] == "missing"
+    assert summary["warnings"] == [
+        {
+            "id": "missing_anthropic_api_key",
+            "message": "Set ANTHROPIC_API_KEY in the runtime environment before starting without --dry-run.",
+        }
+    ]
+
+
 def test_runtime_bridge_can_pass_runtime_store_path_to_bridge_server():
     command = build_server_command(
         BridgeConfig(runtime_store_path="/tmp/kaka-runtime.sqlite3")
@@ -377,6 +440,22 @@ def test_runtime_settings_preview_command_preserves_non_default_retention_policy
     assert command[command.index("--input-assets-days") + 1] == "3"
     assert command[command.index("--output-assets-days") + 1] == "14"
     assert command[command.index("--task-history-days") + 1] == "60"
+
+
+def test_runtime_settings_preview_anthropic_provider_reports_env_name_without_secret(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "secret-runtime-key")
+
+    preview = build_runtime_settings_preview(BridgeConfig(provider="anthropic"))
+
+    rendered = json.dumps(preview, sort_keys=True)
+    controls = preview["runtime_side_ui"]["controls"]
+    assert preview["provider"] == "anthropic"
+    assert preview["provider_environment"]["api_key_env_var"] == "ANTHROPIC_API_KEY"
+    assert preview["provider_environment"]["api_key_state"] == "set"
+    assert controls["provider"]["value"] == "anthropic"
+    assert controls["provider_environment"]["value"]["api_key_env_var"] == "ANTHROPIC_API_KEY"
+    assert "--provider" in preview["actions"]["start_bridge"]
+    assert "secret-runtime-key" not in rendered
 
 
 def test_runtime_retention_purge_command_dry_run_outputs_receipt(tmp_path, capsys):
@@ -668,6 +747,8 @@ def test_runtime_settings_preview_schema_freezes_required_top_level_keys():
         "surface",
         "bridge_enabled",
         "runtime",
+        "provider",
+        "provider_environment",
         "bind_url",
         "lan_exposed",
         "bonjour",
@@ -698,6 +779,20 @@ def test_runtime_settings_preview_freezes_control_contract_defaults():
     assert controls["bridge_enabled"]["kind"] == "toggle"
     assert controls["bridge_enabled"]["value"] is False
     assert controls["start_with_runtime"]["value"] is False
+    assert controls["provider"] == {
+        "kind": "menu",
+        "value": "fake",
+        "options": ["fake", "anthropic"],
+    }
+    assert controls["provider_environment"]["kind"] == "status"
+    assert controls["provider_environment"]["value"] == {
+        "provider": "fake",
+        "required_env_vars": [],
+        "api_key_env_var": "",
+        "api_key_state": "not_required",
+        "model_env_var": "",
+        "default_model": "",
+    }
     assert controls["bind_mode"]["value"] == "loopback"
     assert controls["bind_mode"]["options"] == ["loopback", "lan"]
     assert controls["bonjour_enabled"]["value"] is False
@@ -1627,6 +1722,20 @@ def test_doctor_report_does_not_print_secret_values():
 
     assert "sk-" not in rendered
     assert report["checks"]["recipe_local_adapter"]["ok"] is True
+
+
+def test_doctor_report_checks_anthropic_provider_key_without_printing_secret():
+    report = doctor_report(
+        Path("."),
+        photo_pack_root="photo-pack",
+        provider="anthropic",
+        env={"ANTHROPIC_API_KEY": "secret-runtime-key"},
+    )
+    rendered = json.dumps(report, sort_keys=True)
+
+    assert report["checks"]["anthropic_provider"]["ok"] is True
+    assert report["checks"]["anthropic_provider"]["env_var"] == "ANTHROPIC_API_KEY"
+    assert "secret-runtime-key" not in rendered
 
 
 def test_host_plugin_skill_devkit_command_prints_preview(capsys):
