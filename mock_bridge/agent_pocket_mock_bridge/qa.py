@@ -11,6 +11,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.error
 import urllib.request
 import zlib
 from dataclasses import dataclass
@@ -23,7 +24,7 @@ from agent_pocket_mock_bridge.photo_providers import (
     build_photo_provider,
     build_provider_preflight_report,
 )
-from agent_pocket_mock_bridge.server import BonjourAdvertisement, create_http_server
+from agent_pocket_mock_bridge.server import BonjourAdvertisement, build_app_for_provider, create_http_server
 
 
 DEFAULT_TOKEN = "dev-mobile-token"
@@ -44,6 +45,7 @@ DEFAULT_SIMULATOR_RESULT_GALLERY_DOWNLOADED_SCREENSHOT = "/tmp/agent-pocket-simu
 DEFAULT_SIMULATOR_SHARE_SHEET_RECEIPT = "docs/qa-receipts/share-sheet-flow-latest.json"
 DEFAULT_SIMULATOR_SHARE_SHEET_SCREENSHOT = "/tmp/agent-pocket-simulator-share-sheet.png"
 DEFAULT_SIMULATOR_ONLY_RESUME_RECEIPT = "docs/qa-receipts/simulator-only-resume-latest.json"
+DEFAULT_REAL_PROVIDER_SMOKE_IMAGE = "/tmp/kaka-smoke-real-provider.png"
 DEFAULT_GATE_F_PREFLIGHT_RECEIPT = "docs/qa-receipts/gate-f-preflight-latest.json"
 DEFAULT_GATE_F_HANDOFF_RECEIPT = "docs/qa-receipts/gate-f-handoff-latest.json"
 DEFAULT_PHYSICAL_DEVICE_PREFLIGHT_RECEIPT = "docs/qa-receipts/physical-device-preflight-latest.json"
@@ -1390,6 +1392,411 @@ def fetch_qa_status(base_url: str, token: str = DEFAULT_TOKEN, timeout: float = 
     )
     with urllib.request.urlopen(request, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))
+
+
+class SmokeRealProviderError(RuntimeError):
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+        self.message = message
+
+
+def run_smoke_real_provider(
+    *,
+    mode: str = "fake",
+    base_url: str = "",
+    host: str = "127.0.0.1",
+    port: int = 0,
+    token: str = DEFAULT_TOKEN,
+    timeout_seconds: float = 60.0,
+    interval_seconds: float = 0.5,
+    image_file: str = "",
+    photo_pack_root: str = "photo-pack",
+) -> Mapping[str, Any]:
+    normalized_mode = mode.strip() or "fake"
+    provider = "anthropic" if normalized_mode == "real" else "fake"
+    report: dict[str, Any] = {
+        "schema_version": "kaka.smoke_real_provider.v1",
+        "surface": "mock_bridge_server_smoke",
+        "ok": False,
+        "mode": normalized_mode,
+        "provider": provider,
+        "base_url": "",
+        "steps": [],
+        "artifacts": {},
+        "tasks": {},
+        "recall": {},
+    }
+    server = None
+    thread = None
+    owns_server = not str(base_url).strip()
+    try:
+        if owns_server:
+            app = build_app_for_provider(
+                "fixture",
+                photo_pack_root=photo_pack_root,
+                provider=provider,
+            )
+            server = create_http_server(host=host, port=port, app=app)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            actual_host = "127.0.0.1" if host in {"0.0.0.0", "::"} else host
+            actual_port = int(server.server_address[1])
+            base_url = f"http://{actual_host}:{actual_port}"
+        base = str(base_url).rstrip("/")
+        report["base_url"] = base
+
+        health = _smoke_step(
+            report,
+            "health",
+            lambda: _smoke_json_request(base, "/mobile/v1/health", token=token, timeout=timeout_seconds),
+        )
+        if not health.get("ok"):
+            raise SmokeRealProviderError("health_failed", "Bridge health did not report ok.")
+
+        capabilities = _smoke_step(
+            report,
+            "capabilities",
+            lambda: _smoke_json_request(base, "/mobile/v1/capabilities", token=token, timeout=timeout_seconds),
+        )
+        if "image_intake" not in capabilities.get("tasks", {}):
+            raise SmokeRealProviderError("capability_missing", "Capabilities did not advertise image_intake.")
+        if "intake" not in capabilities.get("tasks", {}):
+            raise SmokeRealProviderError("capability_missing", "Capabilities did not advertise universal intake.")
+
+        image_bytes, filename, mime_type, image_source, local_image_file = _smoke_image_payload(image_file)
+        upload = _smoke_step(
+            report,
+            "asset_upload",
+            lambda: _smoke_upload_asset(
+                base,
+                token=token,
+                filename=filename,
+                mime_type=mime_type,
+                body=image_bytes,
+                timeout=timeout_seconds,
+            ),
+        )
+        asset_id = str(upload.get("asset_id", "")).strip()
+        if not asset_id:
+            raise SmokeRealProviderError("asset_upload_failed", "Asset upload did not return an asset_id.")
+        report["artifacts"] = {
+            "asset_id": asset_id,
+            "image_file": local_image_file,
+            "image_source": image_source,
+            "filename": filename,
+            "mime_type": mime_type,
+        }
+
+        image_task_create = _smoke_step(
+            report,
+            "image_intake_create",
+            lambda: _smoke_json_request(
+                base,
+                "/mobile/v1/tasks/image-intake",
+                method="POST",
+                token=token,
+                payload={
+                    "profile_id": "photo-agent",
+                    "asset_id": asset_id,
+                    "locale": "en",
+                },
+                timeout=timeout_seconds,
+            ),
+        )
+        image_task = _smoke_step(
+            report,
+            "image_intake_status",
+            lambda: _smoke_poll_task(
+                base,
+                str(image_task_create.get("task_id", "")),
+                token=token,
+                timeout_seconds=timeout_seconds,
+                interval_seconds=interval_seconds,
+            ),
+        )
+        image_summary = _smoke_task_summary(image_task)
+        report["tasks"]["image_intake"] = image_summary
+        _smoke_step(report, "image_intake_result", lambda: _require_task_result(image_task, "image_intake"))
+
+        intake_create = _smoke_step(
+            report,
+            "universal_intake_create",
+            lambda: _smoke_json_request(
+                base,
+                "/mobile/v1/tasks/intake",
+                method="POST",
+                token=token,
+                payload={
+                    "type": "text",
+                    "text": "M1 smoke test note: remember this only for QA and then forget it.",
+                    "source_app": "Kaka QA",
+                    "locale": "en",
+                },
+                timeout=timeout_seconds,
+            ),
+        )
+        intake_task = _smoke_step(
+            report,
+            "universal_intake_status",
+            lambda: _smoke_poll_task(
+                base,
+                str(intake_create.get("task_id", "")),
+                token=token,
+                timeout_seconds=timeout_seconds,
+                interval_seconds=interval_seconds,
+            ),
+        )
+        intake_summary = _smoke_task_summary(intake_task)
+        report["tasks"]["universal_intake"] = intake_summary
+        _smoke_step(report, "universal_intake_result", lambda: _require_task_result(intake_task, "intake"))
+
+        remember = _smoke_step(
+            report,
+            "recall_remember",
+            lambda: _smoke_json_request(
+                base,
+                "/mobile/v1/recall/actions",
+                method="POST",
+                token=token,
+                payload={
+                    "action": "remember",
+                    "source_task_id": intake_summary.get("task_id", ""),
+                    "user_visible_summary": "M1 smoke test note should be remembered then forgotten.",
+                },
+                timeout=timeout_seconds,
+            ),
+        )
+        report["recall"]["remember"] = _smoke_recall_summary(remember)
+        forget = _smoke_step(
+            report,
+            "recall_forget",
+            lambda: _smoke_json_request(
+                base,
+                "/mobile/v1/recall/actions",
+                method="POST",
+                token=token,
+                payload={
+                    "action": "forget",
+                    "source_task_id": intake_summary.get("task_id", ""),
+                    "user_visible_summary": "Forget the M1 smoke test note.",
+                },
+                timeout=timeout_seconds,
+            ),
+        )
+        report["recall"]["forget"] = _smoke_recall_summary(forget)
+        report["ok"] = True
+    except SmokeRealProviderError as error:
+        report["error"] = {"code": error.code, "message": error.message}
+    except Exception as error:
+        report["error"] = {"code": "smoke_failed", "message": str(error)}
+    finally:
+        if server is not None:
+            server.shutdown()
+        if thread is not None:
+            thread.join(timeout=2)
+        if server is not None:
+            server.server_close()
+    return report
+
+
+def _smoke_step(report: dict[str, Any], name: str, action: Callable[[], Mapping[str, Any]]) -> Mapping[str, Any]:
+    started = time.monotonic()
+    step: dict[str, Any] = {"name": name, "status": "failed", "duration_ms": 0}
+    report["steps"].append(step)
+    try:
+        result = action()
+    except SmokeRealProviderError as error:
+        step["duration_ms"] = _elapsed_ms(started)
+        step["error"] = {"code": error.code, "message": error.message}
+        raise
+    except Exception as error:
+        step["duration_ms"] = _elapsed_ms(started)
+        step["error"] = {"code": "step_failed", "message": str(error)}
+        raise
+    step["status"] = "passed"
+    step["duration_ms"] = _elapsed_ms(started)
+    return result
+
+
+def _elapsed_ms(started: float) -> int:
+    return int(round((time.monotonic() - started) * 1000))
+
+
+def _smoke_json_request(
+    base_url: str,
+    path: str,
+    *,
+    method: str = "GET",
+    token: str = DEFAULT_TOKEN,
+    payload: Optional[Mapping[str, Any]] = None,
+    timeout: float = 60.0,
+) -> Mapping[str, Any]:
+    body = None
+    headers = {"Authorization": f"Bearer {token}"}
+    if payload is not None:
+        body = json.dumps(payload).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+    request = urllib.request.Request(
+        f"{base_url.rstrip('/')}{path}",
+        data=body,
+        headers=headers,
+        method=method,
+    )
+    return _read_smoke_json_response(request, timeout=timeout)
+
+
+def _smoke_upload_asset(
+    base_url: str,
+    *,
+    token: str,
+    filename: str,
+    mime_type: str,
+    body: bytes,
+    timeout: float,
+) -> Mapping[str, Any]:
+    boundary = f"kaka-smoke-{time.time_ns()}"
+    metadata = json.dumps({"width": 4, "height": 4}, separators=(",", ":"))
+    multipart = b"".join([
+        _multipart_field(boundary, "metadata", metadata.encode("utf-8")),
+        _multipart_file(boundary, "file", filename, mime_type, body),
+        f"--{boundary}--\r\n".encode("utf-8"),
+    ])
+    request = urllib.request.Request(
+        f"{base_url.rstrip('/')}/mobile/v1/assets",
+        data=multipart,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+        },
+        method="POST",
+    )
+    return _read_smoke_json_response(request, timeout=timeout)
+
+
+def _read_smoke_json_response(request: urllib.request.Request, *, timeout: float) -> Mapping[str, Any]:
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            raw_body = response.read().decode("utf-8")
+            return json.loads(raw_body) if raw_body else {}
+    except urllib.error.HTTPError as error:
+        raw_body = error.read().decode("utf-8", errors="replace")
+        try:
+            payload = json.loads(raw_body)
+        except json.JSONDecodeError:
+            payload = {"body": raw_body}
+        message = payload.get("error", {}).get("message") if isinstance(payload, Mapping) else ""
+        raise SmokeRealProviderError(
+            "http_error",
+            f"HTTP {error.code} for {request.full_url}: {message or raw_body}",
+        ) from error
+
+
+def _multipart_field(boundary: str, name: str, value: bytes) -> bytes:
+    return (
+        f"--{boundary}\r\n"
+        f"Content-Disposition: form-data; name=\"{name}\"\r\n\r\n"
+    ).encode("utf-8") + value + b"\r\n"
+
+
+def _multipart_file(boundary: str, name: str, filename: str, mime_type: str, value: bytes) -> bytes:
+    return (
+        f"--{boundary}\r\n"
+        f"Content-Disposition: form-data; name=\"{name}\"; filename=\"{filename}\"\r\n"
+        f"Content-Type: {mime_type}\r\n\r\n"
+    ).encode("utf-8") + value + b"\r\n"
+
+
+def _smoke_image_payload(image_file: str) -> tuple[bytes, str, str, str, str]:
+    if image_file:
+        with open(image_file, "rb") as handle:
+            return (
+                handle.read(),
+                os.path.basename(image_file),
+                _mime_type_for_image_file(image_file),
+                "provided_file",
+                os.path.abspath(os.path.expanduser(image_file)),
+            )
+    generated_path = DEFAULT_REAL_PROVIDER_SMOKE_IMAGE
+    with open(generated_path, "wb") as handle:
+        handle.write(_simulator_library_fixture_png(width=4, height=4))
+    with open(generated_path, "rb") as handle:
+        return handle.read(), os.path.basename(generated_path), "image/png", "generated_file", generated_path
+
+
+def _mime_type_for_image_file(path: str) -> str:
+    lower = path.lower()
+    if lower.endswith((".jpg", ".jpeg")):
+        return "image/jpeg"
+    if lower.endswith(".heic"):
+        return "image/heic"
+    return "image/png"
+
+
+def _smoke_poll_task(
+    base_url: str,
+    task_id: str,
+    *,
+    token: str,
+    timeout_seconds: float,
+    interval_seconds: float,
+) -> Mapping[str, Any]:
+    if not task_id:
+        raise SmokeRealProviderError("missing_task_id", "Task creation did not return a task_id.")
+    deadline = time.monotonic() + timeout_seconds
+    while True:
+        task = _smoke_json_request(
+            base_url,
+            f"/mobile/v1/tasks/{task_id}",
+            token=token,
+            timeout=timeout_seconds,
+        )
+        status = str(task.get("status", ""))
+        if status in {"completed", "failed", "cancelled"}:
+            return task
+        if time.monotonic() >= deadline:
+            raise SmokeRealProviderError("task_timeout", f"Timed out waiting for task {task_id}.")
+        time.sleep(max(float(interval_seconds), 0.0))
+
+
+def _require_task_result(task: Mapping[str, Any], result_type: str) -> Mapping[str, Any]:
+    if task.get("status") != "completed":
+        raise SmokeRealProviderError("task_failed", f"{result_type} task did not complete.")
+    if task.get("result_type") != result_type:
+        raise SmokeRealProviderError("unexpected_result_type", f"Expected {result_type} result.")
+    if result_type == "image_intake" and not isinstance(task.get("image_intake"), Mapping):
+        raise SmokeRealProviderError("missing_result", "Image intake result is missing.")
+    if result_type == "intake" and not isinstance(task.get("intake"), Mapping):
+        raise SmokeRealProviderError("missing_result", "Universal intake result is missing.")
+    return task
+
+
+def _smoke_task_summary(task: Mapping[str, Any]) -> dict[str, Any]:
+    summary = {
+        "task_id": task.get("task_id", ""),
+        "status": task.get("status", ""),
+        "result_type": task.get("result_type", ""),
+        "provider": task.get("provider", ""),
+    }
+    if isinstance(task.get("image_intake"), Mapping):
+        suggestions = task["image_intake"].get("suggestions", [])
+        summary["title"] = task["image_intake"].get("title", "")
+        summary["suggestions_count"] = len(suggestions) if isinstance(suggestions, list) else 0
+    if isinstance(task.get("intake"), Mapping):
+        suggestions = task["intake"].get("suggestions", [])
+        summary["title"] = task["intake"].get("title", "")
+        summary["suggestions_count"] = len(suggestions) if isinstance(suggestions, list) else 0
+    return summary
+
+
+def _smoke_recall_summary(payload: Mapping[str, Any]) -> dict[str, Any]:
+    item = payload.get("item")
+    return {
+        "action": payload.get("action", ""),
+        "status": payload.get("status", ""),
+        "item_id": item.get("item_id", "") if isinstance(item, Mapping) else "",
+        "deleted_item_ids": payload.get("deleted_item_ids", []),
+    }
 
 
 def evaluate_connection_restore(status: Mapping[str, Any]) -> EvaluationResult:
@@ -5459,6 +5866,41 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         _print_json(status)
         return 0
 
+    if args.command == "smoke-real-provider":
+        provider = "anthropic" if args.mode == "real" else "fake"
+        if args.mode == "real" and not str(os.environ.get("ANTHROPIC_API_KEY", "")).strip():
+            report = {
+                "schema_version": "kaka.smoke_real_provider.v1",
+                "surface": "mock_bridge_server_smoke",
+                "ok": False,
+                "mode": "real",
+                "provider": provider,
+                "base_url": str(args.base_url).rstrip("/"),
+                "steps": [],
+                "artifacts": {},
+                "tasks": {},
+                "recall": {},
+                "error": {
+                    "code": "missing_anthropic_api_key",
+                    "message": "ANTHROPIC_API_KEY is required for smoke-real-provider --real.",
+                },
+            }
+            _print_json(report, stream=sys.stderr)
+            return 2
+        report = run_smoke_real_provider(
+            mode=args.mode,
+            base_url=args.base_url,
+            host=args.host,
+            port=args.port,
+            token=args.token,
+            timeout_seconds=args.timeout,
+            interval_seconds=args.interval,
+            image_file=args.image_file,
+            photo_pack_root=args.photo_pack_root,
+        )
+        _print_json(report, stream=sys.stdout if report["ok"] else sys.stderr)
+        return 0 if report["ok"] else 1
+
     if args.command == "preflight":
         _print_json(build_preflight_report(port=args.port, bundle_id=args.bundle_id))
         return 0
@@ -7227,6 +7669,47 @@ def build_parser() -> argparse.ArgumentParser:
 
     status = subparsers.add_parser("status", help="Print the raw QA status JSON.")
     _add_connection_args(status)
+
+    smoke_real_provider = subparsers.add_parser(
+        "smoke-real-provider",
+        help="Run a no-phone server-side HTTP smoke through image intake, universal intake, and Recall.",
+    )
+    mode = smoke_real_provider.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--fake",
+        action="store_const",
+        const="fake",
+        dest="mode",
+        default="fake",
+        help="Run against the deterministic fake provider. This is the default and is CI-safe.",
+    )
+    mode.add_argument(
+        "--real",
+        action="store_const",
+        const="real",
+        dest="mode",
+        help="Run against the real Anthropic provider. Requires ANTHROPIC_API_KEY and is for manual local QA.",
+    )
+    smoke_real_provider.add_argument(
+        "--base-url",
+        default="",
+        help="Optional existing Mobile Bridge base URL. Defaults to starting a temporary loopback bridge.",
+    )
+    smoke_real_provider.add_argument("--host", default="127.0.0.1", help="Temporary bridge bind host.")
+    smoke_real_provider.add_argument("--port", type=int, default=0, help="Temporary bridge port, or 0 for any free port.")
+    smoke_real_provider.add_argument("--token", default=DEFAULT_TOKEN, help="Bearer token for /mobile/v1.")
+    smoke_real_provider.add_argument("--timeout", type=float, default=60.0, help="Maximum seconds for each HTTP/task wait.")
+    smoke_real_provider.add_argument("--interval", type=float, default=0.5, help="Task polling interval in seconds.")
+    smoke_real_provider.add_argument(
+        "--image-file",
+        default="",
+        help="Optional local image to upload. Defaults to a generated PNG fixture.",
+    )
+    smoke_real_provider.add_argument(
+        "--photo-pack-root",
+        default="photo-pack",
+        help="Path to the Photo Pack root for temporary bridge construction.",
+    )
 
     wait_connection = subparsers.add_parser(
         "wait-connection",

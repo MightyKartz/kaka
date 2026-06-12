@@ -877,6 +877,63 @@ def test_cli_status_prints_json(capsys):
         server.server_close()
 
 
+def test_cli_smoke_real_provider_fake_runs_full_http_task_chain(capsys):
+    exit_code = main([
+        "smoke-real-provider",
+        "--fake",
+        "--timeout",
+        "5",
+        "--interval",
+        "0",
+    ])
+
+    report = json.loads(capsys.readouterr().out)
+    step_names = [step["name"] for step in report["steps"]]
+
+    assert exit_code == 0
+    assert report["ok"] is True
+    assert report["mode"] == "fake"
+    assert report["provider"] == "fake"
+    assert step_names == [
+        "health",
+        "capabilities",
+        "asset_upload",
+        "image_intake_create",
+        "image_intake_status",
+        "image_intake_result",
+        "universal_intake_create",
+        "universal_intake_status",
+        "universal_intake_result",
+        "recall_remember",
+        "recall_forget",
+    ]
+    assert {step["status"] for step in report["steps"]} == {"passed"}
+    assert report["artifacts"]["asset_id"].startswith("asset_")
+    assert report["artifacts"]["image_source"] == "generated_file"
+    assert report["artifacts"]["image_file"].endswith("kaka-smoke-real-provider.png")
+    assert os.path.exists(report["artifacts"]["image_file"])
+    assert report["tasks"]["image_intake"]["status"] == "completed"
+    assert report["tasks"]["image_intake"]["result_type"] == "image_intake"
+    assert report["tasks"]["universal_intake"]["status"] == "completed"
+    assert report["tasks"]["universal_intake"]["result_type"] == "intake"
+    assert report["recall"]["remember"]["status"] == "remembered"
+    assert report["recall"]["forget"]["status"] == "forgotten"
+
+
+def test_cli_smoke_real_provider_real_requires_anthropic_key(capsys, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    exit_code = main(["smoke-real-provider", "--real"])
+
+    report = json.loads(capsys.readouterr().err)
+    assert exit_code == 2
+    assert report["ok"] is False
+    assert report["mode"] == "real"
+    assert report["provider"] == "anthropic"
+    assert report["error"]["code"] == "missing_anthropic_api_key"
+    assert "ANTHROPIC_API_KEY" in report["error"]["message"]
+
+
 def test_build_physical_qa_commands_includes_bridge_launch_app_launch_and_waits():
     commands = build_physical_qa_commands(
         host="192.0.2.10",
