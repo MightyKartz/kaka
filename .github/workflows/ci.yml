@@ -30,8 +30,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install pytest and PyObjC
-        run: python -m pip install pytest pyobjc-framework-Quartz
+      - name: Install pytest, PyObjC, and Pillow
+        run: python -m pip install pytest pyobjc-framework-Quartz pillow
       - name: Runtime Kit tests
         run: PYTHONPATH=runtime-kit:mock_bridge python -m pytest runtime-kit/tests -q
       - name: Mock bridge tests
