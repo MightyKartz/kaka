@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/recall-export.schema.json",
+  "title": "Kaka Recall Export",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "format",
+    "generated_at",
+    "artifact_policy",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.recall_export.v1"
+    },
+    "format": {
+      "const": "json"
+    },
+    "generated_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifact_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "classification",
+        "artifact_kind",
+        "runtime_owned_source",
+        "database_dump",
+        "phone_safe",
+        "item_fields",
+        "provenance_fields",
+        "forbidden_fields"
+      ],
+      "properties": {
+        "classification": {
+          "const": "user_recall_export"
+        },
+        "artifact_kind": {
+          "const": "recall_export_json"
+        },
+        "runtime_owned_source": {
+          "const": true
+        },
+        "database_dump": {
+          "const": false
+        },
+        "phone_safe": {
+          "const": true
+        },
+        "item_fields": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "item_id"
+            },
+            {
+              "const": "summary"
+            },
+            {
+              "const": "created_at"
+            },
+            {
+              "const": "provenance"
+            }
+          ],
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "provenance_fields": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "source_task_id"
+            },
+            {
+              "const": "source_inbox_item_id"
+            },
+            {
+              "const": "source_surface"
+            }
+          ],
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "forbidden_fields": {
+          "type": "array",
+          "contains": {
+            "const": "raw_embeddings"
+          },
+          "allOf": [
+            {
+              "contains": {
+                "const": "retrieval_index_rows"
+              }
+            },
+            {
+              "contains": {
+                "const": "provider_keys"
+              }
+            },
+            {
+              "contains": {
+                "const": "bearer_tokens"
+              }
+            },
+            {
+              "contains": {
+                "const": "runtime_store_path"
+              }
+            },
+            {
+              "contains": {
+                "const": "hidden_prompts"
+              }
+            },
+            {
+              "contains": {
+                "const": "raw_provider_responses"
+              }
+            }
+          ],
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "item_id",
+          "summary",
+          "created_at",
+          "provenance"
+        ],
+        "properties": {
+          "item_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "minLength": 1
+          },
+          "provenance": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "source_task_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_inbox_item_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_surface": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

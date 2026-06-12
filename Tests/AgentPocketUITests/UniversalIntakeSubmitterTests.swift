@@ -67,7 +67,11 @@ final class UniversalIntakeSubmitterTests: XCTestCase {
                 "locale": "zh-Hans",
                 "source_surface": "share_extension",
                 "network": "wifi",
-                "battery": "charging"
+                "battery": "charging",
+                "motion": "walking",
+                "location_label": "near_office",
+                "location_precision": "coarse",
+                "calendar_availability": "busy_soon"
             ]
         }
         let submitter = MobileBridgeUniversalIntakeSubmitter(
@@ -92,7 +96,11 @@ final class UniversalIntakeSubmitterTests: XCTestCase {
                 locale: "zh-Hans",
                 sourceSurface: "share_extension",
                 network: "wifi",
-                battery: "charging"
+                battery: "charging",
+                motion: "walking",
+                locationLabel: "near_office",
+                locationPrecision: "coarse",
+                calendarAvailability: "busy_soon"
             ),
             progress: { event in await progress.append(event) }
         )
@@ -170,6 +178,128 @@ final class UniversalIntakeSubmitterTests: XCTestCase {
         XCTAssertFalse(UniversalIntakeMockURLProtocol.state.snapshot().contextSnapshotWasPresent)
     }
 
+    func testVoiceInboxItemSubmitsVoiceSourceSurface() async throws {
+        UniversalIntakeMockURLProtocol.state.update { state in
+            state.expectedSourceSurface = "voice"
+            state.expectedSourceApp = "Kaka Voice"
+        }
+        let submitter = MobileBridgeUniversalIntakeSubmitter(
+            session: mockSession(),
+            poller: TaskPoller(intervalNanoseconds: 0)
+        )
+        let progress = ProgressRecorder()
+        UniversalIntakeMockURLProtocol.state.setRequestHandler { request in
+            try UniversalIntakeHTTPRecording.response(for: request)
+        }
+
+        let status = try await submitter.submit(
+            item: KakaInboxItem(
+                kind: .text,
+                sourceApp: "Kaka Voice",
+                sourceSurface: "voice",
+                text: "Remind me to follow up after the call."
+            ),
+            connection: try storedConnection(),
+            contextSnapshot: nil,
+            progress: { event in await progress.append(event) }
+        )
+
+        XCTAssertEqual(
+            UniversalIntakeMockURLProtocol.state.snapshot().requestPaths,
+            [
+                "/mobile/v1/capabilities",
+                "/mobile/v1/tasks/intake",
+                "/mobile/v1/tasks/task_intake_text"
+            ]
+        )
+        XCTAssertEqual(status.intake?.kind, .text)
+        XCTAssertEqual(
+            UniversalIntakeMockURLProtocol.state.snapshot().startedIntakeTexts,
+            ["Remind me to follow up after the call."]
+        )
+        let recordedEvents = await progress.recordedEvents()
+        XCTAssertEqual(recordedEvents, [.startingTask, .submitted(taskID: "task_intake_text")])
+    }
+
+    func testPastedInboxItemSubmitsPasteSourceSurface() async throws {
+        UniversalIntakeMockURLProtocol.state.update { state in
+            state.expectedSourceSurface = "paste"
+            state.expectedSourceApp = "Clipboard"
+        }
+        let submitter = MobileBridgeUniversalIntakeSubmitter(
+            session: mockSession(),
+            poller: TaskPoller(intervalNanoseconds: 0)
+        )
+        let progress = ProgressRecorder()
+        UniversalIntakeMockURLProtocol.state.setRequestHandler { request in
+            try UniversalIntakeHTTPRecording.response(for: request)
+        }
+
+        let status = try await submitter.submit(
+            item: KakaInboxItem(
+                kind: .text,
+                sourceApp: "Clipboard",
+                sourceSurface: "paste",
+                text: "Rewrite this message in a calmer tone."
+            ),
+            connection: try storedConnection(),
+            contextSnapshot: nil,
+            progress: { event in await progress.append(event) }
+        )
+
+        XCTAssertEqual(
+            UniversalIntakeMockURLProtocol.state.snapshot().requestPaths,
+            [
+                "/mobile/v1/capabilities",
+                "/mobile/v1/tasks/intake",
+                "/mobile/v1/tasks/task_intake_text"
+            ]
+        )
+        XCTAssertEqual(status.intake?.kind, .text)
+        XCTAssertEqual(
+            UniversalIntakeMockURLProtocol.state.snapshot().startedIntakeTexts,
+            ["Rewrite this message in a calmer tone."]
+        )
+        let recordedEvents = await progress.recordedEvents()
+        XCTAssertEqual(recordedEvents, [.startingTask, .submitted(taskID: "task_intake_text")])
+    }
+
+    func testInboxInstructionNoteSubmitsAsUserInstruction() async throws {
+        UniversalIntakeMockURLProtocol.state.update { state in
+            state.expectedNote = "Summarize first and extract next actions."
+            state.expectedUserInstruction = "Summarize first and extract next actions."
+        }
+        let submitter = MobileBridgeUniversalIntakeSubmitter(
+            session: mockSession(),
+            poller: TaskPoller(intervalNanoseconds: 0)
+        )
+        UniversalIntakeMockURLProtocol.state.setRequestHandler { request in
+            try UniversalIntakeHTTPRecording.response(for: request)
+        }
+
+        let status = try await submitter.submit(
+            item: KakaInboxItem(
+                kind: .url,
+                sourceApp: "Safari",
+                note: "Summarize first and extract next actions.",
+                url: "https://example.com/research"
+            ),
+            connection: try storedConnection(),
+            contextSnapshot: nil,
+            progress: { _ in }
+        )
+
+        XCTAssertEqual(status.intake?.kind, .url)
+        XCTAssertEqual(
+            UniversalIntakeMockURLProtocol.state.snapshot().requestPaths,
+            [
+                "/mobile/v1/capabilities",
+                "/mobile/v1/tasks/intake",
+                "/mobile/v1/tasks/task_intake_url"
+            ]
+        )
+    }
+
     private func mockSession() -> URLSession {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [UniversalIntakeMockURLProtocol.self]
@@ -241,12 +371,14 @@ private enum UniversalIntakeHTTPRecording {
             if let text = payload?["text"] as? String {
                 UniversalIntakeMockURLProtocol.state.appendStartedIntakeText(text)
             }
+            assertSource(payload?["source"] as? [String: Any])
+            assertInstruction(payload)
             let kind = payload?["kind"] as? String
             if kind == "pdf" {
                 XCTAssertEqual(payload?["source_app"] as? String, "Files")
-            } else {
-                XCTAssertEqual(kind, "text")
-                XCTAssertEqual(payload?["source_app"] as? String, "Notes")
+            } else if kind == "text" {
+                let expectedSourceApp = UniversalIntakeMockURLProtocol.state.snapshot().expectedSourceApp ?? "Notes"
+                XCTAssertEqual(payload?["source_app"] as? String, expectedSourceApp)
             }
             assertContextSnapshot(payload?["context_snapshot"] as? [String: Any])
             let taskID = "task_intake_\(kind ?? "unknown")"
@@ -261,8 +393,22 @@ private enum UniversalIntakeHTTPRecording {
             return ok(request, """
             {"task_id":"task_intake_text","status":"completed","progress":1.0,"result_type":"intake","intake":{"kind":"text","title":"Text ready","summary":"Kaka received text.","suggestions":[]}}
             """)
+        case ("GET", "/mobile/v1/tasks/task_intake_url"):
+            return ok(request, """
+            {"task_id":"task_intake_url","status":"completed","progress":1.0,"result_type":"intake","intake":{"kind":"url","title":"URL ready","summary":"Kaka received a URL.","suggestions":[]}}
+            """)
         default:
             throw URLError(.badServerResponse)
+        }
+    }
+
+    private static func assertInstruction(_ payload: [String: Any]?) {
+        let snapshot = UniversalIntakeMockURLProtocol.state.snapshot()
+        if let expectedNote = snapshot.expectedNote {
+            XCTAssertEqual(payload?["note"] as? String, expectedNote)
+        }
+        if let expectedUserInstruction = snapshot.expectedUserInstruction {
+            XCTAssertEqual(payload?["user_instruction"] as? String, expectedUserInstruction)
         }
     }
 
@@ -279,7 +425,17 @@ private enum UniversalIntakeHTTPRecording {
         for (key, value) in expectedContextSnapshot {
             XCTAssertEqual(contextSnapshot?[key] as? String, value)
         }
-        XCTAssertNil(contextSnapshot?["motion"])
+    }
+
+    private static func assertSource(_ source: [String: Any]?) {
+        let snapshot = UniversalIntakeMockURLProtocol.state.snapshot()
+        let expectedSourceSurface = snapshot.expectedSourceSurface ?? "share_extension"
+        let expectedSourceApp = snapshot.expectedSourceApp
+
+        XCTAssertEqual(source?["surface"] as? String, expectedSourceSurface)
+        if let expectedSourceApp {
+            XCTAssertEqual(source?["host_app"] as? String, expectedSourceApp)
+        }
     }
 
     private static func ok(_ request: URLRequest, _ body: String) -> (HTTPURLResponse, Data) {
@@ -332,6 +488,10 @@ private struct UniversalIntakeMockSnapshot {
     var expectedContextSnapshot: [String: String]?
     var supportsContextSnapshot: Bool?
     var contextSnapshotWasPresent = false
+    var expectedSourceSurface: String?
+    var expectedSourceApp: String?
+    var expectedNote: String?
+    var expectedUserInstruction: String?
 }
 
 private final class UniversalIntakeMockState: @unchecked Sendable {

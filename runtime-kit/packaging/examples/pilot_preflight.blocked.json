@@ -1,0 +1,98 @@
+{
+  "schema_version": "kaka.host_shell_pilot_preflight.v1",
+  "surface": "hermes_openclaw_host_shell_pilot_preflight",
+  "runtime": "hermes",
+  "ok": false,
+  "status": "blocked",
+  "runtime_side_only": true,
+  "phone_api_path": "/mobile/v1",
+  "phone_api_unchanged": true,
+  "p3_4_complete": false,
+  "host_shell": {
+    "detected": false,
+    "candidates": [
+      {
+        "path": "/Applications/Hermes.app",
+        "exists": false
+      },
+      {
+        "path": "/Applications/Hermes Setup.app",
+        "exists": false
+      }
+    ],
+    "cli": {
+      "command": "hermes",
+      "found": false,
+      "path": ""
+    }
+  },
+  "private_adapter_command": {
+    "default_command_name": "hermes-kaka-host-api",
+    "selected": {
+      "provided": false,
+      "source": "missing",
+      "path": "",
+      "exists": false,
+      "executable": false,
+      "outside_kaka_repo": false
+    },
+    "environment_variable": {
+      "name": "HERMES_KAKA_HOST_API",
+      "configured": false,
+      "path": "",
+      "exists": false,
+      "executable": false,
+      "outside_kaka_repo": false
+    },
+    "manifest_entrypoint": {
+      "configured": false,
+      "manifest_path": "runtime-kit/hermes-plugin/kaka-mobile-bridge.package.json",
+      "path": "",
+      "exists": false,
+      "executable": false,
+      "outside_kaka_repo": false
+    },
+    "well_known_paths": [
+      {
+        "path": "/Users/example/Library/Application Support/Hermes/Kaka/hermes-kaka-host-api",
+        "exists": false,
+        "executable": false
+      }
+    ],
+    "path_command": {
+      "command": "hermes-kaka-host-api",
+      "found": false,
+      "path": "",
+      "informational_only": true
+    }
+  },
+  "handoff_command": [
+    "python3",
+    "-m",
+    "kaka_mobile_runtime_kit",
+    "host-shell-pilot-handoff",
+    "--runtime",
+    "hermes"
+  ],
+  "release_preflight": {
+    "can_run_conformance": false,
+    "can_mark_p3_4_complete": false,
+    "blocking_reasons": [
+      "missing_host_shell",
+      "missing_private_adapter_command"
+    ]
+  },
+  "next_actions": [
+    "install_or_open_host_shell",
+    "provide_private_adapter_command"
+  ],
+  "safety": {
+    "runtime_side_only": true,
+    "phone_api_unchanged": true,
+    "phone_settings_owner": false,
+    "no_proprietary_binary_bundled_by_kaka": true,
+    "does_not_invoke_private_adapter_command": true,
+    "does_not_run_conformance": true,
+    "does_not_fetch_audit_refs": true
+  }
+}

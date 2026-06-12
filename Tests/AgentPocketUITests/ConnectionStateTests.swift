@@ -116,4 +116,12 @@ final class ConnectionStateTests: XCTestCase {
         XCTAssertEqual(model.secondaryActionTitle, "Enter Endpoint")
         XCTAssertFalse(model.showsManualEntry)
     }
+
+    func testSecondaryActionsStayPhoneSafeAndStateDriven() {
+        XCTAssertEqual(ConnectionState.idle.presentation.secondaryActionTitle, "Scan Pairing QR")
+        XCTAssertEqual(ConnectionState.offline.presentation.secondaryActionTitle, "Scan Pairing QR")
+        XCTAssertEqual(ConnectionState.unauthorized.presentation.secondaryActionTitle, "Enter Token")
+        XCTAssertEqual(ConnectionState.invalidCertificate.presentation.secondaryActionTitle, "Change Endpoint")
+        XCTAssertEqual(ConnectionState.localNetworkPermissionRequired.presentation.secondaryActionTitle, "Enter Endpoint")
+    }
 }

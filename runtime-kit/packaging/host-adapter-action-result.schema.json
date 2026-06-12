@@ -1,0 +1,295 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kaka.local/schemas/host-adapter-action-result.schema.json",
+  "title": "Kaka Runtime Host Adapter Action Result",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "adapter_mode",
+    "action_id",
+    "adapter",
+    "ok",
+    "mutated_host_state",
+    "explicit_user_approval",
+    "runtime_side_only",
+    "state",
+    "safety",
+    "detail"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_adapter_action_result.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_host_adapter_binding"
+    },
+    "runtime": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "adapter_mode": {
+      "enum": [
+        "mock",
+        "private"
+      ]
+    },
+    "action_id": {
+      "enum": [
+        "install_runtime_package",
+        "enable_start_with_runtime",
+        "disable_start_with_runtime",
+        "update_runtime_package",
+        "uninstall_runtime_package",
+        "open_runtime_logs",
+        "run_health_check",
+        "repair_port_conflict",
+        "supervise_bridge"
+      ]
+    },
+    "adapter": {
+      "enum": [
+        "host_native_install",
+        "host_native_enable_login_item",
+        "host_native_disable_login_item",
+        "host_native_update",
+        "host_native_uninstall",
+        "host_native_open_logs",
+        "host_native_health_check",
+        "host_native_repair_port",
+        "host_native_supervisor"
+      ]
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "mutated_host_state": {
+      "type": "boolean"
+    },
+    "explicit_user_approval": {
+      "type": "boolean"
+    },
+    "runtime_side_only": {
+      "const": true
+    },
+    "state": {
+      "type": "object",
+      "required": [
+        "installed",
+        "start_with_runtime",
+        "process_state",
+        "process_supervision",
+        "health_status",
+        "port_conflict"
+      ],
+      "properties": {
+        "installed": {
+          "type": "boolean"
+        },
+        "start_with_runtime": {
+          "type": "boolean"
+        },
+        "process_state": {
+          "enum": [
+            "stopped",
+            "running",
+            "unhealthy",
+            "unknown"
+          ]
+        },
+        "process_supervision": {
+          "enum": [
+            "not_configured",
+            "host_managed",
+            "misconfigured"
+          ]
+        },
+        "health_status": {
+          "enum": [
+            "unknown",
+            "healthy",
+            "unhealthy"
+          ]
+        },
+        "port_conflict": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "safety": {
+      "type": "object",
+      "required": [
+        "phone_api_unchanged",
+        "runtime_side_only",
+        "phone_settings_owner",
+        "no_autostart_on_install",
+        "no_login_item_creation_by_runtime_kit",
+        "mock_does_not_mutate_host_os",
+        "private_host_api_called",
+        "forbidden_phone_safe_fields"
+      ],
+      "properties": {
+        "phone_api_unchanged": {
+          "const": true
+        },
+        "runtime_side_only": {
+          "const": true
+        },
+        "phone_settings_owner": {
+          "const": false
+        },
+        "no_autostart_on_install": {
+          "const": true
+        },
+        "no_login_item_creation_by_runtime_kit": {
+          "const": true
+        },
+        "mock_does_not_mutate_host_os": {
+          "type": "boolean"
+        },
+        "private_host_api_called": {
+          "type": "boolean"
+        },
+        "forbidden_phone_safe_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "allOf": [
+            {
+              "contains": {
+                "const": "runtime_store_path"
+              }
+            },
+            {
+              "contains": {
+                "const": "recall_search_endpoint"
+              }
+            },
+            {
+              "contains": {
+                "const": "provider_keys"
+              }
+            },
+            {
+              "contains": {
+                "const": "auth_env_files"
+              }
+            },
+            {
+              "contains": {
+                "const": "mobile_tokens"
+              }
+            },
+            {
+              "contains": {
+                "const": "tls_private_key_paths"
+              }
+            },
+            {
+              "contains": {
+                "const": "hidden_prompt"
+              }
+            },
+            {
+              "contains": {
+                "const": "hidden_prompts"
+              }
+            },
+            {
+              "contains": {
+                "const": "raw_embeddings"
+              }
+            },
+            {
+              "contains": {
+                "const": "index_rows"
+              }
+            },
+            {
+              "contains": {
+                "const": "task_logs"
+              }
+            },
+            {
+              "contains": {
+                "const": "raw_provider_responses"
+              }
+            },
+            {
+              "contains": {
+                "const": "process_ids"
+              }
+            },
+            {
+              "contains": {
+                "const": "host_log_paths"
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "detail": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "target": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "host_api_level": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "checked_bridge": {
+          "type": "boolean"
+        },
+        "private_api_called": {
+          "type": "boolean"
+        },
+        "private_api_provider": {
+          "type": "string",
+          "maxLength": 64
+        }
+      },
+      "additionalProperties": false
+    },
+    "error": {
+      "type": "object",
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "explicit_approval_required",
+            "host_adapter_action_disabled",
+            "private_host_adapter_unavailable",
+            "private_host_adapter_command_failed",
+            "private_host_adapter_invalid_response",
+            "private_host_adapter_timeout"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 256
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,382 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/host-plugin-skill-devkit.schema.json",
+  "title": "Kaka Host Plugin Skill Devkit",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "written",
+    "output_root",
+    "developer_kit_only",
+    "ordinary_user_install",
+    "package",
+    "generated_files",
+    "contract_index",
+    "adapter_template",
+    "quality_gates",
+    "codex_automation",
+    "ordinary_user_boundary",
+    "phone_api",
+    "readiness_inputs",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_plugin_skill_devkit.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_host_plugin_skill_devkit"
+    },
+    "runtime": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "written": {
+      "type": "boolean"
+    },
+    "output_root": {
+      "type": "string"
+    },
+    "developer_kit_only": {
+      "const": true
+    },
+    "ordinary_user_install": {
+      "const": false
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "install_shape",
+        "ordinary_user_entrypoint",
+        "developer_kit_owner",
+        "stable_package_owner",
+        "final_distribution_requires_host_signature"
+      ],
+      "properties": {
+        "install_shape": {
+          "enum": [
+            "hermes_plugin",
+            "openclaw_skill"
+          ]
+        },
+        "ordinary_user_entrypoint": {
+          "type": "string"
+        },
+        "developer_kit_owner": {
+          "const": "kaka_runtime_kit"
+        },
+        "stable_package_owner": {
+          "const": "host_shell"
+        },
+        "final_distribution_requires_host_signature": {
+          "const": true
+        }
+      }
+    },
+    "generated_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "kind"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "developer_readme",
+              "devkit_manifest",
+              "contract_index",
+              "command_file",
+              "quality_gate",
+              "ordinary_user_boundary",
+              "adapter_template",
+              "adapter_template_readme",
+              "codex_automation_readme",
+              "codex_skill_template",
+              "codex_plugin_template"
+            ]
+          }
+        }
+      }
+    },
+    "contract_index": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "builds_on",
+        "required_commands",
+        "phone_api_path"
+      ],
+      "properties": {
+        "builds_on": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_commands": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "host-extension-starter-kit",
+              "host-extension-install-package",
+              "host-extension-readiness",
+              "host-private-adapter-conformance",
+              "host-shell-pilot-evidence-manifest",
+              "host-shell-pilot-artifact-review"
+            ]
+          }
+        },
+        "phone_api_path": {
+          "const": "/mobile/v1"
+        }
+      }
+    },
+    "adapter_template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default_command_name",
+        "visibility",
+        "developer_fallback_only",
+        "environment_variable",
+        "implementation_owner",
+        "contains_proprietary_implementation",
+        "stdin_stdout_contract"
+      ],
+      "properties": {
+        "default_command_name": {
+          "type": "string"
+        },
+        "visibility": {
+          "const": "extension_internal"
+        },
+        "developer_fallback_only": {
+          "const": true
+        },
+        "environment_variable": {
+          "type": "string"
+        },
+        "implementation_owner": {
+          "const": "host_shell"
+        },
+        "contains_proprietary_implementation": {
+          "const": false
+        },
+        "stdin_stdout_contract": {
+          "const": "kaka.host_private_adapter_request.v1 -> kaka.host_private_adapter_response.v1"
+        }
+      }
+    },
+    "quality_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requires_host_signature",
+        "requires_update_channel",
+        "requires_conformance_report",
+        "requires_evidence_manifest",
+        "requires_install_drill_receipts",
+        "requires_log_redaction_review",
+        "can_mark_p3_4_complete"
+      ],
+      "properties": {
+        "requires_host_signature": {
+          "const": true
+        },
+        "requires_update_channel": {
+          "const": true
+        },
+        "requires_conformance_report": {
+          "const": true
+        },
+        "requires_evidence_manifest": {
+          "const": true
+        },
+        "requires_install_drill_receipts": {
+          "const": true
+        },
+        "requires_log_redaction_review": {
+          "const": true
+        },
+        "can_mark_p3_4_complete": {
+          "const": false
+        }
+      }
+    },
+    "codex_automation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "included",
+        "kind",
+        "ordinary_user_install_surface",
+        "developer_only",
+        "installs_codex_plugin",
+        "updates_marketplace"
+      ],
+      "properties": {
+        "included": {
+          "const": true
+        },
+        "kind": {
+          "const": "template_only"
+        },
+        "ordinary_user_install_surface": {
+          "const": false
+        },
+        "developer_only": {
+          "const": true
+        },
+        "installs_codex_plugin": {
+          "const": false
+        },
+        "updates_marketplace": {
+          "const": false
+        }
+      }
+    },
+    "ordinary_user_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "install_surface",
+        "phone_api_path",
+        "manual_adapter_code_required",
+        "environment_variable_required",
+        "codex_plugin_required"
+      ],
+      "properties": {
+        "install_surface": {
+          "const": "host_native_plugin_or_skill"
+        },
+        "phone_api_path": {
+          "const": "/mobile/v1"
+        },
+        "manual_adapter_code_required": {
+          "const": false
+        },
+        "environment_variable_required": {
+          "const": false
+        },
+        "codex_plugin_required": {
+          "const": false
+        }
+      }
+    },
+    "phone_api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_path",
+        "private_host_api_exposed",
+        "phone_api_unchanged"
+      ],
+      "properties": {
+        "base_path": {
+          "const": "/mobile/v1"
+        },
+        "private_host_api_exposed": {
+          "const": false
+        },
+        "phone_api_unchanged": {
+          "const": true
+        }
+      }
+    },
+    "readiness_inputs": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "install_command",
+          "update_channel",
+          "adapter_command_location",
+          "host_ui_entrypoint",
+          "signed_package_ref",
+          "signature_ref",
+          "conformance_report_ref",
+          "evidence_manifest_ref"
+        ]
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manual_adapter_code_required",
+        "environment_variable_required",
+        "starts_bridge_on_install",
+        "binds_lan_on_install",
+        "advertises_bonjour_on_install",
+        "creates_login_item_on_install",
+        "mints_credentials_on_install",
+        "does_not_install_package",
+        "does_not_sign_package",
+        "does_not_publish_package",
+        "does_not_run_package_manager",
+        "does_not_run_conformance",
+        "does_not_modify_keychain",
+        "does_not_invoke_private_adapter",
+        "runtime_side_only"
+      ],
+      "properties": {
+        "manual_adapter_code_required": {
+          "const": false
+        },
+        "environment_variable_required": {
+          "const": false
+        },
+        "starts_bridge_on_install": {
+          "const": false
+        },
+        "binds_lan_on_install": {
+          "const": false
+        },
+        "advertises_bonjour_on_install": {
+          "const": false
+        },
+        "creates_login_item_on_install": {
+          "const": false
+        },
+        "mints_credentials_on_install": {
+          "const": false
+        },
+        "does_not_install_package": {
+          "const": true
+        },
+        "does_not_sign_package": {
+          "const": true
+        },
+        "does_not_publish_package": {
+          "const": true
+        },
+        "does_not_run_package_manager": {
+          "const": true
+        },
+        "does_not_run_conformance": {
+          "const": true
+        },
+        "does_not_modify_keychain": {
+          "const": true
+        },
+        "does_not_invoke_private_adapter": {
+          "const": true
+        },
+        "runtime_side_only": {
+          "const": true
+        }
+      }
+    }
+  }
+}

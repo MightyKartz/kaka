@@ -6,16 +6,15 @@ public protocol ResultAssetDownloading: Sendable {
 }
 
 public struct MobileBridgeResultAssetDownloader: ResultAssetDownloading {
-    private let session: URLSession
+    private let session: URLSession?
 
-    public init(session: URLSession = .shared) {
+    public init(session: URLSession? = nil) {
         self.session = session
     }
 
     public func download(downloadURL: String, connection: StoredConnection) async throws -> DownloadedAsset {
         try await MobileBridgeHTTPClient(
-            endpoint: connection.endpoint,
-            token: connection.mobileToken,
+            connection: connection,
             session: session
         ).downloadAsset(downloadURL: downloadURL)
     }

@@ -2,15 +2,18 @@ import SwiftUI
 
 public struct VoiceCaptureView: View {
     @ObservedObject private var viewModel: VoiceCaptureViewModel
+    private let presentation: VoiceCapturePresentation
     private let onCancel: () -> Void
     private let onSend: (String) -> Void
 
     public init(
         viewModel: VoiceCaptureViewModel,
+        presentation: VoiceCapturePresentation = .defaultDraft,
         onCancel: @escaping () -> Void,
         onSend: @escaping (String) -> Void
     ) {
         self.viewModel = viewModel
+        self.presentation = presentation
         self.onCancel = onCancel
         self.onSend = onSend
     }
@@ -18,6 +21,20 @@ public struct VoiceCaptureView: View {
     public var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 16) {
+                HStack(spacing: 10) {
+                    Image(systemName: stateIconName)
+                        .font(.system(size: 18, weight: .semibold))
+                        .frame(width: 28, height: 28)
+                        .foregroundStyle(Color(red: 0.55, green: 0.96, blue: 0.89))
+                        .accessibilityHidden(true)
+
+                    Text(viewModel.state.statusText)
+                        .font(.headline)
+                        .foregroundStyle(.white)
+
+                    Spacer()
+                }
+
                 TextEditor(text: $viewModel.editableTranscript)
                     .font(.body)
                     .scrollContentBackground(.hidden)
@@ -28,19 +45,36 @@ public struct VoiceCaptureView: View {
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
                             .stroke(Color.white.opacity(0.12), lineWidth: 1)
                     )
-                    .accessibilityLabel("Voice transcript")
+                    .disabled(viewModel.state == .recording || viewModel.state == .transcribing)
+                    .accessibilityLabel(presentation.transcriptAccessibilityLabel)
 
                 HStack(spacing: 12) {
-                    Button("Cancel") {
-                        viewModel.cancel()
-                        onCancel()
+                    Button {
+                        Task {
+                            await viewModel.cancelRecording()
+                            onCancel()
+                        }
+                    } label: {
+                        Label("Cancel", systemImage: "xmark")
                     }
                     .buttonStyle(.bordered)
 
                     Spacer()
 
-                    Button("Send") {
+                    Button {
+                        Task {
+                            await toggleRecording()
+                        }
+                    } label: {
+                        Label(recordButtonTitle, systemImage: recordButtonIconName)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(viewModel.state == .transcribing)
+
+                    Button {
                         onSend(viewModel.transcript)
+                    } label: {
+                        Label(presentation.submitTitle, systemImage: presentation.submitSystemImage)
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(viewModel.canSubmit == false)
@@ -49,20 +83,48 @@ public struct VoiceCaptureView: View {
             .padding(16)
             .background(Color(red: 0.035, green: 0.045, blue: 0.045))
             .foregroundStyle(.white)
-            .navigationTitle("Voice Draft")
+            .navigationTitle(presentation.navigationTitle)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
-                        viewModel.cancel()
-                        onCancel()
+                        Task {
+                            await viewModel.cancelRecording()
+                            onCancel()
+                        }
                     }
                 }
             }
-            .onAppear {
-                if viewModel.state == .idle {
-                    viewModel.markTranscriptReady("")
-                }
-            }
+        }
+    }
+
+    private var stateIconName: String {
+        switch viewModel.state {
+        case .idle:
+            return "mic"
+        case .recording:
+            return "waveform"
+        case .transcribing:
+            return "text.magnifyingglass"
+        case .ready:
+            return "text.bubble"
+        case .failed:
+            return "exclamationmark.triangle"
+        }
+    }
+
+    private var recordButtonTitle: String {
+        viewModel.state == .recording ? "Stop" : "Record"
+    }
+
+    private var recordButtonIconName: String {
+        viewModel.state == .recording ? "stop.fill" : "mic.fill"
+    }
+
+    private func toggleRecording() async {
+        if viewModel.state == .recording {
+            await viewModel.stopRecordingAndTranscribe()
+        } else {
+            await viewModel.startRecording()
         }
     }
 }

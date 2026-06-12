@@ -117,7 +117,7 @@ final class MobileBridgeHTTPIntegrationTests: XCTestCase {
         let capabilities = try await pairedClient.fetchCapabilities()
 
         XCTAssertEqual(exchange.mobileToken, "dev-mobile-token")
-        XCTAssertEqual(capabilities.tasks.photoEdit.returnVariantsMax, 3)
+        XCTAssertEqual(capabilities.tasks.photoEdit.returnVariantsMax, 2)
     }
 
     private func startMockBridge(port: Int) throws {

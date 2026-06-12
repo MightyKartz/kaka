@@ -33,7 +33,7 @@ final class MobileBridgeClientTests: XCTestCase {
         {
           "profiles": [{"id":"photo-agent","display_name":"Photo Agent","capabilities":["photo_edit","vision"]}],
           "tasks": {
-            "photo_edit": {"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance"],"provider":"recipe_local","renderer":"local_parametric","variant_labels":["Master","Social"],"variant_ids":["variant_clean_pro","variant_social_pop"],"crop_aspects":["original"],"supports_crop_candidates":false,"supports_upscale_policy":true,"supports_sse":true,"return_variants_max":3},
+            "photo_edit": {"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance"],"provider":"recipe_local","renderer":"local_parametric","variant_labels":["Master","Social"],"variant_ids":["variant_clean_pro","variant_social_pop"],"crop_aspects":["original"],"supports_crop_candidates":false,"supports_upscale_policy":true,"supports_sse":true,"return_variants_max":2},
             "vision": {"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"modes":["scan","identify","translate","food"],"provider":"fixture_vision","supports_sse":true}
           },
           "retention": {"input_assets_days":7,"output_assets_days":30,"task_history_days":30}

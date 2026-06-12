@@ -36,7 +36,7 @@ final class MobileBridgeHTTPClientTests: XCTestCase {
             XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer abc123")
 
             let data = """
-            {"profiles":[{"id":"photo-agent","display_name":"Photo Agent","capabilities":["photo_edit"]}],"tasks":{"photo_edit":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance"],"provider":"recipe_local","renderer":"local_parametric","variant_labels":["Master","Social"],"variant_ids":["variant_clean_pro","variant_social_pop"],"crop_aspects":["original"],"supports_crop_candidates":false,"supports_upscale_policy":true,"supports_sse":true,"return_variants_max":3}},"retention":{"input_assets_days":7,"output_assets_days":30,"task_history_days":30}}
+            {"profiles":[{"id":"photo-agent","display_name":"Photo Agent","capabilities":["photo_edit"]}],"tasks":{"photo_edit":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance"],"provider":"recipe_local","renderer":"local_parametric","variant_labels":["Master","Social"],"variant_ids":["variant_clean_pro","variant_social_pop"],"crop_aspects":["original"],"supports_crop_candidates":false,"supports_upscale_policy":true,"supports_sse":true,"return_variants_max":2}},"retention":{"input_assets_days":7,"output_assets_days":30,"task_history_days":30}}
             """.data(using: .utf8)!
             return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
         }
@@ -96,6 +96,53 @@ final class MobileBridgeHTTPClientTests: XCTestCase {
 
         let payload = try await client.fetchDevelopmentPairingPayload()
 
+        XCTAssertTrue(payload.contains("\"pairing_code\":\"pair_dev_0002\""))
+    }
+
+    func testFetchPairingPayloadPrefersProductionQRPayload() async throws {
+        let client = try makeClient()
+
+        MockURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.httpMethod, "GET")
+            XCTAssertEqual(request.url?.path, "/mobile/v1/pairing/qr")
+            XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+
+            let data = """
+            {"version":1,"endpoint":"https://hermes.example.com","runtime":"hermes","display_name":"Hermes","pairing_code":"pair_prod","expires_at":"2026-06-05T08:02:00Z"}
+            """.data(using: .utf8)!
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
+        }
+
+        let payload = try await client.fetchPairingPayload()
+
+        XCTAssertTrue(payload.contains("\"pairing_code\":\"pair_prod\""))
+    }
+
+    func testFetchPairingPayloadFallsBackToDevelopmentPayloadWhenProductionRouteIsMissing() async throws {
+        let client = try makeClient()
+        var requestedPaths: [String] = []
+
+        MockURLProtocol.requestHandler = { request in
+            requestedPaths.append(request.url?.path ?? "")
+            XCTAssertEqual(request.httpMethod, "GET")
+            XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+
+            if request.url?.path == "/mobile/v1/pairing/qr" {
+                let data = """
+                {"error":{"code":"not_found","message":"missing"}}
+                """.data(using: .utf8)!
+                return (HTTPURLResponse(url: request.url!, statusCode: 404, httpVersion: nil, headerFields: nil)!, data)
+            }
+
+            let data = """
+            {"version":1,"endpoint":"https://hermes.example.com","runtime":"hermes","display_name":"Hermes","pairing_code":"pair_dev_0002","expires_at":"2099-01-01T00:00:00Z"}
+            """.data(using: .utf8)!
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
+        }
+
+        let payload = try await client.fetchPairingPayload()
+
+        XCTAssertEqual(requestedPaths, ["/mobile/v1/pairing/qr", "/mobile/v1/pairing/dev"])
         XCTAssertTrue(payload.contains("\"pairing_code\":\"pair_dev_0002\""))
     }
 

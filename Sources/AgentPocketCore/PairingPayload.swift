@@ -4,6 +4,9 @@ public struct PairingPayload: Equatable, Sendable {
     public enum ValidationError: Error, Equatable {
         case unsupportedVersion
         case expired
+        case missingRequiredTLSPublicKeyFingerprint
+        case malformedRequiredTLSPublicKeyFingerprint
+        case trustedLocalTLSRequiresHTTPSEndpoint
     }
 
     public let version: Int
@@ -12,6 +15,9 @@ public struct PairingPayload: Equatable, Sendable {
     public let displayName: String
     public let pairingCode: String
     public let expiresAt: Date
+    public let tlsPublicKeySHA256: String?
+    public let trustedLocalTLSRequired: Bool
+    public let tlsCertificateLabel: String?
 
     public init(jsonString: String, now: Date = Date()) throws {
         let data = Data(jsonString.utf8)
@@ -26,16 +32,35 @@ public struct PairingPayload: Equatable, Sendable {
             throw ValidationError.expired
         }
 
-        self.version = decoded.version
-        self.endpoint = try AgentEndpoint(
+        let endpoint = try AgentEndpoint(
             rawURL: decoded.endpoint,
             runtime: decoded.runtime,
             displayName: decoded.displayName
         )
+        let trustedLocalTLSRequired = decoded.trustedLocalTLSRequired ?? false
+        let tlsPublicKeySHA256 = MobileBridgeTrustPolicy.normalizePublicKeySHA256(decoded.tlsPublicKeySHA256)
+        if trustedLocalTLSRequired {
+            guard endpoint.baseURL.scheme?.lowercased() == "https" else {
+                throw ValidationError.trustedLocalTLSRequiresHTTPSEndpoint
+            }
+            guard let rawFingerprint = decoded.tlsPublicKeySHA256?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  rawFingerprint.isEmpty == false else {
+                throw ValidationError.missingRequiredTLSPublicKeyFingerprint
+            }
+            guard tlsPublicKeySHA256 != nil else {
+                throw ValidationError.malformedRequiredTLSPublicKeyFingerprint
+            }
+        }
+
+        self.version = decoded.version
+        self.endpoint = endpoint
         self.runtime = decoded.runtime
         self.displayName = decoded.displayName
         self.pairingCode = decoded.pairingCode
         self.expiresAt = decoded.expiresAt
+        self.tlsPublicKeySHA256 = tlsPublicKeySHA256
+        self.trustedLocalTLSRequired = trustedLocalTLSRequired
+        self.tlsCertificateLabel = decoded.tlsCertificateLabel?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
     }
 }
 
@@ -46,6 +71,9 @@ private struct PairingPayloadDTO: Decodable {
     let displayName: String
     let pairingCode: String
     let expiresAt: Date
+    let tlsPublicKeySHA256: String?
+    let trustedLocalTLSRequired: Bool?
+    let tlsCertificateLabel: String?
 
     private enum CodingKeys: String, CodingKey {
         case version
@@ -54,5 +82,14 @@ private struct PairingPayloadDTO: Decodable {
         case displayName = "display_name"
         case pairingCode = "pairing_code"
         case expiresAt = "expires_at"
+        case tlsPublicKeySHA256 = "tls_public_key_sha256"
+        case trustedLocalTLSRequired = "trusted_local_tls_required"
+        case tlsCertificateLabel = "tls_certificate_label"
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        isEmpty ? nil : self
     }
 }

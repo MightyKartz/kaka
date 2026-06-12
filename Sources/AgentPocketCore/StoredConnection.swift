@@ -8,6 +8,14 @@ public struct StoredConnection: Equatable, Sendable {
     public let runtimeVersion: String
     public let mobileToken: String
     public let tokenExpiresAt: String?
+    public let tlsPublicKeySHA256: String?
+
+    public var trustPolicy: MobileBridgeTrustPolicy {
+        MobileBridgeTrustPolicy.policy(
+            for: endpoint,
+            tlsPublicKeySHA256: tlsPublicKeySHA256
+        )
+    }
 
     public init(
         endpoint: AgentEndpoint,
@@ -15,7 +23,8 @@ public struct StoredConnection: Equatable, Sendable {
         runtime: String,
         runtimeVersion: String,
         mobileToken: String,
-        tokenExpiresAt: String?
+        tokenExpiresAt: String?,
+        tlsPublicKeySHA256: String? = nil
     ) {
         self.endpoint = endpoint
         self.displayName = displayName
@@ -23,6 +32,7 @@ public struct StoredConnection: Equatable, Sendable {
         self.runtimeVersion = runtimeVersion
         self.mobileToken = mobileToken
         self.tokenExpiresAt = tokenExpiresAt
+        self.tlsPublicKeySHA256 = MobileBridgeTrustPolicy.normalizePublicKeySHA256(tlsPublicKeySHA256)
     }
 
     public static func == (lhs: StoredConnection, rhs: StoredConnection) -> Bool {
@@ -32,6 +42,7 @@ public struct StoredConnection: Equatable, Sendable {
             && lhs.runtimeVersion == rhs.runtimeVersion
             && lhs.mobileToken == rhs.mobileToken
             && lhs.tokenExpiresAt == rhs.tokenExpiresAt
+            && lhs.tlsPublicKeySHA256 == rhs.tlsPublicKeySHA256
     }
 }
 
@@ -43,6 +54,7 @@ extension StoredConnection: Codable {
         case runtimeVersion = "runtime_version"
         case mobileToken = "mobile_token"
         case tokenExpiresAt = "token_expires_at"
+        case tlsPublicKeySHA256 = "tls_public_key_sha256"
     }
 
     public init(from decoder: Decoder) throws {
@@ -54,6 +66,9 @@ extension StoredConnection: Codable {
         runtimeVersion = try container.decode(String.self, forKey: .runtimeVersion)
         mobileToken = try container.decode(String.self, forKey: .mobileToken)
         tokenExpiresAt = try container.decodeIfPresent(String.self, forKey: .tokenExpiresAt)
+        tlsPublicKeySHA256 = MobileBridgeTrustPolicy.normalizePublicKeySHA256(
+            try container.decodeIfPresent(String.self, forKey: .tlsPublicKeySHA256)
+        )
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -64,6 +79,7 @@ extension StoredConnection: Codable {
         try container.encode(runtimeVersion, forKey: .runtimeVersion)
         try container.encode(mobileToken, forKey: .mobileToken)
         try container.encodeIfPresent(tokenExpiresAt, forKey: .tokenExpiresAt)
+        try container.encodeIfPresent(tlsPublicKeySHA256, forKey: .tlsPublicKeySHA256)
     }
 }
 

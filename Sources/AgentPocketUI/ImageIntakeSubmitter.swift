@@ -10,11 +10,11 @@ public protocol ImageIntakeSubmitting: Sendable {
 }
 
 public struct MobileBridgeImageIntakeSubmitter: ImageIntakeSubmitting {
-    private let session: URLSession
+    private let session: URLSession?
     private let poller: TaskPoller
 
     public init(
-        session: URLSession = .shared,
+        session: URLSession? = nil,
         poller: TaskPoller = TaskPoller()
     ) {
         self.session = session
@@ -27,8 +27,7 @@ public struct MobileBridgeImageIntakeSubmitter: ImageIntakeSubmitting {
         progress: @escaping @Sendable (PhotoEditSubmissionProgress) async -> Void
     ) async throws -> TaskStatusResponse {
         let client = MobileBridgeHTTPClient(
-            endpoint: connection.endpoint,
-            token: connection.mobileToken,
+            connection: connection,
             session: session
         )
         let capabilities = try await client.fetchCapabilities()

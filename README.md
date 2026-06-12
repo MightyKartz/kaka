@@ -2,13 +2,9 @@
 
 Languages: English | [简体中文](README.zh-CN.md)
 
-Kaka is a local-first iPhone front end for user-owned agent runtimes. It turns the phone into a trusted capture, share, voice-draft, inbox, and consent surface while Hermes, OpenClaw, or a compatible Mobile Bridge runtime owns model credentials, model routing, tool execution, memory, task state, and retention policy.
+Kaka is a local-first iPhone front end for user-owned agent runtimes. It turns the phone into a trusted capture, share, paste, voice, inbox, and consent surface while Hermes, OpenClaw, or a compatible Mobile Bridge runtime owns model credentials, model routing, tool execution, memory, task state, and retention policy.
 
-The project began as an image-intake MVP: pair an iPhone with a local runtime, capture or choose an image, run `image_intake`, receive suggested skills, and continue in an image conversation for OCR, translation, identification, food estimates, or parameterized photo editing.
-
-The latest codebase now includes the first **Pocket Agents Phase A** foundation: Share to Kaka Inbox capture, universal intake contracts, minimal context snapshots, explicit Recall actions, runtime task inbox models, and a transcript-first voice follow-up skeleton. Real microphone recording, Speech transcription, spoken replies, production Recall persistence, and consumer-ready Hermes/OpenClaw plugin packaging are still planned work.
-
-> Status: early MVP / active development. The Swift client, iOS app target, Share Extension target, Mobile Bridge contract, mock bridge, Runtime Kit scaffold, local recipe path, runtime-owned vision path, tests, and UI/UX prototypes are in this repository.
+> Status: early MVP / active development. The Swift client, iOS app target, Share Extension target, Mobile Bridge contract, mock bridge, Runtime Kit scaffold, local recipe path, runtime-owned vision path, tests, and UI/UX prototypes are in this repository. The full phase-by-phase history lives in [docs/development-history.md](docs/development-history.md).
 
 ## Why Kaka
 
@@ -26,79 +22,19 @@ The product goal is a reliable pocket-agent loop: capture or share something, le
 
 ## What Works Now
 
-### Image Intake
-
-1. Pair Kaka on iPhone with a local runtime.
-2. Capture a photo or choose one from the library.
-3. Upload the asset through Mobile Bridge.
-4. Start `POST /mobile/v1/tasks/image-intake`.
-5. Show the image summary and suggested Kaka skills.
-6. Route the user's next tap or typed request to photo-edit or vision tasks.
-7. Show results in an image conversation, then save or share.
-
-### Share To Kaka Inbox
-
-Kaka now includes an iOS Share Extension target:
-
-- accepts text, web URLs, images, and PDFs from the iOS share sheet
-- stores supported payloads in the shared App Group container
-- records each payload as a `KakaInboxItem`
-- fails closed if capture cannot complete
-- avoids hidden background upload or retry
-
-The main app owns visible submission from the Inbox into the runtime.
-
-### Universal Intake
-
-The Mobile Bridge client and mock bridge include the first universal-intake contract:
-
-- `POST /mobile/v1/tasks/intake`
-- accepted kinds: text, URL, image, screenshot, PDF
-- source metadata such as `share_extension`
-- optional user instruction
-- optional `context_snapshot`
-- structured `UniversalIntakeResult` with suggestions
-
-This generalizes the image-intake shape without breaking the current image-specific path.
-
-### Context Snapshot
-
-Kaka has a minimal task-scoped Context Snapshot contract and preview UI. The initial collector sends explicit fields such as timestamp, timezone, locale, and source surface. Rich collectors for battery, network, motion, location, and calendar availability remain planned.
-
-### Recall
-
-The codebase includes explicit Recall D.0 actions:
-
-- `POST /mobile/v1/recall/actions`
-- `GET /mobile/v1/recall/items`
-- `DELETE /mobile/v1/recall/items/{id}`
-- Swift models and client builders
-- mock bridge in-memory behavior
-- visible confirmation-oriented UI models
-
-Long-term production storage, search, export, retrieval-index deletion, and durable runtime persistence are next steps.
-
-### Voice And Runtime Tasks
-
-Kaka includes a transcript-first voice follow-up draft model and UI skeleton. It does not yet record microphone audio or run Speech transcription. Runtime task list, cancel, and approval models are also present so long-running local-agent work can become visible and controllable.
-
-## Pocket Agents Direction
-
-Kaka can expand beyond the camera without becoming an unsafe autonomous phone controller. The recommended direction is:
-
-- **Share to Kaka Inbox** for text, links, screenshots, PDFs, images, audio notes, and small files.
-- **Voice Walkie-talkie** for push-to-talk commands, visible transcripts, short spoken replies, and confirmation cards.
-- **Permissioned Context Snapshot** for task-scoped time, source, coarse location, network, battery, motion, and optional calendar availability.
-- **Screenshot Q&A and UI guidance** so the runtime can explain screens and suggest next steps without controlling other apps.
-- **Recall** with explicit remember, use-once, forget, browse, search, export, and delete controls.
-
-See [docs/pocket-agents-direction.md](docs/pocket-agents-direction.md) and [docs/kaka-pocket-agents-next-development-plan.md](docs/kaka-pocket-agents-next-development-plan.md).
+- **Image intake** — pair with a local runtime, capture or choose a photo, upload through Mobile Bridge, run `POST /mobile/v1/tasks/image-intake`, get a summary plus suggested skills, and continue in an image conversation (OCR, translate, identify, food, parameterized photo edit).
+- **Share to Kaka Inbox** — an iOS Share Extension accepts text, web URLs, images, and PDFs, stores payloads in the shared App Group container as `KakaInboxItem`s, and fails closed; the main app owns visible submission. Explicit Paste and Files import, pending-item review details, confirmed discard, and action feedback banners are built on the same Inbox.
+- **Universal intake** — `POST /mobile/v1/tasks/intake` for text, URL, image, screenshot, and PDF with source metadata, optional user instruction, optional context snapshot, and structured suggestions.
+- **Context Snapshot** — a task-scoped, permission-aware snapshot (time, timezone, locale, source surface, coarse network/battery, one-shot motion and calendar-availability labels) sent only when the user opts in and the runtime advertises support; denied permissions never block intake.
+- **Recall** — explicit actions (`Remember` / `Use Once` / `Forget`), browse, search, export, and delete through `/mobile/v1/recall/*`; Runtime Kit provides durable SQLite persistence behind `--runtime-store-path`, policy-labeled JSON export, and deterministic semantic search with provider-backed adapter support.
+- **Voice and runtime tasks** — real push-to-talk follow-up with on-device transcription and an editable transcript (no raw audio upload, no hidden listening), voice-to-Inbox drafts and instructions, runtime task list/cancel/approval models, foreground App Intents, and a Live Activity pipeline with WidgetKit Lock Screen and Dynamic Island presentation.
+- **Pairing and trust** — short-lived QR pairing with token revocation, Bonjour discovery, local HTTPS with a non-secret TLS public-key pin carried into saved connections.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  Inputs["Camera / Share / Paste / Voice Draft / Screenshot"] --> Phone["Kaka iPhone app"]
+  Inputs["Camera / Share / Paste / Voice / Screenshot"] --> Phone["Kaka iPhone app"]
   Phone --> Consent["Preview and consent"]
   Consent --> Bridge["Mobile Bridge /mobile/v1"]
   Bridge --> Runtime["Hermes, OpenClaw, or sidecar"]
@@ -128,28 +64,13 @@ The iPhone stores only the runtime endpoint, mobile bearer token, local Inbox pa
 | `Sources/AgentPocketUI` | SwiftUI connection, capture, image conversation, Inbox, Context Snapshot preview, Recall, voice draft, and task inbox surfaces |
 | `ios/AgentPocket` | iOS app target, entitlements, debug handoff surfaces |
 | `ios/KakaShareExtension` | Share Extension target for text, URL, image, and PDF capture |
+| `ios/AgentPocketTaskActivityWidget` | WidgetKit Live Activity target for Lock Screen and Dynamic Island task state |
 | `mock_bridge` | Local Mobile Bridge server, deterministic runtime behavior, QA tooling, and tests |
 | `runtime-kit` | Bridge launcher, Hermes/OpenClaw packaging scaffold, runtime vision endpoint, CLI, tests |
 | `photo-pack` | Photo agent profile, photo-edit skill, and local recipe adapters |
 | `docs` | API docs, privacy docs, development plans, Pocket Agents direction, and UI/UX prototypes |
 
-## Implemented And Prototyped Features
-
-- QR and Bonjour-oriented pairing model for a local Mobile Bridge.
-- Image capture/library flow with upload, task polling, progress events, result download, save, and share.
-- `image_intake` task shape with summaries and suggested Kaka skills.
-- Swift skill routing for scan, identify, translate, food, photo enhancement, and conversation follow-up.
-- Runtime-owned vision path through `runtime_http` plus a deterministic development server.
-- Local-first parameterized photo edit recipes and renderer-oriented adapters.
-- Share Extension target and App Group Inbox item store.
-- Universal intake request/result models and mock bridge endpoint.
-- Minimal Context Snapshot payload and preview state.
-- Recall action models, client methods, mock endpoints, and UI state.
-- Runtime task list, cancel, and approval models.
-- UI prototypes for the original photo loop and Pocket Agents direction:
-  - [docs/ui/kaka-pocket-agents-prototype.html](docs/ui/kaka-pocket-agents-prototype.html)
-  - [docs/ui/kaka-pocket-agents-presentation.html](docs/ui/kaka-pocket-agents-presentation.html)
-  - [docs/ui/kaka-pocket-agents-voice-first-concept.html](docs/ui/kaka-pocket-agents-voice-first-concept.html)
+Key documents: [docs/mobile-bridge-api.md](docs/mobile-bridge-api.md) (the phone↔runtime contract and single source of truth), [docs/agent-pocket-setup.md](docs/agent-pocket-setup.md) (setup), [docs/pocket-agents-direction.md](docs/pocket-agents-direction.md) (product direction), [docs/development-history.md](docs/development-history.md) (full phase log).
 
 ## Local Development
 
@@ -159,7 +80,7 @@ Run Swift tests:
 swift test
 ```
 
-Run Runtime Kit and mock bridge tests:
+Run Runtime Kit, mock bridge, photo pack, and iOS source tests:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 \
@@ -167,26 +88,19 @@ PYTHONPATH=runtime-kit:mock_bridge \
 python3 -m pytest -p no:cacheprovider runtime-kit/tests mock_bridge/tests photo-pack/tests ios/tests -q
 ```
 
-Run the Runtime Kit doctor:
-
-```bash
-PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit doctor
-```
-
-Validate iOS plist and entitlement files:
-
-```bash
-plutil -lint \
-  ios/KakaShareExtension/Info.plist \
-  ios/KakaShareExtension/KakaShareExtension.entitlements \
-  ios/AgentPocket/AgentPocket.entitlements \
-  ios/AgentPocket.xcodeproj/project.pbxproj
-```
-
 Start the local bridge for Simulator development:
 
 ```bash
 PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start
+```
+
+Start the bridge with a local SQLite store:
+
+```bash
+PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
+  --repo-root . \
+  --runtime sidecar \
+  --runtime-store-path ~/.kaka/mobile-runtime.sqlite3
 ```
 
 Start the bridge for a physical iPhone on the same trusted LAN:
@@ -200,28 +114,7 @@ PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
   --hermes-profile dev-lead
 ```
 
-Route image-conversation OCR, translate, identify, and food skills to a runtime-owned vision endpoint:
-
-```bash
-PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
-  --lan \
-  --bonjour \
-  --bonjour-host "$(ipconfig getifaddr en0)" \
-  --runtime hermes \
-  --hermes-profile dev-lead \
-  --vision-provider runtime_http \
-  --vision-endpoint http://127.0.0.1:<agent-port>/kaka/vision
-```
-
-Development-only vision endpoint:
-
-```bash
-PYTHONPATH=runtime-kit python3 -m kaka_mobile_runtime_kit.vision_server \
-  --host 127.0.0.1 \
-  --port 8787
-```
-
-Use it with `--vision-endpoint http://127.0.0.1:8787/kaka/vision` while Hermes/OpenClaw model integration is still being built.
+Then open `ios/AgentPocket.xcodeproj`, run the app, and pair by QR or Bonjour. See [docs/agent-pocket-setup.md](docs/agent-pocket-setup.md) for vision endpoints, QA tooling, and troubleshooting, and [runtime-kit/README.md](runtime-kit/README.md) for the host packaging and host adapter CLI surfaces.
 
 ## Runtime Kit Direction
 
@@ -234,26 +127,22 @@ Kaka should not require normal users to paste bridge commands. The target setup 
 
 Safety boundaries:
 
-- Installing a plugin or skill must not auto-start a LAN listener.
-- Default bridge binding is local loopback.
-- LAN and Bonjour are explicit opt-ins.
+- Installing a plugin or skill must not auto-start a LAN listener; default binding is local loopback, and LAN/Bonjour are explicit opt-ins.
 - Provider API keys never move to iPhone.
-- Pairing tokens should be short-lived and revocable.
+- Ordinary users should not write adapter code, export environment variables, or paste Runtime Kit command chains; host extensions own adapter discovery and lifecycle wiring internally.
+- The phone connects to agents only through Mobile Bridge `/mobile/v1`; host shell rendering and host action execution use Mac/runtime-side Runtime Kit contracts, and proprietary Hermes/OpenClaw private API implementations stay outside this repository.
+- Production QR payloads are short-lived and single-use, and mobile tokens are revocable.
 - Share Extension capture must not silently upload content.
 
 See [docs/kaka-runtime-kit-plan.md](docs/kaka-runtime-kit-plan.md).
 
-## Roadmap
+## Status And Roadmap
 
-- Finish Recall D.1 browse, search, export, and deletion receipts.
-- Add production runtime persistence for Recall and runtime task state.
-- Add real push-to-talk recording, transcript review, and spoken replies.
-- Expand Context Snapshot collectors for battery, network, motion, location, and calendar availability.
-- Add safe App Intents, Live Activity, widget, and Action Button surfaces after task approvals stabilize.
-- Package Runtime Kit as a consumer-ready Hermes/OpenClaw plugin flow.
-- Improve production pairing, revocation, retention, and local TLS.
-- Port refined HTML UI direction into native SwiftUI.
-- Add more local renderer backends such as Core Image, ImageMagick, OpenCV, or libvips.
+Current focus: an end-to-end real-use loop — pair a physical iPhone with a real local runtime, exercise capture/share/voice daily, and harden what breaks.
+
+The Host Extension productization track (an installable Hermes Plugin / OpenClaw Skill) is specified and contract-complete in Runtime Kit, but the external install drill (P3.7) remains **blocked** on real host-owned package materials; see [docs/kaka-host-extension-external-materials.md](docs/kaka-host-extension-external-materials.md). While blocked, development continues on repo-owned product slices instead of additional installer wrappers.
+
+The complete phase log (P2.x–P3.x, with the boundaries each slice did and did not change) is in [docs/development-history.md](docs/development-history.md).
 
 ## Security And Privacy
 
@@ -263,8 +152,9 @@ Kaka is designed around a local-first credential boundary:
 - The runtime owns model choice and provider credentials.
 - User inputs are explicit and visible before submission.
 - Share Extension payloads are captured locally first, then submitted by visible main-app action.
-- Context Snapshot is task-scoped and previewed.
+- Context Snapshot is task-scoped, previewed with readable permission rows, and never collected in the background.
 - Recall is opt-in: remember, use once, or forget.
+- Production Recall and task persistence stays on the runtime side; the phone requests browse/search/export/delete and task actions through Mobile Bridge.
 - Photos and rendered variants are handled by the user's runtime and its retention policy.
 - Local discovery does not mint long-lived credentials by itself.
 

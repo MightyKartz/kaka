@@ -155,3 +155,40 @@ def test_provider_preflight_reports_openai_key_without_exposing_secret(monkeypat
     assert "secret-value" not in json.dumps(ready)
     assert ready["ok"] is True
     assert ready["env"]["OPENAI_API_KEY"] == "set"
+
+
+def test_renderer_readiness_report_runs_recipe_local_probe_without_asset_bytes():
+    from agent_pocket_mock_bridge.photo_providers import build_renderer_readiness_report
+
+    report = build_renderer_readiness_report("recipe_local", photo_pack_root=Path("photo-pack"))
+    rendered = json.dumps(report, sort_keys=True)
+
+    assert report["schema_version"] == "kaka.local_renderer_backend_probe.v1"
+    assert report["surface"] == "hermes_openclaw_local_renderer_backend_probe"
+    assert report["status"] == "ready"
+    assert report["ok"] is True
+    assert report["provider"] == "recipe_local"
+    assert report["renderer"] == "local_parametric"
+    assert report["probe"]["mode"] == "synthetic_fixture_render"
+    assert report["probe"]["variant_count"] == 2
+    assert report["probe"]["variant_ids"] == ["variant_clean_pro", "variant_social_pop"]
+    assert report["probe"]["mime_types"] == ["image/jpeg", "image/jpeg"]
+    assert report["probe"]["qa"]["master_difference_score"] > 0
+    assert report["safety"]["runtime_side_only"] is True
+    assert report["safety"]["no_phone_api_change"] is True
+    assert report["safety"]["no_generative_pixels"] is True
+    assert "bytes" not in rendered
+    assert "source_image_base64" not in rendered
+    assert "OPENAI_API_KEY" not in rendered
+
+
+def test_renderer_readiness_report_blocks_non_local_renderer_provider():
+    from agent_pocket_mock_bridge.photo_providers import build_renderer_readiness_report
+
+    report = build_renderer_readiness_report("openai", photo_pack_root=Path("photo-pack"))
+
+    assert report["ok"] is False
+    assert report["status"] == "blocked"
+    assert report["provider"] == "openai"
+    assert "local recipe renderer" in report["missing"]
+    assert report["safety"]["no_cloud_provider_calls"] is True

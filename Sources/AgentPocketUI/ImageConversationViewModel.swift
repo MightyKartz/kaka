@@ -142,32 +142,35 @@ public final class ImageConversationViewModel: ObservableObject {
             return
         }
         messages.append(KakaImageMessage(role: .user, text: suggestion.title))
-        await execute(skill: suggestion.skill, userInstruction: suggestion.title, connection: connection)
+        _ = await execute(skill: suggestion.skill, userInstruction: suggestion.title, connection: connection)
     }
 
-    public func submitPrompt(connection: StoredConnection?) async {
+    @discardableResult
+    public func submitPrompt(connection: StoredConnection?) async -> String? {
         let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard text.isEmpty == false else {
-            return
+            return nil
         }
         prompt = ""
         messages.append(KakaImageMessage(role: .user, text: text))
-        await execute(skill: KakaSkillRouter.route(text), userInstruction: text, connection: connection)
+        return await execute(skill: KakaSkillRouter.route(text), userInstruction: text, connection: connection)
     }
 
-    public func submitVoiceTranscript(_ transcript: String, connection: StoredConnection?) async {
+    @discardableResult
+    public func submitVoiceTranscript(_ transcript: String, connection: StoredConnection?) async -> String? {
         let text = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
         guard text.isEmpty == false else {
-            return
+            return nil
         }
         prompt = text
-        await submitPrompt(connection: connection)
+        return await submitPrompt(connection: connection)
     }
 
-    private func execute(skill: KakaSkillID, userInstruction: String?, connection: StoredConnection?) async {
+    private func execute(skill: KakaSkillID, userInstruction: String?, connection: StoredConnection?) async -> String? {
         guard let connection else {
-            messages.append(KakaImageMessage(role: .assistant, text: "请先连接本机智能体。"))
-            return
+            let message = "请先连接本机智能体。"
+            messages.append(KakaImageMessage(role: .assistant, text: message))
+            return message
         }
 
         isExecuting = true
@@ -184,15 +187,19 @@ public final class ImageConversationViewModel: ObservableObject {
             ) { [weak self] progress in
                 await self?.apply(progress)
             }
+            let summary = Self.summaryText(for: status)
             messages.append(
                 KakaImageMessage(
                     role: .result,
-                    text: Self.summaryText(for: status),
+                    text: summary,
                     result: status
                 )
             )
+            return summary
         } catch {
-            messages.append(KakaImageMessage(role: .assistant, text: "这个技能暂时还不能执行，请稍后再试。"))
+            let message = "这个技能暂时还不能执行，请稍后再试。"
+            messages.append(KakaImageMessage(role: .assistant, text: message))
+            return message
         }
     }
 

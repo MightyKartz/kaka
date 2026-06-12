@@ -24,6 +24,7 @@ public struct ConnectView: View {
             fallbackDeviceName: fallbackDeviceName(for: language)
         )
         let presentation = viewModel.state.presentation
+        let recoveryPresentation = ConnectionReadinessPresenter.presentation(for: viewModel.state)
         let isShowingDiscoveredRuntimes = viewModel.state == .idle && viewModel.discoveredRuntimes.isEmpty == false
 
         ScrollView {
@@ -51,13 +52,19 @@ public struct ConnectView: View {
                         isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes
                     ),
                     primaryAction: performPrimaryAction,
-                    scanCodeAction: beginScanningFromHero
+                    secondaryButtonTitle: presentation.secondaryActionTitle ?? copy.scanCodeTitle,
+                    secondarySystemImage: secondarySymbol(for: viewModel.state),
+                    secondaryAction: performSecondaryAction
                 )
 
                 if presentation.isBusy && viewModel.state != .scanning {
                     ProgressView()
                         .frame(maxWidth: .infinity, minHeight: 44)
                         .accessibilityLabel(copy.primaryButtonTitle)
+                }
+
+                if let recoveryPresentation {
+                    ConnectionRecoveryGuidancePanel(presentation: recoveryPresentation)
                 }
 
                 if viewModel.state == .scanning {
@@ -112,6 +119,9 @@ public struct ConnectView: View {
         }
         .sheet(isPresented: $showsProjectSettings) {
             ProjectSettingsSheet(copy: copy)
+        }
+        .onChange(of: viewModel.state) { _, newState in
+            resetManualEntryIfNeeded(for: newState)
         }
         .navigationTitle("")
         #if os(iOS)
@@ -228,15 +238,15 @@ public struct ConnectView: View {
 
     private func performSecondaryAction() {
         switch viewModel.state {
-        case .idle, .missingPhotoEdit:
+        case .idle, .offline:
+            viewModel.beginScanning()
+        case .missingPhotoEdit:
             Task {
                 await viewModel.discoverLocalRuntimes(
                     deviceName: PairingDeviceInfo.name,
                     devicePublicID: PairingDeviceInfo.publicID
                 )
             }
-        case .offline:
-            viewModel.beginScanning()
         case .unauthorized, .invalidCertificate, .failed:
             withAnimation(.easeOut(duration: 0.2)) {
                 showsManualEntry = true
@@ -250,7 +260,18 @@ public struct ConnectView: View {
                 showsManualEntry = true
             }
             viewModel.cancelScanning()
-        case .testing, .discovering, .connected:
+        case .connected:
+            viewModel.forgetSavedConnection()
+        case .testing, .discovering:
+            break
+        }
+    }
+
+    private func resetManualEntryIfNeeded(for state: ConnectionState) {
+        switch state {
+        case .connected, .idle, .discovering, .testing:
+            showsManualEntry = false
+        case .scanning, .unauthorized, .offline, .invalidCertificate, .missingPhotoEdit, .localNetworkPermissionRequired, .failed:
             break
         }
     }
@@ -292,6 +313,8 @@ public struct ConnectView: View {
             return "keyboard"
         case .missingPhotoEdit:
             return "arrow.clockwise"
+        case .connected:
+            return "arrow.triangle.2.circlepath"
         default:
             return "ellipsis"
         }
@@ -345,7 +368,9 @@ private struct ConnectHeroCard: View {
     let isBusy: Bool
     let primarySystemImage: String
     let primaryAction: () -> Void
-    let scanCodeAction: () -> Void
+    let secondaryButtonTitle: String
+    let secondarySystemImage: String
+    let secondaryAction: () -> Void
 
     var body: some View {
         VStack(spacing: 14) {
@@ -411,8 +436,9 @@ private struct ConnectHeroCard: View {
             }
             .shadow(color: Color(red: 0.13, green: 0.20, blue: 0.22).opacity(0.12), radius: 28, y: 18)
 
-            Button(action: scanCodeAction) {
-                Text(copy.scanCodeTitle)
+            Button(action: secondaryAction) {
+                Label(secondaryButtonTitle, systemImage: secondarySystemImage)
+                    .labelStyle(.titleAndIcon)
                     .font(.body.weight(.semibold))
                     .frame(maxWidth: .infinity, minHeight: 44)
             }
@@ -436,6 +462,52 @@ private struct ConnectHeroCard: View {
         }
         .padding(.horizontal, 22)
         .padding(.vertical, 16)
+    }
+}
+
+private struct ConnectionRecoveryGuidancePanel: View {
+    let presentation: ConnectionReadinessPresentation
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Text(ConnectionReadinessPresenter.ownerLabel(for: presentation.recoveryOwner))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.secondary.opacity(0.14), in: Capsule())
+
+                Text(presentation.title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+            }
+
+            Text(presentation.message)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 12) {
+                Label(presentation.primaryActionTitle, systemImage: "checkmark.circle")
+
+                if let secondaryActionTitle = presentation.secondaryActionTitle {
+                    Label(secondaryActionTitle, systemImage: "arrow.turn.up.right")
+                }
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(Color(red: 0.06, green: 0.45, blue: 0.38))
+            .lineLimit(2)
+            .minimumScaleFactor(0.86)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.white.opacity(0.58), lineWidth: 1)
+        }
     }
 }
 

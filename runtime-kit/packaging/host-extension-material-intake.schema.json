@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/host-extension-material-intake.schema.json",
+  "title": "Kaka Host Extension Material Intake Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "status",
+    "ordinary_user_install_surface",
+    "source",
+    "readiness",
+    "package_facts",
+    "install_drill_refs",
+    "missing_package_facts",
+    "missing_install_drill_refs",
+    "redacted_fields",
+    "findings",
+    "next_step",
+    "phone_api",
+    "safety",
+    "notes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_extension_material_intake.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_host_extension_material_intake"
+    },
+    "runtime": {
+      "enum": ["hermes", "openclaw"]
+    },
+    "status": {
+      "enum": ["blocked", "accepted_for_external_install_drill_review"]
+    },
+    "ordinary_user_install_surface": {
+      "const": "host_native_extension"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "loaded",
+        "schema_valid",
+        "manifest_schema_version",
+        "local_manifest_only"
+      ],
+      "properties": {
+        "source": {
+          "enum": ["direct", "file", "missing", "unreadable"]
+        },
+        "loaded": {
+          "type": "boolean"
+        },
+        "schema_valid": {
+          "type": "boolean"
+        },
+        "manifest_schema_version": {
+          "type": "string"
+        },
+        "local_manifest_only": {
+          "const": true
+        }
+      }
+    },
+    "readiness": {
+      "type": "object"
+    },
+    "package_facts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "install_command",
+        "update_channel",
+        "adapter_command_location",
+        "host_ui_entrypoint",
+        "signed_package_ref",
+        "signature_ref",
+        "conformance_report_ref",
+        "evidence_manifest_ref"
+      ],
+      "properties": {
+        "install_command": { "type": "string" },
+        "update_channel": { "type": "string" },
+        "adapter_command_location": { "type": "string" },
+        "host_ui_entrypoint": { "type": "string" },
+        "signed_package_ref": { "type": "string" },
+        "signature_ref": { "type": "string" },
+        "conformance_report_ref": { "type": "string" },
+        "evidence_manifest_ref": { "type": "string" }
+      }
+    },
+    "install_drill_refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "install_receipt_ref",
+        "enable_receipt_ref",
+        "pairing_receipt_ref",
+        "health_receipt_ref",
+        "revoke_repair_receipt_ref",
+        "update_receipt_ref",
+        "failure_recovery_receipt_ref",
+        "uninstall_receipt_ref"
+      ],
+      "properties": {
+        "install_receipt_ref": { "type": "string" },
+        "enable_receipt_ref": { "type": "string" },
+        "pairing_receipt_ref": { "type": "string" },
+        "health_receipt_ref": { "type": "string" },
+        "revoke_repair_receipt_ref": { "type": "string" },
+        "update_receipt_ref": { "type": "string" },
+        "failure_recovery_receipt_ref": { "type": "string" },
+        "uninstall_receipt_ref": { "type": "string" }
+      }
+    },
+    "missing_package_facts": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "install_command",
+          "update_channel",
+          "adapter_command_location",
+          "host_ui_entrypoint",
+          "signed_package_ref",
+          "signature_ref",
+          "conformance_report_ref",
+          "evidence_manifest_ref"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "missing_install_drill_refs": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "install_receipt_ref",
+          "enable_receipt_ref",
+          "pairing_receipt_ref",
+          "health_receipt_ref",
+          "revoke_repair_receipt_ref",
+          "update_receipt_ref",
+          "failure_recovery_receipt_ref",
+          "uninstall_receipt_ref"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "redacted_fields": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "findings": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "next_step": {
+      "enum": ["collect_host_owned_package_facts", "run_external_p3_7_install_drill"]
+    },
+    "phone_api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_path",
+        "private_host_api_exposed",
+        "phone_api_unchanged"
+      ],
+      "properties": {
+        "base_path": { "const": "/mobile/v1" },
+        "private_host_api_exposed": { "const": false },
+        "phone_api_unchanged": { "const": true }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "does_not_install_package",
+        "does_not_sign_or_publish",
+        "does_not_fetch_refs",
+        "does_not_start_bridge",
+        "does_not_bind_lan",
+        "does_not_advertise_bonjour",
+        "does_not_mint_mobile_tokens",
+        "does_not_invoke_private_adapter",
+        "does_not_write_codex_user_home",
+        "does_not_change_mobile_bridge_api"
+      ],
+      "properties": {
+        "does_not_install_package": { "const": true },
+        "does_not_sign_or_publish": { "const": true },
+        "does_not_fetch_refs": { "const": true },
+        "does_not_start_bridge": { "const": true },
+        "does_not_bind_lan": { "const": true },
+        "does_not_advertise_bonjour": { "const": true },
+        "does_not_mint_mobile_tokens": { "const": true },
+        "does_not_invoke_private_adapter": { "const": true },
+        "does_not_write_codex_user_home": { "const": true },
+        "does_not_change_mobile_bridge_api": { "const": true }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

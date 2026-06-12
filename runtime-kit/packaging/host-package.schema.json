@@ -1,0 +1,688 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kaka.local/schemas/host-package.schema.json",
+  "title": "Kaka Runtime Host Package Handoff Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "host_api_level",
+    "distribution",
+    "private_adapter_package",
+    "install_policy",
+    "host_actions",
+    "artifacts",
+    "process_ownership",
+    "consumer_ui",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.runtime_host_package.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_host_package"
+    },
+    "runtime": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "host_api_level": {
+      "type": "string",
+      "minLength": 1
+    },
+    "distribution": {
+      "type": "object",
+      "required": [
+        "update_policy"
+      ],
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "channel": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "update_policy": {
+          "const": "explicit_user_approved"
+        }
+      },
+      "additionalProperties": true
+    },
+    "private_adapter_package": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "surface",
+        "runtime",
+        "binary",
+        "discovery",
+        "distribution",
+        "validation",
+        "required_action_ids",
+        "required_capabilities",
+        "mobile_bridge",
+        "safety"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "kaka.host_private_adapter_package.v1"
+        },
+        "surface": {
+          "const": "hermes_openclaw_host_private_adapter_package"
+        },
+        "runtime": {
+          "enum": [
+            "hermes",
+            "openclaw"
+          ]
+        },
+        "binary": {
+          "type": "object",
+          "required": [
+            "owner",
+            "default_command_name",
+            "repository_owner",
+            "private_api_implementation"
+          ],
+          "properties": {
+            "owner": {
+              "const": "host_shell"
+            },
+            "default_command_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "repository_owner": {
+              "const": "hermes_or_openclaw"
+            },
+            "private_api_implementation": {
+              "const": "not_bundled_in_kaka"
+            }
+          },
+          "additionalProperties": false
+        },
+        "distribution": {
+          "type": "object",
+          "required": [
+            "source",
+            "channel",
+            "version",
+            "update_policy",
+            "download_owner",
+            "signature_policy"
+          ],
+          "properties": {
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "channel": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "update_policy": {
+              "const": "explicit_user_approved"
+            },
+            "download_owner": {
+              "const": "host_shell"
+            },
+            "signature_policy": {
+              "const": "host_shell_required"
+            }
+          },
+          "additionalProperties": false
+        },
+        "discovery": {
+          "type": "object",
+          "required": [
+            "config_key",
+            "environment_variable",
+            "manifest_entrypoint",
+            "well_known_paths"
+          ],
+          "properties": {
+            "config_key": {
+              "const": "private_adapter_command"
+            },
+            "environment_variable": {
+              "enum": [
+                "HERMES_KAKA_HOST_API",
+                "OPENCLAW_KAKA_HOST_API"
+              ]
+            },
+            "manifest_entrypoint": {
+              "const": "host_private_adapter.command"
+            },
+            "well_known_paths": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "validation": {
+          "type": "object",
+          "required": [
+            "requires_conformance_passed",
+            "report_schema",
+            "conformance_command"
+          ],
+          "properties": {
+            "requires_conformance_passed": {
+              "const": true
+            },
+            "report_schema": {
+              "const": "kaka.host_private_adapter_conformance.v1"
+            },
+            "conformance_command": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "required_action_ids": {
+          "type": "array",
+          "minItems": 9,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "install_runtime_package",
+              "enable_start_with_runtime",
+              "disable_start_with_runtime",
+              "update_runtime_package",
+              "uninstall_runtime_package",
+              "open_runtime_logs",
+              "run_health_check",
+              "repair_port_conflict",
+              "supervise_bridge"
+            ]
+          },
+          "allOf": [
+            {
+              "contains": {
+                "const": "install_runtime_package"
+              }
+            },
+            {
+              "contains": {
+                "const": "enable_start_with_runtime"
+              }
+            },
+            {
+              "contains": {
+                "const": "disable_start_with_runtime"
+              }
+            },
+            {
+              "contains": {
+                "const": "update_runtime_package"
+              }
+            },
+            {
+              "contains": {
+                "const": "uninstall_runtime_package"
+              }
+            },
+            {
+              "contains": {
+                "const": "open_runtime_logs"
+              }
+            },
+            {
+              "contains": {
+                "const": "run_health_check"
+              }
+            },
+            {
+              "contains": {
+                "const": "repair_port_conflict"
+              }
+            },
+            {
+              "contains": {
+                "const": "supervise_bridge"
+              }
+            }
+          ]
+        },
+        "required_capabilities": {
+          "type": "array",
+          "minItems": 9,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "distribution",
+              "install",
+              "login_item",
+              "update",
+              "uninstall",
+              "logs",
+              "health",
+              "port_repair",
+              "supervision"
+            ]
+          },
+          "allOf": [
+            {
+              "contains": {
+                "const": "distribution"
+              }
+            },
+            {
+              "contains": {
+                "const": "install"
+              }
+            },
+            {
+              "contains": {
+                "const": "login_item"
+              }
+            },
+            {
+              "contains": {
+                "const": "update"
+              }
+            },
+            {
+              "contains": {
+                "const": "uninstall"
+              }
+            },
+            {
+              "contains": {
+                "const": "logs"
+              }
+            },
+            {
+              "contains": {
+                "const": "health"
+              }
+            },
+            {
+              "contains": {
+                "const": "port_repair"
+              }
+            },
+            {
+              "contains": {
+                "const": "supervision"
+              }
+            }
+          ]
+        },
+        "mobile_bridge": {
+          "type": "object",
+          "required": [
+            "phone_api_path",
+            "phone_api_unchanged"
+          ],
+          "properties": {
+            "phone_api_path": {
+              "const": "/mobile/v1"
+            },
+            "phone_api_unchanged": {
+              "const": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "safety": {
+          "type": "object",
+          "required": [
+            "runtime_side_only",
+            "phone_settings_owner",
+            "forbidden_phone_safe_fields"
+          ],
+          "properties": {
+            "runtime_side_only": {
+              "const": true
+            },
+            "phone_settings_owner": {
+              "const": false
+            },
+            "forbidden_phone_safe_fields": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "allOf": [
+                {
+                  "contains": {
+                    "const": "runtime_store_path"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "recall_search_endpoint"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "provider_keys"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "auth_env_files"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "mobile_tokens"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "tls_private_key_paths"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "env_file"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "auth_file"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "auth_files"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "provider_credentials"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "mobile_bearer_token"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "tls_private_key_path"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "hidden_prompt"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "hidden_prompts"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "raw_embeddings"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "index_rows"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "retrieval_index_rows"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "task_logs"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "raw_provider_responses"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "process_ids"
+                  }
+                },
+                {
+                  "contains": {
+                    "const": "host_log_paths"
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "install_policy": {
+      "type": "object",
+      "required": [
+        "enabled_by_default",
+        "auto_start_on_install",
+        "requires_explicit_start",
+        "login_item_default",
+        "creates_login_item_on_install"
+      ],
+      "properties": {
+        "enabled_by_default": {
+          "const": false
+        },
+        "auto_start_on_install": {
+          "const": false
+        },
+        "requires_explicit_start": {
+          "const": true
+        },
+        "login_item_default": {
+          "const": false
+        },
+        "creates_login_item_on_install": {
+          "const": false
+        }
+      },
+      "additionalProperties": true
+    },
+    "host_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "owner",
+          "adapter",
+          "mutates_host_state",
+          "requires_explicit_user_approval",
+          "runtime_side_only",
+          "enabled"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "const": "host_native_adapter"
+          },
+          "adapter": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mutates_host_state": {
+            "type": "boolean"
+          },
+          "requires_explicit_user_approval": {
+            "type": "boolean"
+          },
+          "runtime_side_only": {
+            "const": true
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "mutates_host_state": {
+                  "const": true
+                }
+              },
+              "required": [
+                "mutates_host_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "requires_explicit_user_approval": {
+                  "const": true
+                }
+              }
+            }
+          }
+        ],
+        "additionalProperties": true
+      }
+    },
+    "artifacts": {
+      "type": "object"
+    },
+    "process_ownership": {
+      "type": "object"
+    },
+    "consumer_ui": {
+      "type": "object"
+    },
+    "safety": {
+      "type": "object",
+      "required": [
+        "runtime_side_only",
+        "phone_settings_owner",
+        "no_autostart_on_install",
+        "no_login_item_creation_by_runtime_kit",
+        "requires_host_native_adapter",
+        "forbidden_phone_safe_fields"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "phone_settings_owner": {
+          "const": false
+        },
+        "no_autostart_on_install": {
+          "const": true
+        },
+        "no_login_item_creation_by_runtime_kit": {
+          "const": true
+        },
+        "requires_host_native_adapter": {
+          "const": true
+        },
+        "forbidden_phone_safe_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "allOf": [
+            {
+              "contains": {
+                "const": "runtime_store_path"
+              }
+            },
+            {
+              "contains": {
+                "const": "recall_search_endpoint"
+              }
+            },
+            {
+              "contains": {
+                "const": "provider_keys"
+              }
+            },
+            {
+              "contains": {
+                "const": "auth_env_files"
+              }
+            },
+            {
+              "contains": {
+                "const": "mobile_tokens"
+              }
+            },
+            {
+              "contains": {
+                "const": "tls_private_key_paths"
+              }
+            },
+            {
+              "contains": {
+                "const": "hidden_prompt"
+              }
+            },
+            {
+              "contains": {
+                "const": "hidden_prompts"
+              }
+            },
+            {
+              "contains": {
+                "const": "raw_embeddings"
+              }
+            },
+            {
+              "contains": {
+                "const": "index_rows"
+              }
+            },
+            {
+              "contains": {
+                "const": "task_logs"
+              }
+            },
+            {
+              "contains": {
+                "const": "raw_provider_responses"
+              }
+            },
+            {
+              "contains": {
+                "const": "process_ids"
+              }
+            },
+            {
+              "contains": {
+                "const": "host_log_paths"
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

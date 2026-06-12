@@ -4,7 +4,9 @@ import threading
 import urllib.request
 
 from agent_pocket_mock_bridge import server as server_module
+from agent_pocket_mock_bridge.app import create_app
 from agent_pocket_mock_bridge.server import BonjourAdvertisement, build_app_for_provider, create_http_server
+from kaka_mobile_runtime_kit.pairing import PairingManager
 
 
 def test_http_server_runs_photo_edit_lifecycle_over_real_requests():
@@ -127,11 +129,150 @@ def test_http_server_supports_recall_delete():
             headers={"Authorization": "Bearer dev-mobile-token"},
         )
 
-        assert deleted == {"status": "forgotten", "deleted_item_ids": [item_id]}
+        assert deleted == {
+            "status": "forgotten",
+            "deleted_item_ids": [item_id],
+            "deleted_index_ids": [f"embedding_{item_id}"],
+        }
     finally:
         server.shutdown()
         thread.join(timeout=2)
         server.server_close()
+
+
+def test_http_server_supports_recall_query_and_limit():
+    server = create_http_server(host="127.0.0.1", port=0)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base_url = f"http://127.0.0.1:{server.server_address[1]}"
+    headers = {
+        "Authorization": "Bearer dev-mobile-token",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        for summary in [
+            "Remember Chinese summaries.",
+            "Keep the PDF upload limit visible.",
+            "Prefer concise Chinese answers.",
+        ]:
+            _json_request(
+                f"{base_url}/mobile/v1/recall/actions",
+                method="POST",
+                body=json.dumps(
+                    {
+                        "action": "remember",
+                        "source_task_id": f"task_{summary[:4].lower()}",
+                        "user_visible_summary": summary,
+                    }
+                ).encode("utf-8"),
+                headers=headers,
+            )
+
+        listed = _json_request(
+            f"{base_url}/mobile/v1/recall/items?query=Chinese&limit=1",
+            headers={"Authorization": "Bearer dev-mobile-token"},
+        )
+
+        assert [item["item_id"] for item in listed["items"]] == ["recall_0003"]
+    finally:
+        server.shutdown()
+        thread.join(timeout=2)
+        server.server_close()
+
+
+def test_http_server_supports_recall_semantic_search():
+    server = create_http_server(host="127.0.0.1", port=0)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base_url = f"http://127.0.0.1:{server.server_address[1]}"
+    headers = {
+        "Authorization": "Bearer dev-mobile-token",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        _json_request(
+            f"{base_url}/mobile/v1/recall/actions",
+            method="POST",
+            body=json.dumps(
+                {
+                    "action": "remember",
+                    "source_task_id": "task_http_search",
+                    "user_visible_summary": "HTTP launch summary language preference.",
+                }
+            ).encode("utf-8"),
+            headers=headers,
+        )
+
+        searched = _json_request(
+            f"{base_url}/mobile/v1/recall/search",
+            method="POST",
+            body=json.dumps({"query": "launch summary language", "limit": 5}).encode("utf-8"),
+            headers=headers,
+        )
+
+        assert searched["query"] == "launch summary language"
+        assert searched["mode"] == "semantic"
+        assert searched["items"][0]["item"]["summary"] == "HTTP launch summary language preference."
+        assert searched["items"][0]["score"] > 0
+    finally:
+        server.shutdown()
+        thread.join(timeout=2)
+        server.server_close()
+
+
+def test_http_server_runtime_store_path_preserves_recall_after_restart(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import SQLiteRuntimeStore
+
+    db_path = tmp_path / "runtime.sqlite3"
+    first_store = SQLiteRuntimeStore(db_path)
+    first_store.initialize()
+    first_server = create_http_server("127.0.0.1", 0, app=create_app(runtime_store=first_store))
+    first_thread = threading.Thread(target=first_server.serve_forever, daemon=True)
+    first_thread.start()
+    first_base_url = f"http://127.0.0.1:{first_server.server_address[1]}"
+    headers = {
+        "Authorization": "Bearer dev-mobile-token",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        _json_request(
+            f"{first_base_url}/mobile/v1/recall/actions",
+            method="POST",
+            body=json.dumps(
+                {
+                    "action": "remember",
+                    "source_task_id": "task_http",
+                    "user_visible_summary": "HTTP persistent Recall.",
+                }
+            ).encode("utf-8"),
+            headers=headers,
+        )
+    finally:
+        first_server.shutdown()
+        first_thread.join(timeout=2)
+        first_server.server_close()
+
+    reopened_store = SQLiteRuntimeStore(db_path)
+    reopened_store.initialize()
+    second_server = create_http_server("127.0.0.1", 0, app=create_app(runtime_store=reopened_store))
+    second_thread = threading.Thread(target=second_server.serve_forever, daemon=True)
+    second_thread.start()
+    second_base_url = f"http://127.0.0.1:{second_server.server_address[1]}"
+
+    try:
+        response = _json_request(
+            f"{second_base_url}/mobile/v1/recall/items?query=HTTP",
+            headers={"Authorization": "Bearer dev-mobile-token"},
+        )
+
+        assert [item["summary"] for item in response["items"]] == ["HTTP persistent Recall."]
+    finally:
+        second_server.shutdown()
+        second_thread.join(timeout=2)
+        second_server.server_close()
 
 
 def test_bonjour_advertisement_publishes_discoverable_pairing_metadata():
@@ -179,6 +320,234 @@ def test_server_builds_app_with_named_photo_provider():
     assert app.photo_provider.adapter_path.name == "script.py"
 
 
+def test_server_builds_app_with_recall_search_provider():
+    app = build_app_for_provider(
+        recall_search_provider="runtime_http",
+        recall_search_endpoint="http://127.0.0.1:8788/kaka/recall/search",
+    )
+
+    settings = app.handle(
+        "GET",
+        "/mobile/v1/runtime/settings",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+    ).get_json()
+    rendered = str(settings)
+    assert settings["semantic_recall"]["mode"] == "provider_backed"
+    assert "127.0.0.1:8788" not in rendered
+
+
+def test_server_cli_accepts_recall_search_provider_and_endpoint():
+    args = server_module.build_parser().parse_args(
+        [
+            "--recall-search-provider",
+            "runtime_http",
+            "--recall-search-endpoint",
+            "http://127.0.0.1:8788/kaka/recall/search",
+        ]
+    )
+
+    assert args.recall_search_provider == "runtime_http"
+    assert args.recall_search_endpoint == "http://127.0.0.1:8788/kaka/recall/search"
+
+
+def test_server_cli_requires_recall_search_endpoint_for_runtime_http_provider():
+    args = server_module.build_parser().parse_args(["--recall-search-provider", "runtime_http"])
+
+    assert server_module.validate_server_config(args) == [
+        "--recall-search-endpoint is required when --recall-search-provider runtime_http."
+    ]
+
+
+def test_server_cli_rejects_malformed_recall_search_endpoint_for_runtime_http_provider():
+    args = server_module.build_parser().parse_args(
+        [
+            "--recall-search-provider",
+            "runtime_http",
+            "--recall-search-endpoint",
+            "not-a-url",
+        ]
+    )
+
+    assert server_module.validate_server_config(args) == [
+        "--recall-search-endpoint must be an http:// or https:// URL."
+    ]
+
+
+def test_server_cli_rejects_public_recall_search_endpoint_for_runtime_http_provider():
+    args = server_module.build_parser().parse_args(
+        [
+            "--recall-search-provider",
+            "runtime_http",
+            "--recall-search-endpoint",
+            "https://api.example.com/kaka/recall/search",
+        ]
+    )
+
+    assert server_module.validate_server_config(args) == [
+        "--recall-search-endpoint must point to localhost, Tailscale, or a private LAN endpoint."
+    ]
+
+
+def test_server_cli_allows_tailscale_recall_search_endpoint_for_runtime_http_provider():
+    args = server_module.build_parser().parse_args(
+        [
+            "--recall-search-provider",
+            "runtime_http",
+            "--recall-search-endpoint",
+            "http://100.64.12.34:8788/kaka/recall/search",
+        ]
+    )
+
+    assert server_module.validate_server_config(args) == []
+
+
+def test_server_validation_rejects_invalid_retention_days():
+    args = server_module.build_parser().parse_args(
+        [
+            "--input-assets-days",
+            "0",
+            "--output-assets-days",
+            "3660",
+            "--task-history-days",
+            "-1",
+        ]
+    )
+
+    assert server_module.validate_server_config(args) == [
+        "--input-assets-days must be between 1 and 3650.",
+        "--output-assets-days must be between 1 and 3650.",
+        "--task-history-days must be between 1 and 3650.",
+    ]
+
+
+def test_server_validation_requires_certificate_files_for_trusted_local_tls():
+    args = server_module.build_parser().parse_args(["--trusted-local-tls"])
+
+    assert server_module.validate_server_config(args) == [
+        "--tls-certificate-chain-path is required when --trusted-local-tls starts the bridge.",
+        "--tls-private-key-path is required when --trusted-local-tls starts the bridge.",
+    ]
+
+
+def test_server_parser_accepts_production_pairing_security_flags():
+    args = server_module.build_parser().parse_args(
+        [
+            "--pairing-mode",
+            "production",
+            "--pairing-code-ttl-seconds",
+            "120",
+            "--token-ttl-seconds",
+            "3600",
+            "--trusted-local-tls",
+            "--tls-trust-state",
+            "configured",
+            "--tls-certificate-label",
+            "Kaka Local Runtime",
+            "--tls-public-key-sha256",
+            "c" * 64,
+        ]
+    )
+
+    assert args.pairing_mode == "production"
+    assert args.pairing_code_ttl_seconds == 120
+    assert args.token_ttl_seconds == 3600
+    assert args.trusted_local_tls is True
+    assert args.tls_trust_state == "configured"
+    assert args.tls_certificate_label == "Kaka Local Runtime"
+    assert args.tls_public_key_sha256 == "c" * 64
+
+
+def test_build_app_for_production_pairing_uses_runtime_store_when_available(tmp_path):
+    args = server_module.build_parser().parse_args(
+        [
+            "--pairing-mode",
+            "production",
+            "--runtime-store-path",
+            str(tmp_path / "runtime.sqlite3"),
+        ]
+    )
+
+    app = server_module._build_app_with_optional_vision(args)
+
+    assert isinstance(app.pairing_manager, PairingManager)
+    assert app.runtime_store is not None
+    assert app.pairing_manager.store is app.runtime_store
+
+
+def test_build_app_for_production_pairing_passes_runtime_name_and_http_scheme():
+    args = server_module.build_parser().parse_args(
+        [
+            "--pairing-mode",
+            "production",
+            "--runtime",
+            "openclaw",
+            "--bonjour-name",
+            "Agent Pocket Mock OpenClaw",
+        ]
+    )
+
+    app = server_module._build_app_with_optional_vision(args)
+    payload = app.test_client().get(
+        "/mobile/v1/pairing/qr",
+        headers={"Host": "127.0.0.1:8765"},
+    ).get_json()
+
+    assert payload["endpoint"] == "http://127.0.0.1:8765"
+    assert payload["runtime"] == "openclaw"
+    assert payload["display_name"] == "Agent Pocket Mock OpenClaw"
+
+
+def test_create_http_server_wraps_socket_when_tls_paths_are_supplied(monkeypatch):
+    calls = {}
+
+    class FakeContext:
+        def load_cert_chain(self, *, certfile, keyfile):
+            calls["certfile"] = certfile
+            calls["keyfile"] = keyfile
+
+        def wrap_socket(self, socket, *, server_side):
+            calls["server_side"] = server_side
+            calls["socket_wrapped"] = True
+            return socket
+
+    monkeypatch.setattr(server_module.ssl, "create_default_context", lambda purpose: FakeContext())
+
+    server = create_http_server(
+        host="127.0.0.1",
+        port=0,
+        tls_certificate_chain_path="/tmp/kaka-local-runtime.crt",
+        tls_private_key_path="/tmp/kaka-local-runtime.key",
+    )
+    try:
+        assert calls == {
+            "certfile": "/tmp/kaka-local-runtime.crt",
+            "keyfile": "/tmp/kaka-local-runtime.key",
+            "server_side": True,
+            "socket_wrapped": True,
+        }
+    finally:
+        server.server_close()
+
+
+def test_production_bonjour_advertisement_uses_https_scheme_without_static_pair_dev():
+    command = BonjourAdvertisement(
+        name="Kaka Mobile Bridge",
+        host="192.168.1.10",
+        port=8765,
+        pairing_code="",
+        runtime="hermes",
+        scheme="https",
+        pairing_page="https://192.168.1.10:8765/mobile/v1/pairing/qr.html",
+        expires_at="",
+    ).command()
+    rendered = " ".join(command)
+
+    assert "scheme=https" in command
+    assert "pairing_page=https://192.168.1.10:8765/mobile/v1/pairing/qr.html" in command
+    assert "pairing_code=pair_dev" not in rendered
+    assert "expires_at=2099-01-01T00:00:00Z" not in rendered
+
+
 def test_server_cli_loads_env_file_only_for_provider_process_without_leaking(monkeypatch, tmp_path, capsys):
     env_file = tmp_path / "hermes-openai.env"
     env_file.write_text(
@@ -198,7 +567,7 @@ def test_server_cli_loads_env_file_only_for_provider_process_without_leaking(mon
         def server_close(self):
             observations["closed"] = True
 
-    def build_app(photo_provider, photo_pack_root):
+    def build_app(photo_provider, photo_pack_root, **kwargs):
         observations["photo_provider"] = photo_provider
         observations["photo_pack_root"] = photo_pack_root
         observations["during_build"] = os.environ.get("OPENAI_API_KEY") == "secret-from-hermes-env"
@@ -253,7 +622,7 @@ def test_server_cli_loads_hermes_force_env_without_leaking(monkeypatch, capsys):
         def server_close(self):
             observations["closed"] = True
 
-    def build_app(photo_provider, photo_pack_root):
+    def build_app(photo_provider, photo_pack_root, **kwargs):
         observations["photo_provider"] = photo_provider
         observations["during_build"] = os.environ.get("OPENAI_API_KEY") == "secret-from-hermes-force"
         observations["base_url_during_build"] = os.environ.get("OPENAI_BASE_URL") == "http://127.0.0.1:7788/v1"
@@ -309,7 +678,7 @@ def test_server_cli_loads_hermes_profile_env_without_leaking(monkeypatch, tmp_pa
         def server_close(self):
             observations["closed"] = True
 
-    def build_app(photo_provider, photo_pack_root):
+    def build_app(photo_provider, photo_pack_root, **kwargs):
         observations["photo_provider"] = photo_provider
         observations["photo_pack_root"] = photo_pack_root
         observations["during_build"] = os.environ.get("OPENAI_API_KEY") == "secret-from-hermes-profile"
@@ -363,7 +732,7 @@ def test_server_cli_loads_hermes_home_env_without_leaking(monkeypatch, tmp_path,
         def server_close(self):
             observations["closed"] = True
 
-    def build_app(photo_provider, photo_pack_root):
+    def build_app(photo_provider, photo_pack_root, **kwargs):
         observations["photo_provider"] = photo_provider
         observations["during_build"] = os.environ.get("OPENAI_API_KEY") == "secret-from-hermes-home"
         return object()
@@ -435,7 +804,7 @@ def test_server_cli_loads_hermes_openai_auth_api_key_without_leaking(monkeypatch
         def server_close(self):
             observations["closed"] = True
 
-    def build_app(photo_provider, photo_pack_root):
+    def build_app(photo_provider, photo_pack_root, **kwargs):
         observations["photo_provider"] = photo_provider
         observations["during_build"] = os.environ.get("OPENAI_API_KEY") == "secret-from-hermes-auth"
         observations["base_url_during_build"] = os.environ.get("OPENAI_BASE_URL") == "http://127.0.0.1:7788/v1"
@@ -523,7 +892,7 @@ def test_server_cli_loads_hermes_shared_auth_api_key_without_leaking(monkeypatch
         def server_close(self):
             observations["closed"] = True
 
-    def build_app(photo_provider, photo_pack_root):
+    def build_app(photo_provider, photo_pack_root, **kwargs):
         observations["photo_provider"] = photo_provider
         observations["during_build"] = os.environ.get("OPENAI_API_KEY") == "secret-from-shared-hermes-auth"
         observations["base_url_during_build"] = os.environ.get("OPENAI_BASE_URL") == "http://127.0.0.1:7788/v1"

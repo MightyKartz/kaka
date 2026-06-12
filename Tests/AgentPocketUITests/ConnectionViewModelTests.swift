@@ -220,6 +220,74 @@ final class ConnectionViewModelTests: XCTestCase {
         XCTAssertEqual(store.savedConnections[0].tokenExpiresAt, "2026-06-01T00:00:00Z")
     }
 
+    func testPairingPayloadCarriesTLSPinThroughExchangeCheckAndSave() async throws {
+        let now = ISO8601DateFormatter().date(from: "2026-05-30T16:29:00Z")!
+        let pin = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        let store = StubConnectionStore()
+        let checker = StubConnectionChecker(
+            result: ConnectedRuntime(
+                displayName: "Kartz MacBook Hermes",
+                runtime: "hermes",
+                runtimeVersion: "2026.5.16"
+            )
+        )
+        let exchanger = StubPairingExchanger(
+            result: PairingExchangeResponse(
+                endpointID: "endpoint_123",
+                displayName: "Kartz MacBook Hermes",
+                runtime: "hermes",
+                runtimeVersion: "2026.5.16",
+                mobileToken: "mobile_secret",
+                tokenExpiresAt: nil
+            )
+        )
+        let viewModel = ConnectionViewModel(
+            connectionChecker: checker,
+            pairingExchanger: exchanger,
+            connectionStore: store
+        )
+
+        await viewModel.connectWithPairingPayload(
+            """
+            {"version":1,"endpoint":"https://macbook-pro.local:8765","runtime":"hermes","display_name":"Kartz MacBook Hermes","pairing_code":"pair_123","expires_at":"2026-05-30T16:30:00Z","tls_public_key_sha256":"\(pin)","trusted_local_tls_required":true}
+            """,
+            now: now,
+            deviceName: "Kartz iPhone",
+            devicePublicID: "device_abc"
+        )
+
+        XCTAssertEqual(exchanger.calls.map(\.trustPolicy), [.pinnedPublicKeySHA256(pin)])
+        XCTAssertEqual(checker.calls.map(\.trustPolicy), [.pinnedPublicKeySHA256(pin)])
+        XCTAssertEqual(store.savedConnections.map(\.tlsPublicKeySHA256), [pin])
+    }
+
+    func testRequiredLocalTLSPayloadWithoutPinMapsInvalidCertificateBeforeExchange() async {
+        let now = ISO8601DateFormatter().date(from: "2026-05-30T16:29:00Z")!
+        let exchanger = StubPairingExchanger(
+            result: PairingExchangeResponse(
+                endpointID: "endpoint_123",
+                displayName: "Kartz MacBook Hermes",
+                runtime: "hermes",
+                runtimeVersion: "2026.5.16",
+                mobileToken: "mobile_secret",
+                tokenExpiresAt: nil
+            )
+        )
+        let viewModel = ConnectionViewModel(pairingExchanger: exchanger)
+
+        await viewModel.connectWithPairingPayload(
+            """
+            {"version":1,"endpoint":"https://macbook-pro.local:8765","runtime":"hermes","display_name":"Kartz MacBook Hermes","pairing_code":"pair_123","expires_at":"2026-05-30T16:30:00Z","trusted_local_tls_required":true}
+            """,
+            now: now,
+            deviceName: "Kartz iPhone",
+            devicePublicID: "device_abc"
+        )
+
+        XCTAssertEqual(viewModel.state, .invalidCertificate)
+        XCTAssertTrue(exchanger.calls.isEmpty)
+    }
+
     func testExpiredPairingPayloadFailsBeforeExchange() async {
         let now = ISO8601DateFormatter().date(from: "2026-05-30T16:31:00Z")!
         let exchanger = StubPairingExchanger(
@@ -993,6 +1061,64 @@ final class ConnectionViewModelTests: XCTestCase {
         XCTAssertEqual(checker.calls.map(\.token), ["mobile_secret"])
     }
 
+    func testDiscoveredRuntimeWithoutPayloadUsesGenericPairingRefresh() async throws {
+        let now = ISO8601DateFormatter().date(from: "2026-06-05T08:00:00Z")!
+        let endpoint = try AgentEndpoint(rawURL: "https://macbook-pro.local:8765")
+        let runtime = DiscoveredRuntime(
+            displayName: "Kartz MacBook Hermes",
+            endpoint: endpoint,
+            pairingPayload: nil
+        )
+        let checker = StubConnectionChecker(
+            result: ConnectedRuntime(
+                displayName: "Kartz MacBook Hermes",
+                runtime: "hermes",
+                runtimeVersion: "2026.5.16"
+            )
+        )
+        let exchanger = StubPairingExchanger(
+            result: PairingExchangeResponse(
+                endpointID: "endpoint_hermes",
+                displayName: "Kartz MacBook Hermes",
+                runtime: "hermes",
+                runtimeVersion: "2026.5.16",
+                mobileToken: "mobile_secret",
+                tokenExpiresAt: nil
+            )
+        )
+        let refresher = StubPairingPayloadRefresher(
+            payload: """
+            {"version":1,"endpoint":"https://macbook-pro.local:8765","runtime":"hermes","display_name":"Kartz MacBook Hermes","pairing_code":"pair_prod","expires_at":"2026-06-05T08:02:00Z"}
+            """
+        )
+        let viewModel = ConnectionViewModel(
+            connectionChecker: checker,
+            pairingExchanger: exchanger,
+            pairingPayloadRefresher: refresher
+        )
+
+        await viewModel.connectDiscoveredRuntime(
+            runtime,
+            now: now,
+            deviceName: "Kartz iPhone",
+            devicePublicID: "device_abc"
+        )
+
+        XCTAssertEqual(
+            viewModel.state,
+            .connected(
+                ConnectedRuntime(
+                    displayName: "Kartz MacBook Hermes",
+                    runtime: "hermes",
+                    runtimeVersion: "2026.5.16"
+                )
+            )
+        )
+        XCTAssertEqual(refresher.calls.map(\.baseURL.absoluteString), ["https://macbook-pro.local:8765"])
+        XCTAssertEqual(exchanger.calls.map(\.pairingCode), ["pair_prod"])
+        XCTAssertEqual(checker.calls.map(\.token), ["mobile_secret"])
+    }
+
     func testRestoreSavedConnectionChecksCapabilitiesAndMarksConnected() async throws {
         let endpoint = try AgentEndpoint(rawURL: "https://hermes.example.com")
         let savedConnection = StoredConnection(
@@ -1027,6 +1153,34 @@ final class ConnectionViewModelTests: XCTestCase {
         )
         XCTAssertEqual(checker.calls.map(\.token), ["stored_secret"])
         XCTAssertEqual(viewModel.activeConnection, savedConnection)
+    }
+
+    func testRestoreSavedConnectionUsesStoredTLSPinTrustPolicy() async throws {
+        let pin = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        let savedConnection = StoredConnection(
+            endpoint: try AgentEndpoint(rawURL: "https://hermes.example.com"),
+            displayName: "Saved Hermes",
+            runtime: "hermes",
+            runtimeVersion: "2026.5.16",
+            mobileToken: "stored_secret",
+            tokenExpiresAt: nil,
+            tlsPublicKeySHA256: pin
+        )
+        let checker = StubConnectionChecker(
+            result: ConnectedRuntime(
+                displayName: "Saved Hermes",
+                runtime: "hermes",
+                runtimeVersion: "2026.5.16"
+            )
+        )
+        let viewModel = ConnectionViewModel(
+            connectionChecker: checker,
+            connectionStore: StubConnectionStore(savedConnection: savedConnection)
+        )
+
+        await viewModel.restoreSavedConnection()
+
+        XCTAssertEqual(checker.calls.map(\.trustPolicy), [.pinnedPublicKeySHA256(pin)])
     }
 
     func testRestoreSavedConnectionClearsRevokedToken() async throws {
@@ -1114,6 +1268,7 @@ private final class StubConnectionChecker: ConnectionChecking {
     struct Call: Equatable {
         let endpoint: AgentEndpoint
         let token: String
+        let trustPolicy: MobileBridgeTrustPolicy
     }
 
     private(set) var calls: [Call] = []
@@ -1131,8 +1286,12 @@ private final class StubConnectionChecker: ConnectionChecking {
         self.sequence = sequence
     }
 
-    func check(endpoint: AgentEndpoint, token: String) async throws -> ConnectedRuntime {
-        calls.append(Call(endpoint: endpoint, token: token))
+    func check(
+        endpoint: AgentEndpoint,
+        token: String,
+        trustPolicy: MobileBridgeTrustPolicy
+    ) async throws -> ConnectedRuntime {
+        calls.append(Call(endpoint: endpoint, token: token, trustPolicy: trustPolicy))
         let next = sequence.count > 1 ? sequence.removeFirst() : sequence[0]
         switch next {
         case .success(let runtime):
@@ -1149,6 +1308,7 @@ private final class StubPairingExchanger: PairingExchanging {
         let pairingCode: String
         let deviceName: String
         let devicePublicID: String
+        let trustPolicy: MobileBridgeTrustPolicy
     }
 
     private(set) var calls: [Call] = []
@@ -1170,14 +1330,16 @@ private final class StubPairingExchanger: PairingExchanging {
         endpoint: AgentEndpoint,
         pairingCode: String,
         deviceName: String,
-        devicePublicID: String
+        devicePublicID: String,
+        trustPolicy: MobileBridgeTrustPolicy
     ) async throws -> PairingExchangeResponse {
         calls.append(
             Call(
                 endpoint: endpoint,
                 pairingCode: pairingCode,
                 deviceName: deviceName,
-                devicePublicID: devicePublicID
+                devicePublicID: devicePublicID,
+                trustPolicy: trustPolicy
             )
         )
         let next = sequence.count > 1 ? sequence.removeFirst() : sequence[0]

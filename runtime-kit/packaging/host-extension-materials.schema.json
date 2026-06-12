@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/host-extension-materials.schema.json",
+  "title": "Kaka Host Extension Materials Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "runtime",
+    "package_facts",
+    "install_drill_refs"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_extension_materials.v1"
+    },
+    "runtime": {
+      "enum": ["hermes", "openclaw"]
+    },
+    "package_facts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "install_command",
+        "update_channel",
+        "adapter_command_location",
+        "host_ui_entrypoint",
+        "signed_package_ref",
+        "signature_ref",
+        "conformance_report_ref",
+        "evidence_manifest_ref"
+      ],
+      "properties": {
+        "install_command": { "type": "string" },
+        "update_channel": { "type": "string" },
+        "adapter_command_location": { "type": "string" },
+        "host_ui_entrypoint": { "type": "string" },
+        "signed_package_ref": { "type": "string" },
+        "signature_ref": { "type": "string" },
+        "conformance_report_ref": { "type": "string" },
+        "evidence_manifest_ref": { "type": "string" }
+      }
+    },
+    "install_drill_refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "install_receipt_ref",
+        "enable_receipt_ref",
+        "pairing_receipt_ref",
+        "health_receipt_ref",
+        "revoke_repair_receipt_ref",
+        "update_receipt_ref",
+        "failure_recovery_receipt_ref",
+        "uninstall_receipt_ref"
+      ],
+      "properties": {
+        "install_receipt_ref": { "type": "string" },
+        "enable_receipt_ref": { "type": "string" },
+        "pairing_receipt_ref": { "type": "string" },
+        "health_receipt_ref": { "type": "string" },
+        "revoke_repair_receipt_ref": { "type": "string" },
+        "update_receipt_ref": { "type": "string" },
+        "failure_recovery_receipt_ref": { "type": "string" },
+        "uninstall_receipt_ref": { "type": "string" }
+      }
+    }
+  }
+}

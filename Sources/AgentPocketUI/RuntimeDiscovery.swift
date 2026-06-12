@@ -163,10 +163,26 @@ private final class BonjourDiscoverySession: NSObject, @unchecked Sendable, NetS
             "display_name": displayName,
             "pairing_code": pairingCode,
             "expires_at": txt["expires_at"] ?? ISO8601DateFormatter().string(from: Date().addingTimeInterval(300)),
-        ]
+        ].merging(optionalPairingTLSFields(from: txt)) { current, _ in current }
         guard let data = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]) else {
             return nil
         }
         return String(data: data, encoding: .utf8)
+    }
+
+    private func optionalPairingTLSFields(from txt: [String: String]) -> [String: Any] {
+        var fields: [String: Any] = [:]
+        if let fingerprint = txt["tls_public_key_sha256"],
+           MobileBridgeTrustPolicy.normalizePublicKeySHA256(fingerprint) != nil {
+            fields["tls_public_key_sha256"] = fingerprint
+        }
+        if let required = txt["trusted_local_tls_required"] {
+            fields["trusted_local_tls_required"] = required == "true" || required == "1"
+        }
+        if let label = txt["tls_certificate_label"],
+           label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+            fields["tls_certificate_label"] = label
+        }
+        return fields
     }
 }

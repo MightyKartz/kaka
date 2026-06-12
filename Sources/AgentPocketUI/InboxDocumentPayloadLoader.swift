@@ -63,7 +63,7 @@ public struct FileInboxDocumentPayloadLoader: InboxDocumentPayloadLoading {
             mimeType: mimeType,
             fileName: fileName,
             metadata: AssetUploadMetadata(
-                source: "share_extension",
+                source: item.sourceSurface,
                 originalFileName: fileName,
                 stripSensitiveMetadata: true
             )

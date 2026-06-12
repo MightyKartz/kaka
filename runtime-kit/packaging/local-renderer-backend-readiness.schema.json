@@ -1,0 +1,528 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/local-renderer-backend-readiness.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "status",
+    "ready_for_local_recipe_flow",
+    "provider",
+    "backend",
+    "recipe_contract",
+    "checks",
+    "missing_inputs",
+    "probe",
+    "known_limits",
+    "phone_api",
+    "gates",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.local_renderer_backend_readiness.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_local_renderer_backend_readiness"
+    },
+    "status": {
+      "enum": ["ready_for_local_recipe_flow", "blocked"]
+    },
+    "ready_for_local_recipe_flow": {
+      "type": "boolean"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "renderer", "photo_pack_root", "adapter", "pillow"],
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "renderer": {
+          "type": "string"
+        },
+        "photo_pack_root": {
+          "type": "string"
+        },
+        "adapter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "exists", "loadable"],
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "exists": {
+              "type": "boolean"
+            },
+            "loadable": {
+              "type": "boolean"
+            }
+          }
+        },
+        "pillow": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["available", "version", "required"],
+          "properties": {
+            "available": {
+              "type": "boolean"
+            },
+            "version": {
+              "type": "string"
+            },
+            "required": {
+              "const": true
+            }
+          }
+        }
+      }
+    },
+    "recipe_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "supported_styles", "supported_variants", "max_return_variants", "output_mime_types"],
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "supported_styles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "supported_variants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label"],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "max_return_variants": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "output_mime_types": {
+          "type": "array",
+          "items": {
+            "enum": ["image/jpeg"]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "ok", "detail"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "missing_inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "probe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "style"],
+      "properties": {
+        "mode": {
+          "const": "synthetic_fixture_render"
+        },
+        "style": {
+          "type": "string"
+        },
+        "variant_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "variant_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "variant_labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "mime_types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "total_rendered_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "qa": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["master_difference_score", "social_difference_score", "variant_count"],
+          "properties": {
+            "master_difference_score": {
+              "type": ["number", "null"]
+            },
+            "social_difference_score": {
+              "type": ["number", "null"]
+            },
+            "variant_count": {
+              "type": ["integer", "null"],
+              "minimum": 0,
+              "maximum": 2
+            }
+          }
+        }
+      }
+    },
+    "known_limits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "phone_api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_path",
+        "phone_api_unchanged",
+        "mobile_bridge_endpoint_added",
+        "capabilities_changed",
+        "private_host_api_exposed"
+      ],
+      "properties": {
+        "base_path": {
+          "const": "/mobile/v1"
+        },
+        "phone_api_unchanged": {
+          "const": true
+        },
+        "mobile_bridge_endpoint_added": {
+          "const": false
+        },
+        "capabilities_changed": {
+          "const": false
+        },
+        "private_host_api_exposed": {
+          "const": false
+        }
+      }
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "can_start_bridge",
+        "can_bind_lan",
+        "can_advertise_bonjour",
+        "can_mint_mobile_token",
+        "can_call_cloud_provider"
+      ],
+      "properties": {
+        "can_start_bridge": {
+          "const": false
+        },
+        "can_bind_lan": {
+          "const": false
+        },
+        "can_advertise_bonjour": {
+          "const": false
+        },
+        "can_mint_mobile_token": {
+          "const": false
+        },
+        "can_call_cloud_provider": {
+          "const": false
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "does_not_start_bridge",
+        "does_not_bind_lan",
+        "does_not_advertise_bonjour",
+        "does_not_mint_credentials",
+        "does_not_call_cloud_provider",
+        "does_not_inspect_provider_keys",
+        "does_not_persist_probe_assets",
+        "does_not_change_phone_api",
+        "no_generative_pixels",
+        "no_asset_retention_change",
+        "probe_payloads_omitted"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "does_not_start_bridge": {
+          "const": true
+        },
+        "does_not_bind_lan": {
+          "const": true
+        },
+        "does_not_advertise_bonjour": {
+          "const": true
+        },
+        "does_not_mint_credentials": {
+          "const": true
+        },
+        "does_not_call_cloud_provider": {
+          "const": true
+        },
+        "does_not_inspect_provider_keys": {
+          "const": true
+        },
+        "does_not_persist_probe_assets": {
+          "const": true
+        },
+        "does_not_change_phone_api": {
+          "const": true
+        },
+        "no_generative_pixels": {
+          "const": true
+        },
+        "no_asset_retention_change": {
+          "const": true
+        },
+        "probe_payloads_omitted": {
+          "const": true
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "ready_for_local_recipe_flow"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ready_for_local_recipe_flow": {
+            "const": true
+          },
+          "provider": {
+            "const": "recipe_local"
+          },
+          "backend": {
+            "properties": {
+              "provider": {
+                "const": "recipe_local"
+              },
+              "renderer": {
+                "const": "local_parametric"
+              },
+              "adapter": {
+                "properties": {
+                  "exists": {
+                    "const": true
+                  },
+                  "loadable": {
+                    "const": true
+                  }
+                }
+              },
+              "pillow": {
+                "properties": {
+                  "available": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          },
+          "recipe_contract": {
+            "properties": {
+              "schema_version": {
+                "const": "photo_edit_recipe.v1"
+              },
+              "max_return_variants": {
+                "const": 2
+              }
+            }
+          },
+          "checks": {
+            "minItems": 5,
+            "allOf": [
+              {
+                "contains": {
+                  "type": "object",
+                  "required": ["id", "ok"],
+                  "properties": {
+                    "id": {
+                      "const": "photo_pack_directory"
+                    },
+                    "ok": {
+                      "const": true
+                    }
+                  }
+                }
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "required": ["id", "ok"],
+                  "properties": {
+                    "id": {
+                      "const": "recipe_local_adapter"
+                    },
+                    "ok": {
+                      "const": true
+                    }
+                  }
+                }
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "required": ["id", "ok"],
+                  "properties": {
+                    "id": {
+                      "const": "recipe_local_adapter_loadable"
+                    },
+                    "ok": {
+                      "const": true
+                    }
+                  }
+                }
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "required": ["id", "ok"],
+                  "properties": {
+                    "id": {
+                      "const": "pillow_available"
+                    },
+                    "ok": {
+                      "const": true
+                    }
+                  }
+                }
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "required": ["id", "ok"],
+                  "properties": {
+                    "id": {
+                      "const": "synthetic_render_probe"
+                    },
+                    "ok": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "missing_inputs": {
+            "maxItems": 0
+          },
+          "probe": {
+            "required": ["variant_count", "variant_ids", "variant_labels", "mime_types", "qa"],
+            "properties": {
+              "variant_count": {
+                "const": 2
+              },
+              "variant_ids": {
+                "prefixItems": [
+                  {
+                    "const": "variant_clean_pro"
+                  },
+                  {
+                    "const": "variant_social_pop"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "mime_types": {
+                "prefixItems": [
+                  {
+                    "const": "image/jpeg"
+                  },
+                  {
+                    "const": "image/jpeg"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ready_for_local_recipe_flow": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "const": "ready_for_local_recipe_flow"
+          }
+        }
+      }
+    }
+  ]
+}

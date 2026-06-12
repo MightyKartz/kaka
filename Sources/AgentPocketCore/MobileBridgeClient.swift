@@ -132,9 +132,44 @@ public enum MobileBridgeClient {
 
     public static func makeRecallItemsRequest(
         endpoint: AgentEndpoint,
-        token: String
+        token: String,
+        query: String? = nil,
+        limit: Int? = nil
     ) -> URLRequest {
         var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/recall/items", token: token)
+        if let url = request.url {
+            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            var queryItems: [URLQueryItem] = []
+            if let query = query?.trimmingCharacters(in: .whitespacesAndNewlines), !query.isEmpty {
+                queryItems.append(URLQueryItem(name: "query", value: query))
+            }
+            if let limit {
+                queryItems.append(URLQueryItem(name: "limit", value: String(limit)))
+            }
+            components?.queryItems = queryItems.isEmpty ? nil : queryItems
+            request.url = components?.url ?? url
+        }
+        request.httpMethod = "GET"
+        return request
+    }
+
+    public static func makeRecallSearchRequest(
+        endpoint: AgentEndpoint,
+        token: String,
+        search: RecallSearchRequest
+    ) throws -> URLRequest {
+        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/recall/search", token: token)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder.mobileBridge.encode(search)
+        return request
+    }
+
+    public static func makeRecallExportRequest(
+        endpoint: AgentEndpoint,
+        token: String
+    ) -> URLRequest {
+        var request = makeRequest(endpoint: endpoint, path: "/mobile/v1/recall/export", token: token)
         request.httpMethod = "GET"
         return request
     }

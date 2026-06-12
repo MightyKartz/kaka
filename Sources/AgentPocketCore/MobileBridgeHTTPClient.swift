@@ -16,6 +16,22 @@ public struct MobileBridgeHTTPClient {
         self.session = session
     }
 
+    public init(endpoint: AgentEndpoint, token: String, trustPolicy: MobileBridgeTrustPolicy) {
+        self.init(
+            endpoint: endpoint,
+            token: token,
+            session: MobileBridgeURLSessionFactory.makeSession(for: trustPolicy)
+        )
+    }
+
+    public init(connection: StoredConnection, session: URLSession? = nil) {
+        self.init(
+            endpoint: connection.endpoint,
+            token: connection.mobileToken,
+            session: session ?? MobileBridgeURLSessionFactory.makeSession(for: connection.trustPolicy)
+        )
+    }
+
     public func fetchHealth() async throws -> HealthResponse {
         let request = MobileBridgeClient.makeRequest(
             endpoint: endpoint,
@@ -53,10 +69,22 @@ public struct MobileBridgeHTTPClient {
         return try JSONDecoder.mobileBridge.decode(PairingExchangeResponse.self, from: data)
     }
 
+    public func fetchPairingPayload() async throws -> String {
+        do {
+            return try await fetchRawPairingPayload(path: "/mobile/v1/pairing/qr")
+        } catch ClientError.httpStatus(404, _) {
+            return try await fetchDevelopmentPairingPayload()
+        }
+    }
+
     public func fetchDevelopmentPairingPayload() async throws -> String {
+        try await fetchRawPairingPayload(path: "/mobile/v1/pairing/dev")
+    }
+
+    private func fetchRawPairingPayload(path: String) async throws -> String {
         let request = MobileBridgeClient.makeRequest(
             endpoint: endpoint,
-            path: "/mobile/v1/pairing/dev"
+            path: path
         )
         let (data, response) = try await session.data(for: request)
         try validate(response: response, data: data)
@@ -136,14 +164,37 @@ public struct MobileBridgeHTTPClient {
         return try JSONDecoder.mobileBridge.decode(RecallActionResponse.self, from: data)
     }
 
-    public func fetchRecallItems() async throws -> [RecallItem] {
+    public func fetchRecallItems(query: String? = nil, limit: Int? = nil) async throws -> [RecallItem] {
         let request = MobileBridgeClient.makeRecallItemsRequest(
+            endpoint: endpoint,
+            token: token,
+            query: query,
+            limit: limit
+        )
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
+        return try JSONDecoder.mobileBridge.decode(RecallItemsResponse.self, from: data).items
+    }
+
+    public func searchRecall(_ search: RecallSearchRequest) async throws -> RecallSearchResponse {
+        let request = try MobileBridgeClient.makeRecallSearchRequest(
+            endpoint: endpoint,
+            token: token,
+            search: search
+        )
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
+        return try JSONDecoder.mobileBridge.decode(RecallSearchResponse.self, from: data)
+    }
+
+    public func exportRecallItems() async throws -> RecallExportResponse {
+        let request = MobileBridgeClient.makeRecallExportRequest(
             endpoint: endpoint,
             token: token
         )
         let (data, response) = try await session.data(for: request)
         try validate(response: response, data: data)
-        return try JSONDecoder.mobileBridge.decode(RecallItemsResponse.self, from: data).items
+        return try JSONDecoder.mobileBridge.decode(RecallExportResponse.self, from: data)
     }
 
     public func deleteRecallItem(itemID: String) async throws -> RecallDeleteResponse {

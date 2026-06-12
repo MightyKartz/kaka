@@ -1,0 +1,585 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/local-renderer-backend-capability-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "status",
+    "ready_for_backend_gate_planning",
+    "provider",
+    "source",
+    "current_contract",
+    "backend_candidates",
+    "gate_definitions",
+    "missing_inputs",
+    "readiness_contract",
+    "phone_api",
+    "safety",
+    "notes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.local_renderer_backend_capability_manifest.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_local_renderer_backend_capability_manifest"
+    },
+    "status": {
+      "enum": ["ready_for_backend_gate_planning", "blocked"]
+    },
+    "ready_for_backend_gate_planning": {
+      "type": "boolean"
+    },
+    "provider": {
+      "const": "recipe_local"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["photo_pack_root", "adapter_path", "adapter_constants_readable"],
+      "properties": {
+        "photo_pack_root": {
+          "type": "string"
+        },
+        "adapter_path": {
+          "type": "string"
+        },
+        "adapter_constants_readable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "current_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "renderer",
+        "recipe_schema_version",
+        "supported_styles",
+        "supported_variants",
+        "return_variants_max",
+        "output_mime_types",
+        "crop_policy",
+        "crop_candidates_supported",
+        "upscale_policy_supported"
+      ],
+      "properties": {
+        "provider": {
+          "const": "recipe_local"
+        },
+        "renderer": {
+          "const": "local_parametric"
+        },
+        "recipe_schema_version": {
+          "const": "photo_edit_recipe.v1"
+        },
+        "supported_styles": {
+          "type": "array",
+          "const": ["natural_enhance", "portrait_polish", "product_shot", "social_cover"]
+        },
+        "supported_variants": {
+          "type": "array",
+          "const": [
+            {
+              "id": "variant_clean_pro",
+              "label": "Master"
+            },
+            {
+              "id": "variant_social_pop",
+              "label": "Social"
+            }
+          ]
+        },
+        "return_variants_max": {
+          "const": 2
+        },
+        "output_mime_types": {
+          "type": "array",
+          "items": {
+            "enum": ["image/jpeg"]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "crop_policy": {
+          "const": "original_crop_only"
+        },
+        "crop_candidates_supported": {
+          "const": false
+        },
+        "upscale_policy_supported": {
+          "const": true
+        }
+      }
+    },
+    "backend_candidates": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "$ref": "#/$defs/backend_candidate"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "required": ["backend_id", "status"],
+            "properties": {
+              "backend_id": {
+                "const": "pillow"
+              },
+              "status": {
+                "const": "current_supported"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": ["backend_id", "status"],
+            "properties": {
+              "backend_id": {
+                "const": "core_image"
+              },
+              "status": {
+                "const": "future_gate_required"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": ["backend_id", "status"],
+            "properties": {
+              "backend_id": {
+                "const": "imagemagick"
+              },
+              "status": {
+                "const": "future_gate_required"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": ["backend_id", "status"],
+            "properties": {
+              "backend_id": {
+                "const": "opencv"
+              },
+              "status": {
+                "const": "future_gate_required"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": ["backend_id", "status"],
+            "properties": {
+              "backend_id": {
+                "const": "libvips"
+              },
+              "status": {
+                "const": "future_gate_required"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "gate_definitions": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "required_before_enablement"],
+        "properties": {
+          "id": {
+            "enum": [
+              "dependency_packaging",
+              "sandboxed_execution",
+              "deterministic_recipe_contract",
+              "fixture_render_probe",
+              "security_review",
+              "phone_capability_truth"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "required_before_enablement": {
+            "const": true
+          }
+        }
+      },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": {
+                "const": "dependency_packaging"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": {
+                "const": "sandboxed_execution"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": {
+                "const": "deterministic_recipe_contract"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": {
+                "const": "fixture_render_probe"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": {
+                "const": "security_review"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": {
+                "const": "phone_capability_truth"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "missing_inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": {
+            "enum": ["recipe_local_adapter_constants"]
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "readiness_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "schema_version", "required_before_phone_capability_change"],
+      "properties": {
+        "command": {
+          "const": "local-renderer-backend-readiness"
+        },
+        "schema_version": {
+          "const": "kaka.local_renderer_backend_readiness.v1"
+        },
+        "required_before_phone_capability_change": {
+          "const": true
+        }
+      }
+    },
+    "phone_api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_path",
+        "phone_api_unchanged",
+        "mobile_bridge_endpoint_added",
+        "capabilities_changed",
+        "private_host_api_exposed"
+      ],
+      "properties": {
+        "base_path": {
+          "const": "/mobile/v1"
+        },
+        "phone_api_unchanged": {
+          "const": true
+        },
+        "mobile_bridge_endpoint_added": {
+          "const": false
+        },
+        "capabilities_changed": {
+          "const": false
+        },
+        "private_host_api_exposed": {
+          "const": false
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "manifest_only",
+        "does_not_install_dependencies",
+        "does_not_import_future_backends",
+        "does_not_execute_future_backends",
+        "does_not_start_bridge",
+        "does_not_bind_lan",
+        "does_not_advertise_bonjour",
+        "does_not_mint_credentials",
+        "does_not_call_cloud_provider",
+        "does_not_inspect_provider_keys",
+        "does_not_persist_assets",
+        "does_not_include_raw_image_bytes",
+        "does_not_change_phone_api",
+        "no_generative_pixels"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "manifest_only": {
+          "const": true
+        },
+        "does_not_install_dependencies": {
+          "const": true
+        },
+        "does_not_import_future_backends": {
+          "const": true
+        },
+        "does_not_execute_future_backends": {
+          "const": true
+        },
+        "does_not_start_bridge": {
+          "const": true
+        },
+        "does_not_bind_lan": {
+          "const": true
+        },
+        "does_not_advertise_bonjour": {
+          "const": true
+        },
+        "does_not_mint_credentials": {
+          "const": true
+        },
+        "does_not_call_cloud_provider": {
+          "const": true
+        },
+        "does_not_inspect_provider_keys": {
+          "const": true
+        },
+        "does_not_persist_assets": {
+          "const": true
+        },
+        "does_not_include_raw_image_bytes": {
+          "const": true
+        },
+        "does_not_change_phone_api": {
+          "const": true
+        },
+        "no_generative_pixels": {
+          "const": true
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "ready_for_backend_gate_planning"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ready_for_backend_gate_planning": {
+            "const": true
+          },
+          "source": {
+            "properties": {
+              "adapter_constants_readable": {
+                "const": true
+              }
+            }
+          },
+          "missing_inputs": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "blocked"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ready_for_backend_gate_planning": {
+            "const": false
+          },
+          "source": {
+            "properties": {
+              "adapter_constants_readable": {
+                "const": false
+              }
+            }
+          },
+          "missing_inputs": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "backend_candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backend_id",
+        "display_name",
+        "status",
+        "dependency_added_by_p3_27",
+        "enabled_for_phone_api",
+        "gate_ids",
+        "risk_notes"
+      ],
+      "properties": {
+        "backend_id": {
+          "enum": ["pillow", "core_image", "imagemagick", "opencv", "libvips"]
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "status": {
+          "enum": ["current_supported", "future_gate_required"]
+        },
+        "dependency_added_by_p3_27": {
+          "const": false
+        },
+        "enabled_for_phone_api": {
+          "const": false
+        },
+        "gate_ids": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "dependency_packaging",
+              "sandboxed_execution",
+              "deterministic_recipe_contract",
+              "fixture_render_probe",
+              "security_review",
+              "phone_capability_truth"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "risk_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "backend_id": {
+                "const": "pillow"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": "current_supported"
+              },
+              "gate_ids": {
+                "const": ["fixture_render_probe", "phone_capability_truth"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "backend_id": {
+                "enum": ["core_image", "imagemagick", "opencv", "libvips"]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": "future_gate_required"
+              },
+              "gate_ids": {
+                "const": [
+                  "dependency_packaging",
+                  "sandboxed_execution",
+                  "deterministic_recipe_contract",
+                  "fixture_render_probe",
+                  "security_review",
+                  "phone_capability_truth"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -44,10 +44,22 @@
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Agent Pocket connects to your local agent runtime on your local network.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Kaka may use your approximate location only when you include a task-scoped Context Snapshot, so your local runtime can understand the current situation without storing precise coordinates by default.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Kaka records audio only when you press the voice button so it can turn your request into an editable transcript before sending text to your local agent runtime.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Kaka may read motion state only when you include a task-scoped Context Snapshot, so your local runtime can adapt the response without background tracking.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Agent Pocket saves edited photos only when you tap Save.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Agent Pocket lets you choose photos to edit through your local agent runtime.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Kaka may check calendar availability only when you include a task-scoped Context Snapshot; event titles, attendees, notes, and event bodies are not sent by default.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Kaka uses speech recognition only after you press the voice button to turn that recording into an editable transcript.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIStatusBarStyle</key>

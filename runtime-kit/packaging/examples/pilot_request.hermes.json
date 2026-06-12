@@ -1,0 +1,228 @@
+{
+  "schema_version": "kaka.host_shell_pilot_request.v1",
+  "surface": "hermes_openclaw_host_shell_pilot_request",
+  "runtime": "hermes",
+  "ok": true,
+  "request_status": "ready_to_send",
+  "runtime_side_only": true,
+  "phone_api_path": "/mobile/v1",
+  "phone_api_unchanged": true,
+  "p3_4_complete": false,
+  "p3_4_completion_owner": "external_host_shell",
+  "pilot_request": {
+    "id": "P3.4-hermes-host-shell-pilot",
+    "audience": "Hermes host team",
+    "purpose": "request_external_host_shell_pilot_materials",
+    "status": "waiting_for_host_owned_materials"
+  },
+  "target_host": {
+    "default_command_name": "hermes-kaka-host-api",
+    "environment_variable": "HERMES_KAKA_HOST_API",
+    "manifest_key": "host_private_adapter.command",
+    "well_known_paths": [
+      "~/Library/Application Support/Hermes/Kaka/hermes-kaka-host-api"
+    ],
+    "expected_private_adapter_command_path": "~/Library/Application Support/Hermes/Kaka/hermes-kaka-host-api",
+    "accepted_discovery_sources": [
+      "explicit_cli_argument",
+      "runtime_environment_variable",
+      "manifest_entrypoint",
+      "well_known_path"
+    ]
+  },
+  "required_action_ids": [
+    "install_runtime_package",
+    "enable_start_with_runtime",
+    "disable_start_with_runtime",
+    "update_runtime_package",
+    "uninstall_runtime_package",
+    "open_runtime_logs",
+    "run_health_check",
+    "repair_port_conflict",
+    "supervise_bridge"
+  ],
+  "required_capabilities": [
+    "distribution",
+    "install",
+    "login_item",
+    "update",
+    "uninstall",
+    "logs",
+    "health",
+    "port_repair",
+    "supervision"
+  ],
+  "required_host_deliverables": [
+    {
+      "id": "private_adapter_command_binary",
+      "owner": "host_shell",
+      "required": true,
+      "status": "requested",
+      "requested_value": "~/Library/Application Support/Hermes/Kaka/hermes-kaka-host-api",
+      "description": "Host-owned executable command outside the Kaka repository.",
+      "blocking_reason": "missing_private_adapter_command"
+    },
+    {
+      "id": "private_adapter_request_response_contract",
+      "owner": "host_shell",
+      "required": true,
+      "status": "requested",
+      "requested_value": "runtime-kit/packaging/HOST_PRIVATE_ADAPTER_IMPLEMENTATION.md",
+      "description": "Adapter implements kaka.host_private_adapter_request.v1 and response v1.",
+      "blocking_reason": "missing_private_adapter_contract_ack"
+    },
+    {
+      "id": "host_action_matrix",
+      "owner": "host_shell",
+      "required": true,
+      "status": "requested",
+      "requested_value": "install/login-item/update/uninstall/logs/health/port-repair/supervision",
+      "description": "Adapter supports all required host lifecycle actions.",
+      "blocking_reason": "missing_host_action_matrix"
+    },
+    {
+      "id": "native_distribution_channel",
+      "owner": "host_shell",
+      "required": true,
+      "status": "requested",
+      "requested_value": "native_channel_ref",
+      "description": "Host-owned distribution channel evidence.",
+      "blocking_reason": "missing_audit_ref:native_channel_ref"
+    },
+    {
+      "id": "signature_or_notarization",
+      "owner": "host_shell",
+      "required": true,
+      "status": "requested",
+      "requested_value": "signature_subject + notarization_team_id",
+      "description": "Signature or notarization evidence for the command/package.",
+      "blocking_reason": "missing_signature_or_notarization"
+    },
+    {
+      "id": "update_feed",
+      "owner": "host_shell",
+      "required": true,
+      "status": "requested",
+      "requested_value": "update_feed_ref",
+      "description": "Host-owned update feed reference.",
+      "blocking_reason": "missing_audit_ref:update_feed_ref"
+    },
+    {
+      "id": "install_drill_receipt",
+      "owner": "host_shell",
+      "required": true,
+      "status": "requested",
+      "requested_value": "install_receipt_ref",
+      "description": "Install drill receipt for ordinary-user release review.",
+      "blocking_reason": "missing_audit_ref:install_receipt_ref"
+    },
+    {
+      "id": "update_drill_receipt",
+      "owner": "host_shell",
+      "required": true,
+      "status": "requested",
+      "requested_value": "update_receipt_ref",
+      "description": "Update drill receipt for ordinary-user release review.",
+      "blocking_reason": "missing_audit_ref:update_receipt_ref"
+    },
+    {
+      "id": "failure_recovery_drill_receipt",
+      "owner": "host_shell",
+      "required": true,
+      "status": "requested",
+      "requested_value": "failure_recovery_receipt_ref",
+      "description": "Failure-recovery drill receipt for ordinary-user release review.",
+      "blocking_reason": "missing_audit_ref:failure_recovery_receipt_ref"
+    },
+    {
+      "id": "release_notes",
+      "owner": "host_shell",
+      "required": true,
+      "status": "requested",
+      "requested_value": "release_notes_ref",
+      "description": "User-facing release notes reference.",
+      "blocking_reason": "missing_audit_ref:release_notes_ref"
+    }
+  ],
+  "required_audit_refs": {
+    "distribution": [
+      "native_channel_ref",
+      "signature_subject",
+      "notarization_team_id",
+      "update_feed_ref"
+    ],
+    "drills": [
+      "install_receipt_ref",
+      "update_receipt_ref",
+      "failure_recovery_receipt_ref",
+      "release_notes_ref"
+    ]
+  },
+  "expected_runtime_kit_artifacts": [
+    {
+      "id": "preflight_json",
+      "owner": "runtime_kit",
+      "required": true,
+      "command": "host-shell-pilot-preflight",
+      "output_schema": "kaka.host_shell_pilot_preflight.v1",
+      "suggested_path": "artifacts/hermes/preflight.json",
+      "acceptance_note": "Host-shell and private command discovery inputs are ready."
+    },
+    {
+      "id": "conformance_json",
+      "owner": "runtime_kit",
+      "required": true,
+      "command": "host-private-adapter-conformance",
+      "output_schema": "kaka.host_private_adapter_conformance.v1",
+      "suggested_path": "artifacts/hermes/conformance.json",
+      "acceptance_note": "Host-owned command passed the lifecycle conformance matrix."
+    },
+    {
+      "id": "pilot_receipt_json",
+      "owner": "runtime_kit",
+      "required": true,
+      "command": "host-shell-pilot-report",
+      "output_schema": "kaka.host_shell_pilot_receipt.v1",
+      "suggested_path": "artifacts/hermes/pilot-receipt.json",
+      "acceptance_note": "Readiness receipt records conformance and host evidence."
+    },
+    {
+      "id": "handoff_json",
+      "owner": "runtime_kit",
+      "required": true,
+      "command": "host-shell-pilot-handoff",
+      "output_schema": "kaka.host_shell_pilot_handoff.v1",
+      "suggested_path": "artifacts/hermes/handoff.json",
+      "acceptance_note": "Handoff bundle is ready to submit for external review."
+    },
+    {
+      "id": "artifact_review_json",
+      "owner": "runtime_kit",
+      "required": true,
+      "command": "host-shell-pilot-artifact-review",
+      "output_schema": "kaka.host_shell_pilot_artifact_review.v1",
+      "suggested_path": "artifacts/hermes/artifact-review.json",
+      "acceptance_note": "Post-run artifact review reports ready_for_external_review."
+    }
+  ],
+  "acceptance_gates": {
+    "can_start_external_review": false,
+    "requires_host_owned_private_adapter_command": true,
+    "requires_conformance_passed": true,
+    "requires_handoff_ready_to_submit": true,
+    "requires_artifact_review_ready": true,
+    "can_mark_p3_4_complete": false,
+    "blocking_reason": "waiting_for_host_owned_materials"
+  },
+  "safety": {
+    "runtime_side_only": true,
+    "phone_api_unchanged": true,
+    "phone_settings_owner": false,
+    "no_proprietary_binary_bundled_by_kaka": true,
+    "does_not_invoke_private_adapter_command": true,
+    "does_not_run_conformance": true,
+    "does_not_fetch_audit_refs": true,
+    "does_not_mutate_host_state": true,
+    "does_not_submit_handoff": true
+  }
+}

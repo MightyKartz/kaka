@@ -1,0 +1,415 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/host-shell-pilot-preflight.schema.json",
+  "title": "Kaka Host Shell Pilot Preflight",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "ok",
+    "status",
+    "runtime_side_only",
+    "phone_api_path",
+    "phone_api_unchanged",
+    "p3_4_complete",
+    "host_shell",
+    "private_adapter_command",
+    "handoff_command",
+    "release_preflight",
+    "next_actions",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_shell_pilot_preflight.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_host_shell_pilot_preflight"
+    },
+    "runtime": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "status": {
+      "enum": [
+        "ready_for_conformance",
+        "blocked"
+      ]
+    },
+    "runtime_side_only": {
+      "const": true
+    },
+    "phone_api_path": {
+      "const": "/mobile/v1"
+    },
+    "phone_api_unchanged": {
+      "const": true
+    },
+    "p3_4_complete": {
+      "const": false
+    },
+    "host_shell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "detected",
+        "candidates",
+        "cli"
+      ],
+      "properties": {
+        "detected": {
+          "type": "boolean"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "exists"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "exists": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "cli": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command",
+            "found",
+            "path"
+          ],
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "found": {
+              "type": "boolean"
+            },
+            "path": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "private_adapter_command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default_command_name",
+        "selected",
+        "environment_variable",
+        "manifest_entrypoint",
+        "well_known_paths",
+        "path_command"
+      ],
+      "properties": {
+        "default_command_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selected": {
+          "$ref": "#/$defs/selected_command"
+        },
+        "environment_variable": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "configured",
+            "path",
+            "exists",
+            "executable"
+          ],
+          "properties": {
+            "name": {
+              "enum": [
+                "HERMES_KAKA_HOST_API",
+                "OPENCLAW_KAKA_HOST_API"
+              ]
+            },
+            "configured": {
+              "type": "boolean"
+            },
+            "path": {
+              "type": "string"
+            },
+            "exists": {
+              "type": "boolean"
+            },
+            "executable": {
+              "type": "boolean"
+            },
+            "outside_kaka_repo": {
+              "type": "boolean"
+            }
+          }
+        },
+        "manifest_entrypoint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "configured",
+            "manifest_path",
+            "path",
+            "exists",
+            "executable"
+          ],
+          "properties": {
+            "configured": {
+              "type": "boolean"
+            },
+            "manifest_path": {
+              "type": "string"
+            },
+            "path": {
+              "type": "string"
+            },
+            "exists": {
+              "type": "boolean"
+            },
+            "executable": {
+              "type": "boolean"
+            },
+            "outside_kaka_repo": {
+              "type": "boolean"
+            }
+          }
+        },
+        "well_known_paths": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "exists",
+              "executable"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "exists": {
+                "type": "boolean"
+              },
+              "executable": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "path_command": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command",
+            "found",
+            "path",
+            "informational_only"
+          ],
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "found": {
+              "type": "boolean"
+            },
+            "path": {
+              "type": "string"
+            },
+            "informational_only": {
+              "const": true
+            }
+          }
+        }
+      }
+    },
+    "handoff_command": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "release_preflight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "can_run_conformance",
+        "can_mark_p3_4_complete",
+        "blocking_reasons"
+      ],
+      "properties": {
+        "can_run_conformance": {
+          "type": "boolean"
+        },
+        "can_mark_p3_4_complete": {
+          "const": false
+        },
+        "blocking_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "next_actions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "phone_api_unchanged",
+        "phone_settings_owner",
+        "no_proprietary_binary_bundled_by_kaka",
+        "does_not_invoke_private_adapter_command",
+        "does_not_run_conformance",
+        "does_not_fetch_audit_refs"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "phone_api_unchanged": {
+          "const": true
+        },
+        "phone_settings_owner": {
+          "const": false
+        },
+        "no_proprietary_binary_bundled_by_kaka": {
+          "const": true
+        },
+        "does_not_invoke_private_adapter_command": {
+          "const": true
+        },
+        "does_not_run_conformance": {
+          "const": true
+        },
+        "does_not_fetch_audit_refs": {
+          "const": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "selected_command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provided",
+        "source",
+        "path",
+        "exists",
+        "executable",
+        "outside_kaka_repo"
+      ],
+      "properties": {
+        "provided": {
+          "type": "boolean"
+        },
+        "source": {
+          "enum": [
+            "missing",
+            "argument",
+            "environment_variable",
+            "manifest_entrypoint",
+            "well_known_path"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "executable": {
+          "type": "boolean"
+        },
+        "outside_kaka_repo": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "ready_for_conformance"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "release_preflight": {
+            "properties": {
+              "can_run_conformance": {
+                "const": true
+              },
+              "blocking_reasons": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "blocked"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "ok": {
+            "const": false
+          },
+          "release_preflight": {
+            "properties": {
+              "can_run_conformance": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,498 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/host-extension-preview.schema.json",
+  "title": "Kaka Host Extension Preview",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "ordinary_user_install",
+    "extension_package",
+    "adapter_command",
+    "runtime_contracts",
+    "pairing_ux",
+    "phone_api",
+    "release_gates",
+    "safety"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "const": "hermes"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ordinary_user_install": {
+            "properties": {
+              "install_shape": {
+                "const": "hermes_plugin"
+              }
+            }
+          },
+          "adapter_command": {
+            "properties": {
+              "default_command_name": {
+                "const": "hermes-kaka-host-api"
+              },
+              "environment_variable": {
+                "const": "HERMES_KAKA_HOST_API"
+              },
+              "well_known_paths": {
+                "const": [
+                  "~/Library/Application Support/Hermes/Kaka/hermes-kaka-host-api"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "const": "openclaw"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ordinary_user_install": {
+            "properties": {
+              "install_shape": {
+                "const": "openclaw_skill"
+              }
+            }
+          },
+          "adapter_command": {
+            "properties": {
+              "default_command_name": {
+                "const": "openclaw-kaka-host-api"
+              },
+              "environment_variable": {
+                "const": "OPENCLAW_KAKA_HOST_API"
+              },
+              "well_known_paths": {
+                "const": [
+                  "~/Library/Application Support/OpenClaw/Kaka/openclaw-kaka-host-api"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_extension_preview.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_host_extension_preview"
+    },
+    "runtime": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "ordinary_user_install": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "install_shape",
+        "requires_manual_adapter_code",
+        "requires_environment_variable",
+        "starts_bridge_on_install",
+        "creates_login_item_on_install",
+        "requires_explicit_enable"
+      ],
+      "properties": {
+        "install_shape": {
+          "enum": [
+            "hermes_plugin",
+            "openclaw_skill"
+          ]
+        },
+        "requires_manual_adapter_code": {
+          "const": false
+        },
+        "requires_environment_variable": {
+          "const": false
+        },
+        "starts_bridge_on_install": {
+          "const": false
+        },
+        "creates_login_item_on_install": {
+          "const": false
+        },
+        "requires_explicit_enable": {
+          "const": true
+        }
+      }
+    },
+    "extension_package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "adapter_command_owner",
+        "adapter_command_packaging",
+        "stable_distribution_requires_host_signature"
+      ],
+      "properties": {
+        "owner": {
+          "const": "host_shell"
+        },
+        "adapter_command_owner": {
+          "const": "host_shell"
+        },
+        "adapter_command_packaging": {
+          "const": "bundled_or_host_discovered"
+        },
+        "stable_distribution_requires_host_signature": {
+          "const": true
+        }
+      }
+    },
+    "adapter_command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default_command_name",
+        "visibility",
+        "developer_fallback_only",
+        "environment_variable",
+        "discovery_sources",
+        "manifest_entrypoint",
+        "well_known_paths"
+      ],
+      "properties": {
+        "default_command_name": {
+          "enum": [
+            "hermes-kaka-host-api",
+            "openclaw-kaka-host-api"
+          ]
+        },
+        "visibility": {
+          "const": "extension_internal"
+        },
+        "developer_fallback_only": {
+          "const": true
+        },
+        "environment_variable": {
+          "enum": [
+            "HERMES_KAKA_HOST_API",
+            "OPENCLAW_KAKA_HOST_API"
+          ]
+        },
+        "discovery_sources": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "extension_internal_bundle",
+              "host_extension_config",
+              "manifest_entrypoint",
+              "well_known_path",
+              "environment_variable_developer_fallback",
+              "explicit_command_developer_fallback"
+            ]
+          },
+          "allOf": [
+            {
+              "contains": {
+                "const": "extension_internal_bundle"
+              }
+            },
+            {
+              "contains": {
+                "const": "environment_variable_developer_fallback"
+              }
+            },
+            {
+              "contains": {
+                "const": "explicit_command_developer_fallback"
+              }
+            }
+          ]
+        },
+        "manifest_entrypoint": {
+          "const": "host_private_adapter.command"
+        },
+        "well_known_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "runtime_contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "settings_preview",
+        "package_preview",
+        "host_package_preview",
+        "consumer_ui",
+        "process_ownership",
+        "private_adapter_package"
+      ],
+      "properties": {
+        "settings_preview": {
+          "const": "settings-preview"
+        },
+        "package_preview": {
+          "const": "package-preview"
+        },
+        "host_package_preview": {
+          "const": "host-package-preview"
+        },
+        "consumer_ui": {
+          "const": "settings_preview.runtime_side_ui.consumer_ui"
+        },
+        "process_ownership": {
+          "const": "settings_preview.runtime_side_ui.process_ownership"
+        },
+        "private_adapter_package": {
+          "const": "host_package.private_adapter_package"
+        }
+      }
+    },
+    "pairing_ux": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enable_bridge",
+        "show_qr",
+        "bonjour_optional",
+        "revoke_iphone",
+        "saved_token_reconnect",
+        "production_qr_recommended"
+      ],
+      "properties": {
+        "enable_bridge": {
+          "const": true
+        },
+        "show_qr": {
+          "const": true
+        },
+        "bonjour_optional": {
+          "const": true
+        },
+        "revoke_iphone": {
+          "const": true
+        },
+        "saved_token_reconnect": {
+          "const": true
+        },
+        "production_qr_recommended": {
+          "const": true
+        }
+      }
+    },
+    "phone_api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_path",
+        "private_host_api_exposed",
+        "phone_api_unchanged"
+      ],
+      "properties": {
+        "base_path": {
+          "const": "/mobile/v1"
+        },
+        "private_host_api_exposed": {
+          "const": false
+        },
+        "phone_api_unchanged": {
+          "const": true
+        }
+      }
+    },
+    "release_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requires_p3_2_conformance",
+        "requires_p3_4_external_pilot_evidence",
+        "requires_host_signature",
+        "can_mark_p3_4_complete"
+      ],
+      "properties": {
+        "requires_p3_2_conformance": {
+          "const": true
+        },
+        "requires_p3_4_external_pilot_evidence": {
+          "const": true
+        },
+        "requires_host_signature": {
+          "const": true
+        },
+        "can_mark_p3_4_complete": {
+          "const": false
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "phone_settings_owner",
+        "no_autostart_on_install",
+        "no_lan_bind_on_install",
+        "no_bonjour_on_install",
+        "no_credentials_minted_on_install",
+        "no_login_item_creation_on_install",
+        "forbidden_phone_safe_fields"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "phone_settings_owner": {
+          "const": false
+        },
+        "no_autostart_on_install": {
+          "const": true
+        },
+        "no_lan_bind_on_install": {
+          "const": true
+        },
+        "no_bonjour_on_install": {
+          "const": true
+        },
+        "no_credentials_minted_on_install": {
+          "const": true
+        },
+        "no_login_item_creation_on_install": {
+          "const": true
+        },
+        "forbidden_phone_safe_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "allOf": [
+            {
+              "contains": {
+                "const": "runtime_store_path"
+              }
+            },
+            {
+              "contains": {
+                "const": "recall_search_endpoint"
+              }
+            },
+            {
+              "contains": {
+                "const": "provider_keys"
+              }
+            },
+            {
+              "contains": {
+                "const": "auth_env_files"
+              }
+            },
+            {
+              "contains": {
+                "const": "mobile_tokens"
+              }
+            },
+            {
+              "contains": {
+                "const": "tls_private_key_paths"
+              }
+            },
+            {
+              "contains": {
+                "const": "env_file"
+              }
+            },
+            {
+              "contains": {
+                "const": "auth_file"
+              }
+            },
+            {
+              "contains": {
+                "const": "auth_files"
+              }
+            },
+            {
+              "contains": {
+                "const": "provider_credentials"
+              }
+            },
+            {
+              "contains": {
+                "const": "mobile_bearer_token"
+              }
+            },
+            {
+              "contains": {
+                "const": "tls_private_key_path"
+              }
+            },
+            {
+              "contains": {
+                "const": "hidden_prompt"
+              }
+            },
+            {
+              "contains": {
+                "const": "hidden_prompts"
+              }
+            },
+            {
+              "contains": {
+                "const": "raw_embeddings"
+              }
+            },
+            {
+              "contains": {
+                "const": "index_rows"
+              }
+            },
+            {
+              "contains": {
+                "const": "retrieval_index_rows"
+              }
+            },
+            {
+              "contains": {
+                "const": "task_logs"
+              }
+            },
+            {
+              "contains": {
+                "const": "raw_provider_responses"
+              }
+            },
+            {
+              "contains": {
+                "const": "process_ids"
+              }
+            },
+            {
+              "contains": {
+                "const": "host_log_paths"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

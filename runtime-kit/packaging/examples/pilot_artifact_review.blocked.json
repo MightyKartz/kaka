@@ -1,0 +1,106 @@
+{
+  "schema_version": "kaka.host_shell_pilot_artifact_review.v1",
+  "surface": "hermes_openclaw_host_shell_pilot_artifact_review",
+  "runtime": "hermes",
+  "ok": false,
+  "review_status": "blocked",
+  "runtime_side_only": true,
+  "phone_api_path": "/mobile/v1",
+  "phone_api_unchanged": true,
+  "p3_4_complete": false,
+  "p3_4_completion_owner": "external_host_shell",
+  "artifacts": {
+    "preflight": {
+      "required": true,
+      "path": "",
+      "loaded": false,
+      "schema_valid": false,
+      "schema_errors": [
+        "missing_artifact:preflight"
+      ],
+      "schema_version": "",
+      "runtime": "",
+      "ok": false,
+      "status": "missing",
+      "summary": {},
+      "blocking_reason": "missing_artifact:preflight"
+    },
+    "conformance": {
+      "required": true,
+      "path": "",
+      "loaded": false,
+      "schema_valid": false,
+      "schema_errors": [
+        "missing_artifact:conformance"
+      ],
+      "schema_version": "",
+      "runtime": "",
+      "ok": false,
+      "status": "missing",
+      "summary": {},
+      "blocking_reason": "missing_artifact:conformance"
+    },
+    "receipt": {
+      "required": true,
+      "path": "",
+      "loaded": false,
+      "schema_valid": false,
+      "schema_errors": [
+        "missing_artifact:receipt"
+      ],
+      "schema_version": "",
+      "runtime": "",
+      "ok": false,
+      "status": "missing",
+      "summary": {},
+      "blocking_reason": "missing_artifact:receipt"
+    },
+    "handoff": {
+      "required": true,
+      "path": "",
+      "loaded": false,
+      "schema_valid": false,
+      "schema_errors": [
+        "missing_artifact:handoff"
+      ],
+      "schema_version": "",
+      "runtime": "",
+      "ok": false,
+      "status": "missing",
+      "summary": {},
+      "blocking_reason": "missing_artifact:handoff"
+    }
+  },
+  "artifact_consistency": {
+    "runtime_match": false,
+    "preflight_allows_conformance": false,
+    "conformance_passed": false,
+    "conformance_embedded_in_receipt": false,
+    "receipt_ready": false,
+    "receipt_embedded_in_handoff": false,
+    "handoff_ready_to_submit": false,
+    "audit_refs_complete": false,
+    "no_synthetic_conformance": true,
+    "private_adapter_command_consistent": false
+  },
+  "release_review": {
+    "can_submit_to_external_review": false,
+    "can_mark_p3_4_complete": false,
+    "blocking_reasons": [
+      "missing_artifact:preflight",
+      "missing_artifact:conformance",
+      "missing_artifact:receipt",
+      "missing_artifact:handoff"
+    ]
+  },
+  "safety": {
+    "runtime_side_only": true,
+    "phone_api_unchanged": true,
+    "phone_settings_owner": false,
+    "no_proprietary_binary_bundled_by_kaka": true,
+    "does_not_invoke_private_adapter_command": true,
+    "does_not_run_conformance": true,
+    "does_not_fetch_audit_refs": true,
+    "does_not_mutate_host_state": true
+  }
+}

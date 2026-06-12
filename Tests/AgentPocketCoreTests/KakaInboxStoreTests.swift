@@ -88,6 +88,32 @@ final class KakaInboxStoreTests: XCTestCase {
         XCTAssertEqual(decoded, item)
     }
 
+    func testInboxItemPersistsSourceSurfaceFromLegacySourceObject() throws {
+        let data = Data("""
+        {
+          "id": "00000000-0000-0000-0000-000000000003",
+          "kind": "text",
+          "received_at": "2027-01-15T08:00:00Z",
+          "source": {
+            "surface": "voice",
+            "host_app": "Kaka Voice"
+          },
+          "text": "Summarize my last meeting notes."
+        }
+        """.utf8)
+
+        let item = try JSONDecoder.mobileBridge.decode(KakaInboxItem.self, from: data)
+        let encodedData = try JSONEncoder.mobileBridge.encode(item)
+        let encodedObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encodedData) as? [String: Any]
+        )
+
+        XCTAssertEqual(item.sourceSurface, "voice")
+        XCTAssertEqual(item.sourceApp, "Kaka Voice")
+        XCTAssertEqual(encodedObject["source_surface"] as? String, "voice")
+        XCTAssertNil(encodedObject["source"])
+    }
+
     func testRemovingAndClearingItemsDeletesSharedPayloadFiles() throws {
         let directory = temporaryInboxDirectory()
         let store = FileKakaInboxStore(directoryURL: directory)

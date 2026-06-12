@@ -56,6 +56,22 @@ final class ImageConversationViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.messages.last?.role, .result)
     }
 
+    func testSubmittingVoiceTranscriptReturnsSpeakableResultSummary() async throws {
+        let executor = StubImageSkillExecutor(status: try completedVisionStatus(mode: .scan))
+        let viewModel = ImageConversationViewModel(
+            intakeStatus: try completedImageIntakeStatus(),
+            originalAsset: nil,
+            preparedUpload: PreparedImageUpload.fixture(),
+            skillExecutor: executor
+        )
+
+        let reply = await viewModel.submitVoiceTranscript("识别这张图片", connection: try storedConnection())
+
+        XCTAssertEqual(reply, "识别到 2 行文字。")
+        XCTAssertEqual(viewModel.messages.last?.role, .result)
+        XCTAssertEqual(viewModel.messages.last?.text, "识别到 2 行文字。")
+    }
+
     func testPhotoResultPresentationReturnsActionableResultCardData() throws {
         let presentation = ImageConversationResultPresentation(
             status: try completedPhotoStatus(),
@@ -394,7 +410,7 @@ private final class SkillExecutorHTTPRecording: @unchecked Sendable {
             {
               "profiles": [{"id":"photo-agent","display_name":"Photo Agent","capabilities":["photo_edit","vision","image_intake"]}],
               "tasks": {
-                "photo_edit": {"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance"],"provider":"recipe_local","renderer":"local_parametric","variant_labels":["Master","Social"],"variant_ids":["variant_clean_pro","variant_social_pop"],"crop_aspects":["original"],"supports_crop_candidates":false,"supports_upscale_policy":true,"supports_sse":false,"return_variants_max":3},
+                "photo_edit": {"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance"],"provider":"recipe_local","renderer":"local_parametric","variant_labels":["Master","Social"],"variant_ids":["variant_clean_pro","variant_social_pop"],"crop_aspects":["original"],"supports_crop_candidates":false,"supports_upscale_policy":true,"supports_sse":false,"return_variants_max":2},
                 "vision": {"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"modes":["scan","identify","translate","food"],"provider":"fixture_vision","supports_sse":false}
               },
               "retention": {"input_assets_days":7,"output_assets_days":30,"task_history_days":30}

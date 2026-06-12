@@ -9,7 +9,11 @@ public enum ConnectionCheckError: Error, Equatable, Sendable {
 
 @MainActor
 public protocol ConnectionChecking {
-    func check(endpoint: AgentEndpoint, token: String) async throws -> ConnectedRuntime
+    func check(
+        endpoint: AgentEndpoint,
+        token: String,
+        trustPolicy: MobileBridgeTrustPolicy
+    ) async throws -> ConnectedRuntime
 }
 
 @MainActor
@@ -18,19 +22,28 @@ public protocol PairingExchanging {
         endpoint: AgentEndpoint,
         pairingCode: String,
         deviceName: String,
-        devicePublicID: String
+        devicePublicID: String,
+        trustPolicy: MobileBridgeTrustPolicy
     ) async throws -> PairingExchangeResponse
 }
 
 public struct MobileBridgeConnectionChecker: ConnectionChecking {
-    private let session: URLSession
+    private let session: URLSession?
 
-    public init(session: URLSession = .shared) {
+    public init(session: URLSession? = nil) {
         self.session = session
     }
 
-    public func check(endpoint: AgentEndpoint, token: String) async throws -> ConnectedRuntime {
-        let client = MobileBridgeHTTPClient(endpoint: endpoint, token: token, session: session)
+    public func check(
+        endpoint: AgentEndpoint,
+        token: String,
+        trustPolicy: MobileBridgeTrustPolicy = .systemDefault
+    ) async throws -> ConnectedRuntime {
+        let client = MobileBridgeHTTPClient(
+            endpoint: endpoint,
+            token: token,
+            session: session ?? MobileBridgeURLSessionFactory.makeSession(for: trustPolicy)
+        )
         let health = try await client.fetchHealth()
         let capabilities = try await client.fetchCapabilities()
 
@@ -47,9 +60,9 @@ public struct MobileBridgeConnectionChecker: ConnectionChecking {
 }
 
 public struct MobileBridgePairingExchanger: PairingExchanging {
-    private let session: URLSession
+    private let session: URLSession?
 
-    public init(session: URLSession = .shared) {
+    public init(session: URLSession? = nil) {
         self.session = session
     }
 
@@ -57,12 +70,13 @@ public struct MobileBridgePairingExchanger: PairingExchanging {
         endpoint: AgentEndpoint,
         pairingCode: String,
         deviceName: String,
-        devicePublicID: String
+        devicePublicID: String,
+        trustPolicy: MobileBridgeTrustPolicy = .systemDefault
     ) async throws -> PairingExchangeResponse {
         try await MobileBridgeHTTPClient(
             endpoint: endpoint,
             token: "",
-            session: session
+            session: session ?? MobileBridgeURLSessionFactory.makeSession(for: trustPolicy)
         ).exchangePairingCode(
             pairingCode: pairingCode,
             deviceName: deviceName,
@@ -88,7 +102,7 @@ public struct MobileBridgePairingPayloadRefresher: PairingPayloadRefreshing {
             endpoint: endpoint,
             token: "",
             session: session
-        ).fetchDevelopmentPairingPayload()
+        ).fetchPairingPayload()
     }
 }
 
@@ -267,7 +281,11 @@ public final class ConnectionViewModel: ObservableObject {
 
         state = .testing
         do {
-            let runtime = try await connectionChecker.check(endpoint: endpoint, token: trimmedToken)
+            let runtime = try await connectionChecker.check(
+                endpoint: endpoint,
+                token: trimmedToken,
+                trustPolicy: .systemDefault
+            )
             activeConnection = try saveConnection(
                 endpoint: endpoint,
                 token: trimmedToken,
@@ -317,32 +335,37 @@ public final class ConnectionViewModel: ObservableObject {
         let payload: PairingPayload
         do {
             payload = try PairingPayload(jsonString: jsonString, now: now)
-        } catch PairingPayload.ValidationError.expired {
-            throw PairingPayload.ValidationError.expired
-        } catch PairingPayload.ValidationError.unsupportedVersion {
-            throw PairingPayload.ValidationError.unsupportedVersion
+        } catch let error as PairingPayload.ValidationError {
+            throw error
         } catch AgentEndpoint.ValidationError.remoteEndpointRequiresHTTPS {
             throw AgentEndpoint.ValidationError.remoteEndpointRequiresHTTPS
         } catch {
             throw PairingFlowError.unreadablePayload
         }
 
+        let trustPolicy = MobileBridgeTrustPolicy.policy(
+            for: payload.endpoint,
+            tlsPublicKeySHA256: payload.tlsPublicKeySHA256
+        )
         state = .testing
         let exchange = try await pairingExchanger.exchange(
             endpoint: payload.endpoint,
             pairingCode: payload.pairingCode,
             deviceName: deviceName,
-            devicePublicID: devicePublicID
+            devicePublicID: devicePublicID,
+            trustPolicy: trustPolicy
         )
         let runtime = try await connectionChecker.check(
             endpoint: payload.endpoint,
-            token: exchange.mobileToken
+            token: exchange.mobileToken,
+            trustPolicy: trustPolicy
         )
         activeConnection = try saveConnection(
             endpoint: payload.endpoint,
             token: exchange.mobileToken,
             runtime: runtime,
-            tokenExpiresAt: exchange.tokenExpiresAt
+            tokenExpiresAt: exchange.tokenExpiresAt,
+            tlsPublicKeySHA256: payload.tlsPublicKeySHA256
         )
         markConnected(runtime)
     }
@@ -365,6 +388,10 @@ public final class ConnectionViewModel: ObservableObject {
             state = .failed(message: "Pairing code expired.")
         case PairingPayload.ValidationError.unsupportedVersion:
             state = .failed(message: "Pairing QR is not supported by this app version.")
+        case PairingPayload.ValidationError.missingRequiredTLSPublicKeyFingerprint,
+             PairingPayload.ValidationError.malformedRequiredTLSPublicKeyFingerprint,
+             PairingPayload.ValidationError.trustedLocalTLSRequiresHTTPSEndpoint:
+            state = .invalidCertificate
         case AgentEndpoint.ValidationError.remoteEndpointRequiresHTTPS:
             state = .failed(message: "Remote endpoints must use HTTPS.")
         case MobileBridgeHTTPClient.ClientError.httpStatus(409, let bridgeError)
@@ -446,7 +473,8 @@ public final class ConnectionViewModel: ObservableObject {
         do {
             let runtime = try await connectionChecker.check(
                 endpoint: savedConnection.endpoint,
-                token: savedConnection.mobileToken
+                token: savedConnection.mobileToken,
+                trustPolicy: savedConnection.trustPolicy
             )
             activeConnection = savedConnection
             markConnected(runtime)
@@ -507,7 +535,8 @@ public final class ConnectionViewModel: ObservableObject {
         endpoint: AgentEndpoint,
         token: String,
         runtime: ConnectedRuntime,
-        tokenExpiresAt: String?
+        tokenExpiresAt: String?,
+        tlsPublicKeySHA256: String? = nil
     ) throws -> StoredConnection {
         do {
             let connection = StoredConnection(
@@ -516,7 +545,8 @@ public final class ConnectionViewModel: ObservableObject {
                 runtime: runtime.runtime,
                 runtimeVersion: runtime.runtimeVersion,
                 mobileToken: token,
-                tokenExpiresAt: tokenExpiresAt
+                tokenExpiresAt: tokenExpiresAt,
+                tlsPublicKeySHA256: tlsPublicKeySHA256
             )
             try connectionStore.save(connection)
             return connection

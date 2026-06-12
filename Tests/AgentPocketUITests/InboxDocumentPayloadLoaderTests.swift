@@ -29,6 +29,28 @@ final class InboxDocumentPayloadLoaderTests: XCTestCase {
         XCTAssertNil(upload.metadata.width)
     }
 
+    func testPreparedPDFUploadUsesInboxSourceSurface() throws {
+        let directory = try temporaryDirectory()
+        let payloadDirectory = directory.appendingPathComponent("SharedPayloads", isDirectory: true)
+        try FileManager.default.createDirectory(at: payloadDirectory, withIntermediateDirectories: true)
+        let fileURL = payloadDirectory.appendingPathComponent("brief.pdf")
+        try Data("%PDF".utf8).write(to: fileURL)
+        let item = KakaInboxItem(
+            kind: .pdf,
+            sourceApp: "Files",
+            sourceSurface: "file_picker",
+            fileName: "brief.pdf",
+            mimeType: "application/pdf",
+            relativeFilePath: "SharedPayloads/brief.pdf",
+            route: .universalIntake
+        )
+        let loader = FileInboxDocumentPayloadLoader(containerURL: directory, maxUploadMB: 25)
+
+        let upload = try loader.preparedUpload(for: item)
+
+        XCTAssertEqual(upload.metadata.source, "file_picker")
+    }
+
     func testRejectsUnsafeRelativePayloadPaths() throws {
         let directory = try temporaryDirectory()
         let loader = FileInboxDocumentPayloadLoader(containerURL: directory, maxUploadMB: 25)

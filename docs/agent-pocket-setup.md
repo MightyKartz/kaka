@@ -1,6 +1,15 @@
 # Agent Pocket Setup
 
-This guide is for Phase 1 development and QA.
+This guide is for Phase 1 development and QA. Ordinary users should not run
+`runtime-kit`, `mock_bridge`, `photo-pack/adapters`, `curl`, or manual LAN
+endpoint commands as their normal setup path.
+
+The intended ordinary-user flow is: install the host-native Hermes Plugin or
+OpenClaw Skill/sidecar, open the host **Kaka Mobile Bridge** panel, explicitly
+enable the bridge, pair by QR or Bonjour, and use Kaka iPhone through
+`/mobile/v1`. Manual endpoints, LAN IPs, Runtime Kit commands, and shell
+diagnostics below are developer, host-engineer, or external-pilot
+troubleshooting paths only.
 
 ## Current Phase 1 Direction
 

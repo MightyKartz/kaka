@@ -80,6 +80,100 @@ final class TaskInboxViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.state, .loaded)
     }
 
+    func testLoadTasksSyncsVisibleLiveActivitySnapshots() async throws {
+        let waiting = RuntimeTaskSummary(
+            id: "task_waiting",
+            title: "Approve Recall write",
+            status: .waitingForApproval,
+            progress: 0.4,
+            message: "Keep this detail inside the app UI"
+        )
+        let performer = StubRuntimeTaskInboxPerformer(tasks: [waiting])
+        let activityCoordinator = RecordingRuntimeTaskActivityCoordinator()
+        let viewModel = TaskInboxViewModel(
+            performer: performer,
+            activityCoordinator: activityCoordinator
+        )
+
+        await viewModel.load(connection: try storedConnection())
+
+        XCTAssertEqual(activityCoordinator.syncedSnapshots.count, 1)
+        XCTAssertEqual(activityCoordinator.syncedSnapshots.first?.taskID, "task_waiting")
+        XCTAssertEqual(activityCoordinator.syncedSnapshots.first?.phase, .needsApproval)
+        XCTAssertEqual(activityCoordinator.syncedSnapshots.first?.approvalNeeded, true)
+    }
+
+    func testTerminalTaskUpdateEndsLiveActivitySnapshot() async throws {
+        let running = RuntimeTaskSummary(
+            id: "task_running",
+            title: "Summarize PDF",
+            status: .running,
+            progress: 0.2
+        )
+        let completed = RuntimeTaskSummary(
+            id: "task_running",
+            title: "Summarize PDF",
+            status: .completed,
+            progress: 1.0
+        )
+        let performer = StubRuntimeTaskInboxPerformer(
+            tasks: [running],
+            actionResponse: RuntimeTaskActionResponse(status: "completed", task: completed)
+        )
+        let activityCoordinator = RecordingRuntimeTaskActivityCoordinator()
+        let viewModel = TaskInboxViewModel(
+            performer: performer,
+            activityCoordinator: activityCoordinator
+        )
+
+        await viewModel.load(connection: try storedConnection())
+        await viewModel.approve(taskID: "task_running", connection: try storedConnection())
+
+        XCTAssertEqual(activityCoordinator.endedTaskIDs, ["task_running"])
+    }
+
+    func testActivityPlannerEndsTaskThatDisappearsFromLatestRuntimeList() {
+        let running = RuntimeTaskSummary(
+            id: "task_running",
+            title: "Summarize PDF",
+            status: .running,
+            progress: 0.2
+        )
+        let planner = RuntimeTaskActivitySyncPlanner()
+
+        let initialPlan = planner.plan(tasks: [running])
+        let emptyPlan = planner.plan(tasks: [])
+
+        XCTAssertEqual(initialPlan.activeSnapshots.map(\.taskID), ["task_running"])
+        XCTAssertEqual(initialPlan.endedTaskIDs, [])
+        XCTAssertEqual(emptyPlan.activeSnapshots, [])
+        XCTAssertEqual(emptyPlan.endedTaskIDs, ["task_running"])
+    }
+
+    func testActivityPlannerCanSeedExistingActivityIDsAfterCoordinatorRecreation() {
+        let planner = RuntimeTaskActivitySyncPlanner()
+
+        planner.seedActiveTaskIDs(["task_running", "task_waiting"])
+        let plan = planner.plan(tasks: [])
+
+        XCTAssertEqual(plan.activeSnapshots, [])
+        XCTAssertEqual(plan.endedTaskIDs, ["task_running", "task_waiting"])
+    }
+
+    func testActivityPlannerUsesClientGeneratedSafeTitles() {
+        let sensitive = RuntimeTaskSummary(
+            id: "task_sensitive",
+            title: "Approve Recall write from private provider sk-live-secret",
+            status: .waitingForApproval,
+            progress: 0.4
+        )
+        let planner = RuntimeTaskActivitySyncPlanner()
+
+        let plan = planner.plan(tasks: [sensitive])
+
+        XCTAssertEqual(plan.activeSnapshots.first?.title, "Review task in Kaka")
+    }
+
     func testMissingConnectionFailsClearly() async {
         let viewModel = TaskInboxViewModel(performer: StubRuntimeTaskInboxPerformer(tasks: []))
 
@@ -119,6 +213,18 @@ private final class StubRuntimeTaskInboxPerformer: RuntimeTaskInboxPerforming, @
     ) async throws -> RuntimeTaskActionResponse {
         approvals.append(approval)
         return actionResponse
+    }
+}
+
+@MainActor
+private final class RecordingRuntimeTaskActivityCoordinator: RuntimeTaskActivityCoordinating {
+    private(set) var syncedSnapshots: [RuntimeTaskActivitySnapshot] = []
+    private(set) var endedTaskIDs: [String] = []
+
+    func sync(tasks: [RuntimeTaskSummary]) async {
+        let snapshots = tasks.map(RuntimeTaskActivitySnapshot.init(task:))
+        syncedSnapshots = snapshots.filter { $0.isTerminal == false }
+        endedTaskIDs.append(contentsOf: snapshots.filter(\.isTerminal).map(\.taskID))
     }
 }
 

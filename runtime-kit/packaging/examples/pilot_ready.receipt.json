@@ -1,0 +1,68 @@
+{
+  "schema_version": "kaka.host_shell_pilot_receipt.v1",
+  "surface": "hermes_openclaw_external_host_shell_pilot",
+  "runtime": "hermes",
+  "ok": true,
+  "status": "ready",
+  "runtime_side_only": true,
+  "phone_api_path": "/mobile/v1",
+  "phone_api_unchanged": true,
+  "external_binary_required": true,
+  "binary_owner": "host_shell",
+  "distribution_owner": "hermes",
+  "private_adapter_command": {
+    "provided": true,
+    "path": "/Users/example/Library/Application Support/Hermes/Kaka/hermes-kaka-host-api",
+    "source": "argument",
+    "outside_kaka_repo": true
+  },
+  "distribution": {
+    "source": "signed_download",
+    "channel": "stable",
+    "package_version": "1.0.0",
+    "host_api_level": "v1",
+    "native_channel_verified": true,
+    "signature_verified": true,
+    "update_feed_verified": true,
+    "evidence": {
+      "native_channel_ref": "Hermes stable channel receipt #2026-06-06",
+      "signature_subject": "Developer ID Application: Example Hermes Team",
+      "notarization_team_id": "TEAMID1234",
+      "update_feed_ref": "https://updates.example.invalid/hermes/kaka/appcast.xml"
+    }
+  },
+  "conformance": {
+    "required": true,
+    "ran": true,
+    "ok": true,
+    "synthetic_only": false,
+    "summary": {
+      "total": 9,
+      "passed": 9,
+      "failed": 0
+    }
+  },
+  "drills": {
+    "install_verified": true,
+    "update_verified": true,
+    "failure_recovery_verified": true,
+    "release_notes_verified": true,
+    "evidence": {
+      "install_receipt_ref": "qa://hermes/install/2026-06-06",
+      "update_receipt_ref": "qa://hermes/update/2026-06-06",
+      "failure_recovery_receipt_ref": "qa://hermes/recovery/2026-06-06",
+      "release_notes_ref": "https://example.invalid/hermes/kaka/release-notes/1.0.0"
+    }
+  },
+  "release_readiness": {
+    "can_start_external_pilot": true,
+    "can_mark_p3_4_complete": true,
+    "blocking_reasons": []
+  },
+  "safety": {
+    "runtime_side_only": true,
+    "phone_api_unchanged": true,
+    "phone_settings_owner": false,
+    "no_proprietary_binary_bundled_by_kaka": true
+  }
+}

@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaka.local/schemas/host-shell-pilot-handoff.schema.json",
+  "title": "Kaka Host Shell Pilot Handoff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "surface",
+    "runtime",
+    "ok",
+    "handoff_status",
+    "runtime_side_only",
+    "phone_api_path",
+    "phone_api_unchanged",
+    "p3_4_complete",
+    "p3_4_completion_owner",
+    "pilot_receipt",
+    "audit_refs",
+    "deliverables",
+    "release_handoff",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "kaka.host_shell_pilot_handoff.v1"
+    },
+    "surface": {
+      "const": "hermes_openclaw_host_shell_pilot_handoff"
+    },
+    "runtime": {
+      "enum": [
+        "hermes",
+        "openclaw"
+      ]
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "handoff_status": {
+      "enum": [
+        "ready_to_submit",
+        "incomplete"
+      ]
+    },
+    "runtime_side_only": {
+      "const": true
+    },
+    "phone_api_path": {
+      "const": "/mobile/v1"
+    },
+    "phone_api_unchanged": {
+      "const": true
+    },
+    "p3_4_complete": {
+      "const": false
+    },
+    "p3_4_completion_owner": {
+      "const": "external_host_shell"
+    },
+    "pilot_receipt": {
+      "type": "object"
+    },
+    "audit_refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "complete",
+        "distribution",
+        "drills"
+      ],
+      "properties": {
+        "required": {
+          "const": true
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "distribution": {
+          "$ref": "#/$defs/ref_group"
+        },
+        "drills": {
+          "$ref": "#/$defs/ref_group"
+        }
+      }
+    },
+    "deliverables": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "owner",
+          "required",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": {
+            "const": true
+          },
+          "status": {
+            "enum": [
+              "provided",
+              "missing"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "evidence_ref": {
+            "type": "string"
+          },
+          "blocking_reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "release_handoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "can_submit_to_external_pilot",
+        "can_mark_p3_4_complete",
+        "blocking_reasons"
+      ],
+      "properties": {
+        "can_submit_to_external_pilot": {
+          "type": "boolean"
+        },
+        "can_mark_p3_4_complete": {
+          "const": false
+        },
+        "blocking_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_side_only",
+        "phone_api_unchanged",
+        "phone_settings_owner",
+        "no_proprietary_binary_bundled_by_kaka",
+        "does_not_fetch_audit_refs",
+        "does_not_change_receipt_gate"
+      ],
+      "properties": {
+        "runtime_side_only": {
+          "const": true
+        },
+        "phone_api_unchanged": {
+          "const": true
+        },
+        "phone_settings_owner": {
+          "const": false
+        },
+        "no_proprietary_binary_bundled_by_kaka": {
+          "const": true
+        },
+        "does_not_fetch_audit_refs": {
+          "const": true
+        },
+        "does_not_change_receipt_gate": {
+          "const": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "ref_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provided",
+        "missing"
+      ],
+      "properties": {
+        "provided": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "handoff_status": {
+            "const": "ready_to_submit"
+          }
+        },
+        "required": [
+          "handoff_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "audit_refs": {
+            "properties": {
+              "complete": {
+                "const": true
+              }
+            }
+          },
+          "release_handoff": {
+            "properties": {
+              "can_submit_to_external_pilot": {
+                "const": true
+              },
+              "blocking_reasons": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "handoff_status": {
+            "const": "incomplete"
+          }
+        },
+        "required": [
+          "handoff_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "ok": {
+            "const": false
+          },
+          "release_handoff": {
+            "properties": {
+              "can_submit_to_external_pilot": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
