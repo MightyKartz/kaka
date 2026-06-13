@@ -76,23 +76,29 @@ public enum RuntimeTaskActivityPhase: String, Codable, Equatable, Hashable, Send
 }
 
 public struct RuntimeTaskActivitySnapshot: Codable, Equatable, Hashable, Sendable {
-    public static let phoneSafeFieldNames = ["task_id", "title", "phase", "approval_needed"]
+    public static let phoneSafeFieldNames = ["task_id", "title", "phase", "approval_needed", "progress", "message"]
 
     public let taskID: String
     public let title: String
     public let phase: RuntimeTaskActivityPhase
     public let approvalNeeded: Bool
+    public let progress: Double
+    public let message: String?
 
     public init(
         taskID: String,
         title: String,
         phase: RuntimeTaskActivityPhase,
-        approvalNeeded: Bool
+        approvalNeeded: Bool,
+        progress: Double,
+        message: String?
     ) {
         self.taskID = taskID
         self.title = title
         self.phase = phase
         self.approvalNeeded = approvalNeeded
+        self.progress = min(max(progress, 0), 1)
+        self.message = message?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
     }
 
     public init(task: RuntimeTaskSummary) {
@@ -101,7 +107,9 @@ public struct RuntimeTaskActivitySnapshot: Codable, Equatable, Hashable, Sendabl
             taskID: task.id,
             title: phase.activityTitle,
             phase: phase,
-            approvalNeeded: task.requiresUserAction
+            approvalNeeded: task.requiresUserAction,
+            progress: task.progress,
+            message: task.message
         )
     }
 
@@ -119,6 +127,14 @@ public struct RuntimeTaskActivitySnapshot: Codable, Equatable, Hashable, Sendabl
         case title
         case phase
         case approvalNeeded = "approval_needed"
+        case progress
+        case message
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        isEmpty ? nil : self
     }
 }
 
@@ -129,10 +145,14 @@ public struct RuntimeTaskActivityAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable, Sendable {
         public let phase: RuntimeTaskActivityPhase
         public let approvalNeeded: Bool
+        public let progress: Double
+        public let message: String?
 
         public init(snapshot: RuntimeTaskActivitySnapshot) {
             self.phase = snapshot.phase
             self.approvalNeeded = snapshot.approvalNeeded
+            self.progress = snapshot.progress
+            self.message = snapshot.message
         }
     }
 

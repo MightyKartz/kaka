@@ -4,7 +4,7 @@
 
 Kaka 是一个本地优先的 iPhone 智能体入口。
 
-它把 iPhone 连接到用户自己的本机智能体运行时，例如 Hermes、OpenClaw，或兼容 Mobile Bridge 的 sidecar。手机负责拍照、系统分享、显式粘贴、收件箱、语音追问、预览、保存、Recall 控制和用户确认；本机运行时负责模型凭证、模型路由、工具执行、图片理解、结构化修图 recipe、本地渲染、记忆和任务状态。
+它把 iPhone 连接到用户自己的本机智能体运行时，例如 Hermes、OpenClaw，或兼容 Mobile Bridge 的 sidecar。手机负责拍照、扫码、文档扫描、短视频 intake、系统分享、显式粘贴、收件箱、语音追问、预览、保存、Recall 控制和用户确认；本机运行时负责模型凭证、模型路由、工具执行、图片理解、结构化修图 recipe、本地渲染、记忆和任务状态。
 
 > 当前状态：早期 MVP / 持续开发中。Swift 客户端、iOS app target、Share Extension、Mobile Bridge 契约、mock bridge、Runtime Kit 脚手架、本地 recipe 修图路径、runtime 侧视觉路径、测试和 UI/UX 原型都在本仓库中。完整的阶段开发史见 [docs/development-history.md](docs/development-history.md)（英文）。
 
@@ -25,8 +25,9 @@ Kaka 是一个本地优先的 iPhone 智能体入口。
 ## 当前能力
 
 - **图像 intake** — 与本地运行时配对，拍照或选图，经 Mobile Bridge 上传，运行 `POST /mobile/v1/tasks/image-intake`，获得摘要和建议技能，并在图像会话中继续（OCR、翻译、识别、食物估算、参数化修图）。
+- **Local Agent Lens** — Capture 首页提供 Scan、Document、Video、Record、Inbox、Activity 六个手机原生入口。扫码只显示明确下一步动作，文档扫描和短视频先生成可见 Inbox 草稿，Action Button/Shortcuts 只把 Kaka 带到前台对应页面。
 - **分享到 Kaka 收件箱** — iOS Share Extension 接受文本、网页 URL、图片和 PDF，以 `KakaInboxItem` 形式存入共享 App Group 容器，失败即关闭；主应用拥有可见的提交动作。显式粘贴、Files 导入、发送前详情审阅、确认后丢弃和操作反馈横幅都建立在同一个收件箱上。
-- **通用 intake** — `POST /mobile/v1/tasks/intake` 支持文本、URL、图片、截图和 PDF，带来源元数据、可选用户指令、可选 context snapshot 和结构化建议。
+- **通用 intake** — `POST /mobile/v1/tasks/intake` 支持文本、URL、图片、截图、PDF 和短视频，带来源元数据、可选用户指令、可选 context snapshot 和结构化建议。
 - **Context Snapshot** — 任务级、权限感知的快照（时间、时区、locale、来源、粗粒度网络/电量、一次性运动和日历可用性标签），仅在用户开启且运行时声明支持时发送；权限被拒绝不会阻塞 intake。
 - **Recall** — 通过 `/mobile/v1/recall/*` 提供显式操作（记住/用一次/遗忘）、浏览、搜索、导出和删除；Runtime Kit 在 `--runtime-store-path` 之后提供 SQLite 持久化、带策略标签的 JSON 导出和确定性语义搜索（支持 provider-backed adapter）。
 - **语音与运行时任务** — 真实 push-to-talk 追问，端上转写、可编辑转写文本（不上传原始音频、无隐藏监听），语音到收件箱的草稿和指令，运行时任务列表/取消/审批模型，前台 App Intents，以及 WidgetKit 锁屏和灵动岛的 Live Activity 任务状态管线。
@@ -36,7 +37,7 @@ Kaka 是一个本地优先的 iPhone 智能体入口。
 
 ```mermaid
 flowchart LR
-  Inputs["相机 / 分享 / 粘贴 / 语音 / 截图"] --> Phone["Kaka iPhone 应用"]
+  Inputs["相机 / 扫码 / 文档 / 视频 / 分享 / 粘贴 / 语音 / 截图"] --> Phone["Kaka iPhone 应用"]
   Phone --> Consent["预览与确认"]
   Consent --> Bridge["Mobile Bridge /mobile/v1"]
   Bridge --> Runtime["Hermes、OpenClaw 或 sidecar"]

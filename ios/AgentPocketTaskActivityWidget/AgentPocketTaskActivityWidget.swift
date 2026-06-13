@@ -16,7 +16,9 @@ struct RuntimeTaskActivityWidget: Widget {
             RuntimeTaskActivityLockScreenView(
                 title: context.attributes.title,
                 phase: context.state.phase,
-                approvalNeeded: context.state.approvalNeeded
+                approvalNeeded: context.state.approvalNeeded,
+                progress: context.state.progress,
+                message: context.state.message
             )
         } dynamicIsland: { context in
                 DynamicIsland {
@@ -32,10 +34,19 @@ struct RuntimeTaskActivityWidget: Widget {
                             .lineLimit(1)
                     }
                     DynamicIslandExpandedRegion(.bottom) {
-                        Text(context.attributes.title)
-                            .font(.footnote)
-                            .lineLimit(2)
-                            .minimumScaleFactor(0.8)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(context.attributes.title)
+                                .font(.footnote.weight(.semibold))
+                                .lineLimit(1)
+                            if let message = context.state.message {
+                                Text(message)
+                                    .font(.caption2)
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.82)
+                            }
+                            ProgressView(value: context.state.progress)
+                                .tint(context.state.approvalNeeded ? .orange : .accentColor)
+                        }
                     }
                 } compactLeading: {
                 Image(systemName: context.state.approvalNeeded ? "exclamationmark.circle.fill" : "clock")
@@ -59,6 +70,8 @@ private struct RuntimeTaskActivityLockScreenView: View {
     let title: String
     let phase: RuntimeTaskActivityPhase
     let approvalNeeded: Bool
+    let progress: Double
+    let message: String?
 
     var body: some View {
         HStack(spacing: 12) {
@@ -73,10 +86,14 @@ private struct RuntimeTaskActivityLockScreenView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
 
-                Text(phase.statusLabel)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(message ?? phase.statusLabel)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                    ProgressView(value: progress)
+                        .tint(approvalNeeded ? .orange : .accentColor)
+                }
             }
 
             Spacer(minLength: 8)

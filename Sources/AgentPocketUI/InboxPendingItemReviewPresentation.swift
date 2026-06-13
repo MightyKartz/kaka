@@ -101,7 +101,7 @@ private extension InboxPendingItemReviewPresentation {
             return visible(item.url).map { excerpt($0) }
         case .text:
             return visible(item.text).map { excerpt($0) }
-        case .image, .screenshot, .pdf:
+        case .image, .screenshot, .pdf, .video:
             return nil
         }
     }
@@ -141,6 +141,8 @@ private extension InboxPendingItemReviewPresentation {
             return text("Screenshot", "截图", language)
         case .pdf:
             return text("PDF", "PDF", language)
+        case .video:
+            return text("Video", "视频", language)
         }
     }
 

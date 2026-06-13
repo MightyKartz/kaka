@@ -5,9 +5,9 @@ final class ConnectionStateTests: XCTestCase {
     func testIdleStatePromotesLocalDiscoveryAsPrimaryAction() {
         let model = ConnectionState.idle.presentation
 
-        XCTAssertEqual(model.title, "Connect My Local Agent")
-        XCTAssertEqual(model.primaryActionTitle, "Discover Local Runtime")
-        XCTAssertEqual(model.secondaryActionTitle, "Scan Pairing QR")
+        XCTAssertEqual(model.title, "Connect Your Local Runtime")
+        XCTAssertEqual(model.primaryActionTitle, "Scan Pairing QR")
+        XCTAssertEqual(model.secondaryActionTitle, "Find Nearby Runtime")
         XCTAssertFalse(model.isBusy)
         XCTAssertFalse(model.showsManualEntry)
     }
@@ -23,9 +23,11 @@ final class ConnectionStateTests: XCTestCase {
             ConnectionState.scanning.presentation,
             ConnectionState.discovering.presentation,
             ConnectionState.testing.presentation,
+            ConnectionState.restoringSavedConnection(displayName: "OpenClaw Studio").presentation,
             ConnectionState.connected(runtime).presentation,
             ConnectionState.unauthorized.presentation,
             ConnectionState.offline.presentation,
+            ConnectionState.savedConnectionOffline(displayName: "OpenClaw Studio").presentation,
             ConnectionState.invalidCertificate.presentation,
             ConnectionState.missingPhotoEdit.presentation,
             ConnectionState.localNetworkPermissionRequired.presentation,
@@ -98,6 +100,17 @@ final class ConnectionStateTests: XCTestCase {
         XCTAssertFalse(model.showsManualEntry)
     }
 
+    func testSavedConnectionOfflineStateExplainsMacActionBeforeReconnect() {
+        let model = ConnectionState.savedConnectionOffline(displayName: "Kartz Mac").presentation
+
+        XCTAssertEqual(model.title, "Start Runtime on Mac")
+        XCTAssertEqual(model.message, "Kartz Mac is still paired. Start the runtime on your Mac, then reconnect here.")
+        XCTAssertEqual(model.primaryActionTitle, "I've Started It, Reconnect")
+        XCTAssertEqual(model.secondaryActionTitle, "Scan New QR")
+        XCTAssertEqual(model.trustBadges, ["Saved Pairing", "Mac Action Needed"])
+        XCTAssertFalse(model.showsManualEntry)
+    }
+
     func testMissingPhotoEditStateHasRecoveryCopy() {
         let model = ConnectionState.missingPhotoEdit.presentation
 
@@ -118,8 +131,9 @@ final class ConnectionStateTests: XCTestCase {
     }
 
     func testSecondaryActionsStayPhoneSafeAndStateDriven() {
-        XCTAssertEqual(ConnectionState.idle.presentation.secondaryActionTitle, "Scan Pairing QR")
+        XCTAssertEqual(ConnectionState.idle.presentation.secondaryActionTitle, "Find Nearby Runtime")
         XCTAssertEqual(ConnectionState.offline.presentation.secondaryActionTitle, "Scan Pairing QR")
+        XCTAssertEqual(ConnectionState.savedConnectionOffline(displayName: "Saved Mac").presentation.secondaryActionTitle, "Scan New QR")
         XCTAssertEqual(ConnectionState.unauthorized.presentation.secondaryActionTitle, "Enter Token")
         XCTAssertEqual(ConnectionState.invalidCertificate.presentation.secondaryActionTitle, "Change Endpoint")
         XCTAssertEqual(ConnectionState.localNetworkPermissionRequired.presentation.secondaryActionTitle, "Enter Endpoint")

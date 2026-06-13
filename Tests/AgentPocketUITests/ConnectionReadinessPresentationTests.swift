@@ -37,6 +37,18 @@ final class ConnectionReadinessPresentationTests: XCTestCase {
         XCTAssertVisibleCopy(presentation, contains: ["Start Kaka Mobile Bridge"])
     }
 
+    func testSavedRuntimeUnavailableExplainsMacActionAndPreservesPairing() {
+        let presentation = ConnectionReadinessPresenter.presentation(for: .savedRuntimeUnavailable)
+
+        XCTAssertEqual(presentation.recoveryOwner, .hostRuntime)
+        XCTAssertEqual(presentation.recoveryAction, .startMobileBridge)
+        XCTAssertNil(presentation.compatibleConnectionState)
+        XCTAssertEqual(presentation.title, "Start Runtime on Mac")
+        XCTAssertEqual(presentation.primaryActionTitle, "I've Started It, Reconnect")
+        XCTAssertEqual(presentation.secondaryActionTitle, "Scan New QR")
+        XCTAssertVisibleCopy(presentation, contains: ["pairing is still saved", "Hermes/OpenClaw", "runtime-kit"])
+    }
+
     func testMissingBonjourHostOffersLocalNetworkAndManualEndpointFallback() {
         let presentation = ConnectionReadinessPresenter.presentation(for: .missingBonjourHost)
 
@@ -94,6 +106,10 @@ final class ConnectionReadinessPresentationTests: XCTestCase {
             .bridgeUnavailable
         )
         XCTAssertEqual(
+            ConnectionReadinessPresenter.presentation(for: ConnectionState.savedConnectionOffline(displayName: "Saved Mac"))?.issue,
+            .savedRuntimeUnavailable
+        )
+        XCTAssertEqual(
             ConnectionReadinessPresenter.presentation(for: ConnectionState.localNetworkPermissionRequired)?.issue,
             .missingBonjourHost
         )
@@ -129,6 +145,7 @@ final class ConnectionReadinessPresentationTests: XCTestCase {
         XCTAssertNil(ConnectionReadinessPresenter.presentation(for: ConnectionState.scanning))
         XCTAssertNil(ConnectionReadinessPresenter.presentation(for: ConnectionState.discovering))
         XCTAssertNil(ConnectionReadinessPresenter.presentation(for: ConnectionState.testing))
+        XCTAssertNil(ConnectionReadinessPresenter.presentation(for: ConnectionState.restoringSavedConnection(displayName: "Saved Mac")))
         XCTAssertNil(ConnectionReadinessPresenter.presentation(for: ConnectionState.connected(runtime)))
     }
 
@@ -136,6 +153,7 @@ final class ConnectionReadinessPresentationTests: XCTestCase {
         let hostOwnedIssues: [ConnectionReadinessIssue] = [
             .revokedSavedConnection,
             .bridgeUnavailable,
+            .savedRuntimeUnavailable,
             .portConflict,
             .disabledHostAction,
             .hostExtensionUnavailable

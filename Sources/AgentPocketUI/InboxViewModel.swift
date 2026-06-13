@@ -423,7 +423,7 @@ public final class InboxViewModel: ObservableObject {
 
     public func canSubmit(_ item: KakaInboxItem) -> Bool {
         switch item.kind {
-        case .text, .url, .image, .screenshot, .pdf:
+        case .text, .url, .image, .screenshot, .pdf, .video:
             return true
         }
     }

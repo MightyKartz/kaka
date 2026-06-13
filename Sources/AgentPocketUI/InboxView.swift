@@ -44,7 +44,7 @@ public struct InboxView: View {
 
     public var body: some View {
         ZStack {
-            Color(red: 0.045, green: 0.052, blue: 0.052)
+            AgentPocketDesignTokens.lightCanvas
                 .ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
@@ -69,10 +69,10 @@ public struct InboxView: View {
                         if showsContextSnapshotPreview {
                             ContextSnapshotPreviewView(viewModel: contextSnapshotViewModel)
                                 .padding(14)
-                                .background(.black.opacity(0.24), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .background(AgentPocketDesignTokens.lightPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                        .stroke(.white.opacity(0.10), lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                                        .stroke(AgentPocketDesignTokens.lightBorder, lineWidth: 1)
                                 )
                         }
 
@@ -87,7 +87,7 @@ public struct InboxView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
             }
         }
-        .navigationTitle("Inbox")
+        .navigationTitle(language == .chinese ? "收件箱" : "Inbox")
         .sheet(item: $voiceCaptureMode) { mode in
             VoiceCaptureView(
                 viewModel: voiceCaptureViewModel,
@@ -153,9 +153,7 @@ public struct InboxView: View {
                     .frame(minHeight: 38)
                     .padding(.horizontal, 12)
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.black)
-            .background(Color(red: 0.55, green: 0.96, blue: 0.89), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .buttonStyle(AgentPocketLightPrimaryButtonStyle())
             .accessibilityHint(language == .chinese ? "录音并转写为收件箱草稿。" : "Record and transcribe a pending inbox draft.")
 
             Button {
@@ -166,9 +164,7 @@ public struct InboxView: View {
                     .frame(minHeight: 38)
                     .padding(.horizontal, 12)
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.white.opacity(0.88))
-            .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .buttonStyle(AgentPocketLightSecondaryButtonStyle())
             .disabled(isSubmitting)
             .opacity(isSubmitting ? 0.54 : 1)
             .accessibilityHint(language == .chinese ? "从剪贴板导入文本或链接为待发送项目。" : "Import clipboard text or a link as a pending inbox item.")
@@ -181,9 +177,7 @@ public struct InboxView: View {
                     .frame(minHeight: 38)
                     .padding(.horizontal, 12)
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.white.opacity(0.88))
-            .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .buttonStyle(AgentPocketLightSecondaryButtonStyle())
             .disabled(isSubmitting)
             .opacity(isSubmitting ? 0.54 : 1)
             .accessibilityHint(language == .chinese ? "从文件导入 PDF 或图片为待发送项目。" : "Import a PDF or image as a pending inbox item.")
@@ -196,17 +190,17 @@ public struct InboxView: View {
         VStack(alignment: .center, spacing: 10) {
             Image(systemName: "tray")
                 .font(.system(size: 30, weight: .semibold))
-                .foregroundStyle(Color(red: 0.55, green: 0.96, blue: 0.89))
+                .foregroundStyle(AgentPocketDesignTokens.accent)
                 .frame(width: 54, height: 54)
             Text(language == .chinese ? "暂时没有待处理项目" : "No Pending Items")
                 .font(.headline)
-                .foregroundStyle(.white.opacity(0.92))
+                .foregroundStyle(AgentPocketDesignTokens.ink)
         }
         .frame(maxWidth: .infinity, minHeight: 220)
-        .background(.black.opacity(0.24), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(AgentPocketDesignTokens.lightPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(.white.opacity(0.10), lineWidth: 1)
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                .stroke(AgentPocketDesignTokens.lightBorder, lineWidth: 1)
         )
     }
 
@@ -223,20 +217,20 @@ public struct InboxView: View {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: iconName(for: item))
                     .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(Color(red: 0.55, green: 0.96, blue: 0.89))
+                    .foregroundStyle(AgentPocketDesignTokens.accent)
                     .frame(width: 30, height: 30)
-                    .background(.white.opacity(0.08), in: Circle())
+                    .background(AgentPocketDesignTokens.accent.opacity(0.20), in: Circle())
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title(for: item))
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(AgentPocketDesignTokens.ink)
                         .lineLimit(2)
 
                     Text(subtitle(for: item))
                         .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.68))
+                        .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                         .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
 
@@ -245,10 +239,10 @@ public struct InboxView: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(noteTitle)
                                 .font(.caption.weight(.semibold))
-                                .foregroundStyle(Color(red: 0.55, green: 0.96, blue: 0.89).opacity(0.88))
+                                .foregroundStyle(AgentPocketDesignTokens.accent.opacity(0.88))
                             Text(noteText)
                                 .font(.caption)
-                                .foregroundStyle(Color(red: 0.55, green: 0.96, blue: 0.89).opacity(0.86))
+                                .foregroundStyle(AgentPocketDesignTokens.accent.opacity(0.86))
                                 .lineLimit(2)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -261,7 +255,7 @@ public struct InboxView: View {
             if let submitPreviewText = instructionPresentation.submitPreviewText {
                 Text(submitPreviewText)
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(.white.opacity(0.64))
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -278,9 +272,7 @@ public struct InboxView: View {
                                     .frame(minHeight: 32)
                                     .padding(.horizontal, 10)
                             }
-                            .buttonStyle(.plain)
-                            .foregroundStyle(.white.opacity(0.82))
-                            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            .buttonStyle(AgentPocketLightSecondaryButtonStyle())
                             .disabled(isSubmitting)
                             .opacity(isSubmitting ? 0.54 : 1)
                         }
@@ -289,111 +281,105 @@ public struct InboxView: View {
                 .accessibilityLabel(language == .chinese ? "常用指令模板" : "Instruction templates")
             }
 
-            HStack(spacing: 10) {
-                if let voiceActionTitle = instructionPresentation.voiceActionTitle {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    if let voiceActionTitle = instructionPresentation.voiceActionTitle {
+                        Button {
+                            beginVoiceInstruction(for: item)
+                        } label: {
+                            Label(voiceActionTitle, systemImage: "mic.badge.plus")
+                                .font(.callout.weight(.semibold))
+                                .lineLimit(1)
+                                .frame(minHeight: 38)
+                                .padding(.horizontal, 12)
+                        }
+                        .buttonStyle(AgentPocketLightSecondaryButtonStyle())
+                        .disabled(isSubmitting)
+                        .opacity(isSubmitting ? 0.54 : 1)
+                        .accessibilityHint(language == .chinese ? "为此收件箱项目添加或编辑语音指令。" : "Add or edit the voice instruction for this inbox item.")
+                    }
+
+                    if let clearActionTitle = instructionPresentation.clearActionTitle {
+                        Button {
+                            _ = viewModel.clearVoiceInstruction(for: item.id)
+                        } label: {
+                            Label(clearActionTitle, systemImage: "xmark.circle")
+                                .font(.callout.weight(.semibold))
+                                .lineLimit(1)
+                                .frame(minHeight: 38)
+                                .padding(.horizontal, 12)
+                        }
+                        .buttonStyle(AgentPocketLightSecondaryButtonStyle())
+                        .disabled(isSubmitting)
+                        .opacity(isSubmitting ? 0.54 : 1)
+                        .accessibilityHint(language == .chinese ? "清除这条发送指令。" : "Clear the instruction before sending.")
+                    }
+
                     Button {
-                        beginVoiceInstruction(for: item)
+                        toggleReviewDetails(for: item.id)
                     } label: {
-                        Label(voiceActionTitle, systemImage: "mic.badge.plus")
+                        Label(reviewPresentation.actionTitle(isExpanded: isReviewExpanded), systemImage: "info.circle")
                             .font(.callout.weight(.semibold))
+                            .lineLimit(1)
                             .frame(minHeight: 38)
                             .padding(.horizontal, 12)
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.white.opacity(0.88))
-                    .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .buttonStyle(AgentPocketLightSecondaryButtonStyle())
                     .disabled(isSubmitting)
                     .opacity(isSubmitting ? 0.54 : 1)
-                    .accessibilityHint(language == .chinese ? "为此收件箱项目添加或编辑语音指令。" : "Add or edit the voice instruction for this inbox item.")
-                }
+                    .accessibilityHint(language == .chinese ? "查看这个待发送项目的本地详情。" : "Review local details for this pending item.")
 
-                if let clearActionTitle = instructionPresentation.clearActionTitle {
                     Button {
-                        _ = viewModel.clearVoiceInstruction(for: item.id)
+                        pendingDiscardItem = item
                     } label: {
-                        Label(clearActionTitle, systemImage: "xmark.circle")
+                        Label(language == .chinese ? "丢弃" : "Discard", systemImage: "trash")
                             .font(.callout.weight(.semibold))
+                            .lineLimit(1)
                             .frame(minHeight: 38)
                             .padding(.horizontal, 12)
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.white.opacity(0.78))
-                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .buttonStyle(AgentPocketLightSecondaryButtonStyle())
                     .disabled(isSubmitting)
                     .opacity(isSubmitting ? 0.54 : 1)
-                    .accessibilityHint(language == .chinese ? "清除这条发送指令。" : "Clear the instruction before sending.")
-                }
+                    .accessibilityHint(language == .chinese ? "从本地收件箱移除这个待发送项目。" : "Remove this pending item from the local inbox.")
 
-                Button {
-                    toggleReviewDetails(for: item.id)
-                } label: {
-                    Label(reviewPresentation.actionTitle(isExpanded: isReviewExpanded), systemImage: "info.circle")
-                        .font(.callout.weight(.semibold))
-                        .frame(minHeight: 38)
-                        .padding(.horizontal, 12)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.white.opacity(0.78))
-                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .disabled(isSubmitting)
-                .opacity(isSubmitting ? 0.54 : 1)
-                .accessibilityHint(language == .chinese ? "查看这个待发送项目的本地详情。" : "Review local details for this pending item.")
-
-                Button {
-                    pendingDiscardItem = item
-                } label: {
-                    Label(language == .chinese ? "丢弃" : "Discard", systemImage: "trash")
-                        .font(.callout.weight(.semibold))
-                        .frame(minHeight: 38)
-                        .padding(.horizontal, 12)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.white.opacity(0.78))
-                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .disabled(isSubmitting)
-                .opacity(isSubmitting ? 0.54 : 1)
-                .accessibilityHint(language == .chinese ? "从本地收件箱移除这个待发送项目。" : "Remove this pending item from the local inbox.")
-
-                Button {
-                    let selectedContextSnapshot = contextSnapshotViewModel.selectedSnapshotForSubmission
-                    Task {
-                        await viewModel.submit(
-                            item,
-                            connection: activeConnection(),
-                            contextSnapshot: selectedContextSnapshot
-                        )
-                        contextSnapshotViewModel.resetPerTaskConsent()
+                    if item.route == .imageIntake {
+                        Text("image-intake")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                     }
-                } label: {
-                    Label(language == .chinese ? "发送" : "Send", systemImage: "paperplane.fill")
-                        .font(.callout.weight(.semibold))
-                        .frame(minHeight: 38)
-                        .padding(.horizontal, 12)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.black)
-                .background(Color(red: 0.55, green: 0.96, blue: 0.89), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .disabled(isSendDisabled(for: item))
-                .opacity(isSendDisabled(for: item) ? 0.54 : 1)
-
-                if item.route == .imageIntake {
-                    Text("image-intake")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.64))
-                }
-
-                Spacer()
             }
+
+            Button {
+                let selectedContextSnapshot = contextSnapshotViewModel.selectedSnapshotForSubmission
+                Task {
+                    await viewModel.submit(
+                        item,
+                        connection: activeConnection(),
+                        contextSnapshot: selectedContextSnapshot
+                    )
+                    contextSnapshotViewModel.resetPerTaskConsent()
+                }
+            } label: {
+                Label(language == .chinese ? "发送" : "Send", systemImage: "paperplane.fill")
+                    .font(.callout.weight(.semibold))
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, minHeight: 42)
+            }
+            .buttonStyle(AgentPocketLightPrimaryButtonStyle())
+            .disabled(isSendDisabled(for: item))
+            .opacity(isSendDisabled(for: item) ? 0.54 : 1)
 
             if isReviewExpanded {
                 reviewDetails(reviewPresentation)
             }
         }
         .padding(14)
-        .background(.black.opacity(0.24), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(AgentPocketDesignTokens.lightPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(.white.opacity(0.10), lineWidth: 1)
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                .stroke(AgentPocketDesignTokens.lightBorder, lineWidth: 1)
         )
     }
 
@@ -401,25 +387,25 @@ public struct InboxView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(presentation.title)
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.82))
+                .foregroundStyle(AgentPocketDesignTokens.ink)
 
             VStack(alignment: .leading, spacing: 7) {
                 ForEach(presentation.rows) { row in
                     HStack(alignment: .top, spacing: 8) {
                         Image(systemName: row.systemImage)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(Color(red: 0.55, green: 0.96, blue: 0.89).opacity(0.86))
+                            .foregroundStyle(AgentPocketDesignTokens.accent.opacity(0.86))
                             .frame(width: 16, height: 16)
                             .accessibilityHidden(true)
 
                         Text(row.label)
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(.white.opacity(0.62))
+                            .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                             .frame(width: 98, alignment: .leading)
 
                         Text(row.value)
                             .font(.caption)
-                            .foregroundStyle(.white.opacity(0.82))
+                            .foregroundStyle(AgentPocketDesignTokens.ink)
                             .lineLimit(3)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -442,17 +428,17 @@ public struct InboxView: View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: presentation.systemImage)
                 .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(presentation.isFailure ? Color(red: 1.0, green: 0.74, blue: 0.38) : Color(red: 0.55, green: 0.96, blue: 0.89))
+                .foregroundStyle(presentation.isFailure ? Color(red: 1.0, green: 0.74, blue: 0.38) : AgentPocketDesignTokens.accent)
                 .frame(width: 28, height: 28)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(presentation.title)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.94))
+                    .foregroundStyle(AgentPocketDesignTokens.ink)
                 Text(presentation.message)
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.70))
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -466,16 +452,15 @@ public struct InboxView: View {
                         .font(.system(size: 12, weight: .bold))
                         .frame(width: 28, height: 28)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.white.opacity(0.74))
+                .buttonStyle(AgentPocketLightIconButtonStyle())
                 .accessibilityLabel(language == .chinese ? "关闭" : "Close")
             }
         }
         .padding(12)
-        .background(.black.opacity(0.24), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(AgentPocketDesignTokens.lightPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(presentation.isFailure ? Color(red: 1.0, green: 0.74, blue: 0.38).opacity(0.26) : Color(red: 0.55, green: 0.96, blue: 0.89).opacity(0.20), lineWidth: 1)
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                .stroke(presentation.isFailure ? Color(red: 1.0, green: 0.74, blue: 0.38).opacity(0.26) : AgentPocketDesignTokens.accent.opacity(0.20), lineWidth: 1)
         )
     }
 
@@ -483,10 +468,10 @@ public struct InboxView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(Color(red: 0.55, green: 0.96, blue: 0.89))
+                    .foregroundStyle(AgentPocketDesignTokens.accent)
                 Text(resultTitle(status))
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(AgentPocketDesignTokens.ink)
                 Spacer()
                 Button {
                     viewModel.dismissResult()
@@ -495,15 +480,14 @@ public struct InboxView: View {
                         .font(.system(size: 13, weight: .bold))
                         .frame(width: 30, height: 30)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.white.opacity(0.78))
+                .buttonStyle(AgentPocketLightIconButtonStyle())
                 .accessibilityLabel(language == .chinese ? "关闭" : "Close")
             }
 
             if let summary = resultSummary(status) {
                 Text(summary)
                     .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.74))
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                     .lineLimit(4)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -514,7 +498,7 @@ public struct InboxView: View {
                     Label(resultContextText(context), systemImage: context.contextSelected ? "location.circle.fill" : "location.slash")
                 }
                 .font(.caption.weight(.medium))
-                .foregroundStyle(.white.opacity(0.68))
+                .foregroundStyle(AgentPocketDesignTokens.inkMuted)
             }
 
             RecallView(
@@ -526,10 +510,10 @@ public struct InboxView: View {
             )
         }
         .padding(14)
-        .background(Color(red: 0.10, green: 0.20, blue: 0.18).opacity(0.92), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(Color(red: 0.90, green: 0.98, blue: 0.95), in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(Color(red: 0.55, green: 0.96, blue: 0.89).opacity(0.24), lineWidth: 1)
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                .stroke(AgentPocketDesignTokens.accent.opacity(0.24), lineWidth: 1)
         )
     }
 
@@ -617,6 +601,8 @@ public struct InboxView: View {
             return "photo"
         case .pdf:
             return "doc.richtext"
+        case .video:
+            return "video"
         }
     }
 
@@ -632,6 +618,8 @@ public struct InboxView: View {
             return language == .chinese ? "共享截图" : "Shared Screenshot"
         case .pdf:
             return language == .chinese ? "共享 PDF" : "Shared PDF"
+        case .video:
+            return language == .chinese ? "共享视频" : "Shared Video"
         }
     }
 

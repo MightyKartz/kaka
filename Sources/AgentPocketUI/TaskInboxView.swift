@@ -14,46 +14,50 @@ public struct TaskInboxView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: "list.bullet.rectangle")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(Color(red: 0.55, green: 0.96, blue: 0.89))
-                    .frame(width: 32, height: 32)
-                    .background(.white.opacity(0.08), in: Circle())
-                    .accessibilityHidden(true)
+        ZStack {
+            AgentPocketDesignTokens.lightCanvas
+                .ignoresSafeArea()
 
-                Text("Tasks")
-                    .font(.headline)
-                    .foregroundStyle(.white)
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "list.bullet.rectangle")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(AgentPocketDesignTokens.accentStrong)
+                            .frame(width: 32, height: 32)
+                            .background(AgentPocketDesignTokens.accent.opacity(0.18), in: Circle())
+                            .accessibilityHidden(true)
 
-                Spacer()
+                        Text(language == .chinese ? "活动" : "Activity")
+                            .font(.headline)
+                            .foregroundStyle(AgentPocketDesignTokens.ink)
 
-                Button {
-                    Task {
-                        await viewModel.load(connection: activeConnection())
+                        Spacer()
+
+                        Button {
+                            Task {
+                                await viewModel.load(connection: activeConnection())
+                            }
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 14, weight: .bold))
+                                .frame(width: 32, height: 32)
+                        }
+                        .buttonStyle(AgentPocketLightIconButtonStyle())
+                        .accessibilityLabel(language == .chinese ? "刷新活动" : "Refresh activity")
                     }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 14, weight: .bold))
-                        .frame(width: 32, height: 32)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.white.opacity(0.82))
-                .accessibilityLabel("Refresh tasks")
-            }
 
-            content
+                    content
+                }
+                .padding(14)
+                .frame(maxWidth: 720)
+                .frame(maxWidth: .infinity, alignment: .top)
+            }
         }
-        .padding(14)
-        .background(.black.opacity(0.24), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(.white.opacity(0.10), lineWidth: 1)
-        )
         .task {
             await viewModel.load(connection: activeConnection())
         }
+        .navigationTitle(language == .chinese ? "活动" : "Activity")
     }
 
     @ViewBuilder
@@ -61,16 +65,22 @@ public struct TaskInboxView: View {
         switch viewModel.state {
         case .loading:
             ProgressView()
-                .tint(Color(red: 0.55, green: 0.96, blue: 0.89))
+                .tint(AgentPocketDesignTokens.accent)
         case .failed(let message):
             Label(message, systemImage: "exclamationmark.triangle.fill")
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(Color(red: 1.0, green: 0.55, blue: 0.45))
         case .idle, .loaded, .submitting:
             if viewModel.tasks.isEmpty {
-                Text("No active tasks")
+                Text(language == .chinese ? "没有正在进行的活动" : "No active activity")
                     .font(.footnote)
-                    .foregroundStyle(.white.opacity(0.66))
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
+                    .frame(maxWidth: .infinity, minHeight: 180)
+                    .background(AgentPocketDesignTokens.lightPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                            .stroke(AgentPocketDesignTokens.lightBorder, lineWidth: 1)
+                    )
             } else {
                 VStack(spacing: 8) {
                     ForEach(viewModel.tasks) { task in
@@ -86,21 +96,21 @@ public struct TaskInboxView: View {
             HStack(spacing: 8) {
                 Text(task.title)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(AgentPocketDesignTokens.ink)
                     .lineLimit(2)
                 Spacer()
-                Text(task.status.rawValue.replacingOccurrences(of: "_", with: " "))
+                Text(statusTitle(task.status.rawValue))
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.62))
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
             }
 
             ProgressView(value: min(max(task.progress, 0), 1))
-                .tint(task.requiresUserAction ? Color(red: 0.85, green: 0.76, blue: 1.0) : Color(red: 0.55, green: 0.96, blue: 0.89))
+                .tint(task.requiresUserAction ? Color.orange : AgentPocketDesignTokens.accentStrong)
 
             if let message = task.message, message.isEmpty == false {
                 Text(message)
                     .font(.footnote)
-                    .foregroundStyle(.white.opacity(0.68))
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -111,14 +121,12 @@ public struct TaskInboxView: View {
                             await viewModel.approve(taskID: task.id, connection: activeConnection())
                         }
                     } label: {
-                        Label("Approve", systemImage: "checkmark")
+                        Label(language == .chinese ? "批准" : "Approve", systemImage: "checkmark")
                             .font(.caption.weight(.bold))
                             .frame(minHeight: 30)
                             .padding(.horizontal, 10)
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.black)
-                    .background(Color(red: 0.55, green: 0.96, blue: 0.89), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .buttonStyle(AgentPocketLightPrimaryButtonStyle())
                 }
 
                 if task.isTerminal == false {
@@ -127,18 +135,49 @@ public struct TaskInboxView: View {
                             await viewModel.cancel(taskID: task.id, connection: activeConnection())
                         }
                     } label: {
-                        Label("Cancel", systemImage: "xmark")
+                        Label(language == .chinese ? "取消" : "Cancel", systemImage: "xmark")
                             .font(.caption.weight(.bold))
                             .frame(minHeight: 30)
                             .padding(.horizontal, 10)
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.white.opacity(0.84))
-                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .buttonStyle(AgentPocketLightSecondaryButtonStyle())
                 }
             }
         }
         .padding(10)
-        .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(AgentPocketDesignTokens.lightPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                .stroke(AgentPocketDesignTokens.lightBorder, lineWidth: 1)
+        )
+    }
+
+    private var language: AppLanguage {
+        AppLanguage.resolved(storedValue: nil)
+    }
+
+    private func statusTitle(_ rawValue: String) -> String {
+        guard language == .chinese else {
+            return rawValue.replacingOccurrences(of: "_", with: " ")
+        }
+
+        switch rawValue {
+        case "queued":
+            return "排队中"
+        case "running":
+            return "运行中"
+        case "completed":
+            return "已完成"
+        case "failed":
+            return "失败"
+        case "cancelled", "canceled":
+            return "已取消"
+        case "requires_user_action":
+            return "等待确认"
+        case "waiting_for_approval":
+            return "等待确认"
+        default:
+            return rawValue.replacingOccurrences(of: "_", with: " ")
+        }
     }
 }

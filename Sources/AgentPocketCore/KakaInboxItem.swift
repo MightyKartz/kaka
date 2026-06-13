@@ -8,7 +8,7 @@ public enum KakaInboxRoute: String, Codable, Equatable, Sendable {
         switch kind {
         case .image, .screenshot:
             return .imageIntake
-        case .text, .url, .pdf:
+        case .text, .url, .pdf, .video:
             return .universalIntake
         }
     }

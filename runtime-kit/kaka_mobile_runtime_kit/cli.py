@@ -4,6 +4,7 @@ import argparse
 import importlib
 import json
 import os
+import socket
 import shutil
 import subprocess
 import sys
@@ -323,6 +324,67 @@ def build_provider_warnings(config: BridgeConfig, env: Mapping[str, str] | None 
 def _hermes_base_url(values: Mapping[str, str]) -> str:
     configured = str(values.get("KAKA_HERMES_BASE_URL", "")).strip() or DEFAULT_HERMES_BASE_URL
     return configured.rstrip("/")
+
+
+def _parse_runtime_env_file(path: str | Path) -> dict[str, str]:
+    env_path = Path(path).expanduser()
+    if not str(env_path) or not env_path.exists():
+        return {}
+
+    values: dict[str, str] = {}
+    with env_path.open("r", encoding="utf-8") as handle:
+        for raw_line in handle:
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if line.startswith("export "):
+                line = line[len("export "):].strip()
+            if "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key:
+                values[key] = value
+    return values
+
+
+def _hermes_env_files(config: BridgeConfig) -> list[Path]:
+    files: list[Path] = []
+    if config.env_file:
+        files.append(Path(config.env_file).expanduser())
+    if config.hermes_profile:
+        home = Path(config.hermes_home).expanduser() if config.hermes_home else Path.home() / ".hermes"
+        files.append(home / ".env")
+        files.append(home / "profiles" / config.hermes_profile / ".env")
+    return files
+
+
+def build_effective_runtime_environment(
+    config: BridgeConfig,
+    *,
+    base_env: Mapping[str, str] | None = None,
+) -> dict[str, str]:
+    env = dict(os.environ if base_env is None else base_env)
+    if config.provider != "hermes":
+        return env
+
+    profile_values: dict[str, str] = {}
+    for env_file in _hermes_env_files(config):
+        profile_values.update(_parse_runtime_env_file(env_file))
+
+    for key, value in profile_values.items():
+        env.setdefault(key, value)
+
+    api_server_key = str(env.get("API_SERVER_KEY", "")).strip()
+    if api_server_key and not str(env.get("KAKA_HERMES_API_KEY", "")).strip():
+        env["KAKA_HERMES_API_KEY"] = api_server_key
+
+    api_server_model = str(env.get("API_SERVER_MODEL_NAME", "")).strip()
+    if api_server_model and not str(env.get("KAKA_HERMES_MODEL", "")).strip():
+        env["KAKA_HERMES_MODEL"] = api_server_model
+
+    return env
 
 
 def _hermes_health_url(base_url: str) -> str:
@@ -1079,6 +1141,7 @@ def validate_start_config(
     *,
     require_tls_serving_files: bool = True,
     require_provider_credentials: bool = True,
+    require_bonjour_host_assignment: bool = False,
     env: Mapping[str, str] | None = None,
 ) -> list[str]:
     errors: list[str] = []
@@ -1115,6 +1178,8 @@ def validate_start_config(
             errors.append("--recall-search-endpoint must point to localhost, Tailscale, or a private LAN endpoint.")
     if config.bonjour and not config.lan and not config.bonjour_host:
         errors.append("Bonjour discovery for iPhone requires --lan or --bonjour-host.")
+    if require_bonjour_host_assignment:
+        errors.extend(_bonjour_host_assignment_errors(config))
     if config.lan and config.host not in ("127.0.0.1", "localhost"):
         errors.append("Use --lan by itself instead of combining it with a custom --host.")
     if (
@@ -1131,6 +1196,55 @@ def validate_start_config(
         errors.append("--tls-private-key-path is required when --trusted-local-tls starts the bridge.")
     errors.extend(_retention_day_errors(config))
     return errors
+
+
+def local_ipv4_addresses() -> set[str]:
+    addresses: set[str] = set()
+    try:
+        host_name = socket.gethostname()
+        for result in socket.getaddrinfo(host_name, None, socket.AF_INET):
+            address = str(result[4][0])
+            if address and not address.startswith("127."):
+                addresses.add(address)
+    except OSError:
+        pass
+
+    try:
+        result = subprocess.run(
+            ["ifconfig"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=3,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return addresses
+
+    for line in result.stdout.splitlines():
+        fields = line.strip().split()
+        if len(fields) >= 2 and fields[0] == "inet":
+            address = fields[1]
+            if address and not address.startswith("127."):
+                addresses.add(address)
+    return addresses
+
+
+def _bonjour_host_assignment_errors(config: BridgeConfig) -> list[str]:
+    if not config.bonjour_host:
+        return []
+    try:
+        advertised_ip = ip_address(config.bonjour_host)
+    except ValueError:
+        return []
+    if advertised_ip.version != 4 or advertised_ip.is_loopback:
+        return []
+    local_addresses = local_ipv4_addresses()
+    if local_addresses and str(advertised_ip) not in local_addresses:
+        return [
+            f"--bonjour-host {advertised_ip} is not assigned to this Mac; "
+            f"current IPv4 addresses: {', '.join(sorted(local_addresses))}."
+        ]
+    return []
 
 
 def _retention_day_errors(config: BridgeConfig) -> list[str]:
@@ -1330,7 +1444,13 @@ def run_pairing_url(args: argparse.Namespace) -> int:
 
 def run_start(args: argparse.Namespace) -> int:
     config = bridge_config_from_args(args)
-    errors = validate_start_config(config, require_provider_credentials=not bool(args.dry_run))
+    effective_env = build_effective_runtime_environment(config)
+    errors = validate_start_config(
+        config,
+        require_provider_credentials=not bool(args.dry_run),
+        require_bonjour_host_assignment=not bool(args.dry_run),
+        env=effective_env,
+    )
     if errors:
         for error in errors:
             print(f"error: {error}", file=sys.stderr)
@@ -1353,7 +1473,7 @@ def run_start(args: argparse.Namespace) -> int:
         ),
         "pairing_mode": config.pairing_mode,
         "provider": config.provider,
-        "provider_environment": build_provider_environment_summary(config),
+        "provider_environment": build_provider_environment_summary(config, env=effective_env),
         "photo_provider": config.photo_provider,
         "vision_provider": config.vision_provider,
         "recall_search_provider": config.recall_search_provider,
@@ -1365,13 +1485,13 @@ def run_start(args: argparse.Namespace) -> int:
         "recall_store_owner": "runtime" if config.runtime_store_path.strip() else "mock_bridge",
         "retention": build_retention_policy(config),
         "phone_safe_summary": phone_safe_summary,
-        "warnings": build_provider_warnings(config),
+        "warnings": build_provider_warnings(config, env=effective_env),
         "command": command,
     }
     print(json.dumps(summary, ensure_ascii=False, indent=2), flush=True)
     if args.dry_run:
         return 0
-    env = build_bridge_environment(repo_root)
+    env = build_bridge_environment(repo_root, base_env=effective_env)
     return subprocess.call(command, cwd=repo_root, env=env)
 
 

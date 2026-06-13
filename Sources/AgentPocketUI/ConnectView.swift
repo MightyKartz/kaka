@@ -25,37 +25,53 @@ public struct ConnectView: View {
         )
         let presentation = viewModel.state.presentation
         let recoveryPresentation = ConnectionReadinessPresenter.presentation(for: viewModel.state)
-        let isShowingDiscoveredRuntimes = viewModel.state == .idle && viewModel.discoveredRuntimes.isEmpty == false
+        let isShowingDiscoveredRuntimes = shouldShowDiscoveredRuntimes
 
         ScrollView {
             VStack(spacing: 12) {
-                ConnectHeroCard(
-                    copy: copy,
-                    onlineTrustedTitle: heroOnlineTrustedTitle(
+                if isShowingDiscoveredRuntimes {
+                    DiscoveryHeroActions(
                         copy: copy,
-                        language: language,
-                        isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes
-                    ),
-                    trustBadgeTitles: heroTrustBadgeTitles(
+                        scanButtonTitle: language == .chinese ? "扫描配对码" : "Scan Pairing QR",
+                        isBusy: presentation.isBusy,
+                        scanAction: beginScanningFromHero
+                    )
+                } else {
+                    ConnectHeroCard(
                         copy: copy,
-                        language: language,
-                        isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes
-                    ),
-                    primaryButtonTitle: heroPrimaryButtonTitle(
-                        copy: copy,
-                        language: language,
-                        isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes
-                    ),
-                    isBusy: presentation.isBusy,
-                    primarySystemImage: primarySymbol(
-                        for: viewModel.state,
-                        isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes
-                    ),
-                    primaryAction: performPrimaryAction,
-                    secondaryButtonTitle: presentation.secondaryActionTitle ?? copy.scanCodeTitle,
-                    secondarySystemImage: secondarySymbol(for: viewModel.state),
-                    secondaryAction: performSecondaryAction
-                )
+                        onlineTrustedTitle: heroOnlineTrustedTitle(
+                            copy: copy,
+                            language: language,
+                            isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes
+                        ),
+                        trustBadgeTitles: heroTrustBadgeTitles(
+                            copy: copy,
+                            language: language,
+                            isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes
+                        ),
+                        statusColor: heroStatusColor(isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes),
+                        primaryButtonTitle: heroPrimaryButtonTitle(
+                            copy: copy,
+                            language: language,
+                            isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes
+                        ),
+                        isBusy: presentation.isBusy,
+                        primarySystemImage: primarySymbol(
+                            for: viewModel.state,
+                            isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes
+                        ),
+                        primaryAction: performPrimaryAction,
+                        secondaryButtonTitle: heroSecondaryButtonTitle(
+                            copy: copy,
+                            language: language,
+                            isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes
+                        ),
+                        secondarySystemImage: heroSecondarySymbol(isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes),
+                        secondaryAction: {
+                            performHeroSecondaryAction(isShowingDiscoveredRuntimes: isShowingDiscoveredRuntimes)
+                        }
+                    )
+                }
 
                 if presentation.isBusy && viewModel.state != .scanning {
                     ProgressView()
@@ -64,7 +80,7 @@ public struct ConnectView: View {
                 }
 
                 if let recoveryPresentation {
-                    ConnectionRecoveryGuidancePanel(presentation: recoveryPresentation)
+                    ConnectionRecoveryGuidancePanel(presentation: recoveryPresentation, language: language)
                 }
 
                 if viewModel.state == .scanning {
@@ -86,23 +102,21 @@ public struct ConnectView: View {
                     }
                 }
 
-                if viewModel.discoveredRuntimes.isEmpty == false {
+                if isShowingDiscoveredRuntimes {
                     DiscoveredRuntimeSection(viewModel: viewModel, copy: copy)
                 }
 
                 if presentation.showsManualEntry || showsManualEntry {
                     ManualEndpointSection(viewModel: viewModel, copy: copy)
-                } else {
-                    Button(copy.enterManuallyTitle) {
+                } else if shouldShowStandaloneManualEntry {
+                    ManualFallbackButton(title: copy.enterManuallyTitle) {
                         withAnimation(.easeOut(duration: 0.2)) {
                             showsManualEntry = true
                         }
                     }
-                    .buttonStyle(.plain)
-                    .font(.callout.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .frame(minHeight: 44)
                 }
+
+                ConnectionPrivacyLine(copy: copy)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
@@ -131,6 +145,19 @@ public struct ConnectView: View {
 
     private var activeLanguage: AppLanguage {
         AppLanguage.resolved(storedValue: nil)
+    }
+
+    private var shouldShowDiscoveredRuntimes: Bool {
+        guard viewModel.discoveredRuntimes.isEmpty == false else {
+            return false
+        }
+
+        switch viewModel.state {
+        case .idle, .savedConnectionOffline:
+            return true
+        case .connected, .discovering, .testing, .restoringSavedConnection, .scanning, .offline, .unauthorized, .invalidCertificate, .missingPhotoEdit, .localNetworkPermissionRequired, .failed:
+            return false
+        }
     }
 
     private func fallbackDeviceName(for language: AppLanguage) -> String {
@@ -181,15 +208,72 @@ public struct ConnectView: View {
         language: AppLanguage,
         isShowingDiscoveredRuntimes: Bool
     ) -> String {
-        guard isShowingDiscoveredRuntimes else {
-            return copy.primaryButtonTitle
+        guard isShowingDiscoveredRuntimes == false else {
+            switch language {
+            case .chinese:
+                return "扫描配对码"
+            case .english:
+                return "Scan Pairing QR"
+            }
         }
 
-        switch language {
-        case .chinese:
-            return "连接已发现"
-        case .english:
-            return "Connect Found"
+        return copy.primaryButtonTitle
+    }
+
+    private func heroSecondaryButtonTitle(
+        copy: ConnectScreenCopy,
+        language: AppLanguage,
+        isShowingDiscoveredRuntimes: Bool
+    ) -> String {
+        guard isShowingDiscoveredRuntimes == false else {
+            return copy.enterManuallyTitle
+        }
+
+        switch viewModel.state {
+        case .unauthorized:
+            return language == .chinese ? "输入令牌" : "Enter Token"
+        case .invalidCertificate, .failed, .localNetworkPermissionRequired:
+            return copy.enterManuallyTitle
+        case .connected:
+            return language == .chinese ? "更换本机智能体" : "Change Local Agent"
+        case .missingPhotoEdit:
+            return language == .chinese ? "重新检查" : "Check Again"
+        case .idle:
+            return language == .chinese ? "查找附近运行时" : "Find Nearby Runtime"
+        case .savedConnectionOffline:
+            return language == .chinese ? "重新扫码" : "Scan New QR"
+        case .offline:
+            return copy.scanCodeTitle
+        case .scanning:
+            return copy.enterManuallyTitle
+        case .testing, .discovering, .restoringSavedConnection:
+            return copy.primaryButtonTitle
+        }
+    }
+
+    private func heroStatusColor(isShowingDiscoveredRuntimes: Bool) -> Color {
+        if isShowingDiscoveredRuntimes {
+            return AgentPocketDesignTokens.accentStrong
+        }
+
+        switch viewModel.state {
+        case .connected:
+            return AgentPocketDesignTokens.statusSuccess
+        case .discovering, .testing, .scanning, .restoringSavedConnection:
+            return AgentPocketDesignTokens.statusBusy
+        case .unauthorized, .offline, .savedConnectionOffline, .invalidCertificate, .missingPhotoEdit, .localNetworkPermissionRequired, .failed:
+            return AgentPocketDesignTokens.statusDanger
+        case .idle:
+            return AgentPocketDesignTokens.statusNeutral
+        }
+    }
+
+    private var shouldShowStandaloneManualEntry: Bool {
+        switch viewModel.state {
+        case .idle, .offline, .savedConnectionOffline, .unauthorized, .invalidCertificate, .localNetworkPermissionRequired, .failed:
+            return true
+        case .connected, .discovering, .testing, .restoringSavedConnection, .scanning, .missingPhotoEdit:
+            return false
         }
     }
 
@@ -204,6 +288,17 @@ public struct ConnectView: View {
         }
     }
 
+    private func performHeroSecondaryAction(isShowingDiscoveredRuntimes: Bool) {
+        guard isShowingDiscoveredRuntimes == false else {
+            withAnimation(.easeOut(duration: 0.2)) {
+                showsManualEntry = true
+            }
+            return
+        }
+
+        performSecondaryAction()
+    }
+
     private func performPrimaryAction() {
         if let destination = viewModel.state.presentation.primaryRecoveryDestination {
             openRecoveryDestination(destination)
@@ -211,9 +306,18 @@ public struct ConnectView: View {
         }
 
         switch viewModel.state {
-        case .testing, .scanning, .discovering:
+        case .testing, .scanning, .discovering, .restoringSavedConnection:
             break
-        case .idle, .offline:
+        case .idle:
+            viewModel.beginScanning()
+        case .savedConnectionOffline:
+            Task {
+                await viewModel.restoreSavedConnectionOrDiscoverNearby(
+                    deviceName: PairingDeviceInfo.name,
+                    devicePublicID: PairingDeviceInfo.publicID
+                )
+            }
+        case .offline:
             if let runtime = viewModel.discoveredRuntimes.first {
                 Task { @MainActor in
                     await viewModel.connectDiscoveredRuntime(
@@ -226,7 +330,7 @@ public struct ConnectView: View {
             }
             Task {
                 await viewModel.discoverLocalRuntimes(
-                    autoPairSingleRuntime: true,
+                    autoPairSingleRuntime: false,
                     deviceName: PairingDeviceInfo.name,
                     devicePublicID: PairingDeviceInfo.publicID
                 )
@@ -238,7 +342,17 @@ public struct ConnectView: View {
 
     private func performSecondaryAction() {
         switch viewModel.state {
-        case .idle, .offline:
+        case .idle:
+            Task {
+                await viewModel.discoverLocalRuntimes(
+                    autoPairSingleRuntime: false,
+                    deviceName: PairingDeviceInfo.name,
+                    devicePublicID: PairingDeviceInfo.publicID
+                )
+            }
+        case .savedConnectionOffline:
+            viewModel.beginScanning()
+        case .offline:
             viewModel.beginScanning()
         case .missingPhotoEdit:
             Task {
@@ -262,35 +376,35 @@ public struct ConnectView: View {
             viewModel.cancelScanning()
         case .connected:
             viewModel.forgetSavedConnection()
-        case .testing, .discovering:
+        case .testing, .discovering, .restoringSavedConnection:
             break
         }
     }
 
     private func resetManualEntryIfNeeded(for state: ConnectionState) {
         switch state {
-        case .connected, .idle, .discovering, .testing:
+        case .connected, .idle, .discovering, .testing, .restoringSavedConnection:
             showsManualEntry = false
-        case .scanning, .unauthorized, .offline, .invalidCertificate, .missingPhotoEdit, .localNetworkPermissionRequired, .failed:
+        case .scanning, .unauthorized, .offline, .savedConnectionOffline, .invalidCertificate, .missingPhotoEdit, .localNetworkPermissionRequired, .failed:
             break
         }
     }
 
     private func primarySymbol(for state: ConnectionState, isShowingDiscoveredRuntimes: Bool) -> String {
         if isShowingDiscoveredRuntimes {
-            return "arrow.clockwise"
+            return "qrcode.viewfinder"
         }
 
         switch state {
         case .connected:
             return "camera.viewfinder"
         case .idle:
-            return "dot.radiowaves.left.and.right"
+            return "qrcode.viewfinder"
         case .testing:
             return "antenna.radiowaves.left.and.right"
-        case .discovering:
+        case .discovering, .restoringSavedConnection:
             return "dot.radiowaves.left.and.right"
-        case .offline:
+        case .offline, .savedConnectionOffline:
             return "arrow.clockwise"
         case .missingPhotoEdit:
             return "book.pages"
@@ -305,7 +419,7 @@ public struct ConnectView: View {
         switch state {
         case .idle:
             return "dot.radiowaves.left.and.right"
-        case .offline:
+        case .offline, .savedConnectionOffline:
             return "qrcode.viewfinder"
         case .unauthorized, .invalidCertificate, .failed:
             return "keyboard"
@@ -318,6 +432,10 @@ public struct ConnectView: View {
         default:
             return "ellipsis"
         }
+    }
+
+    private func heroSecondarySymbol(isShowingDiscoveredRuntimes: Bool) -> String {
+        isShowingDiscoveredRuntimes ? "keyboard" : secondarySymbol(for: viewModel.state)
     }
 
     private func openRecoveryDestination(_ destination: ConnectionRecoveryDestination) {
@@ -337,26 +455,68 @@ private struct ConnectScreenBackground: View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color(red: 0.98, green: 0.99, blue: 0.99),
-                    Color(red: 0.92, green: 0.95, blue: 0.96),
-                    Color(red: 0.80, green: 0.86, blue: 0.88)
+                    Color(red: 0.94, green: 0.97, blue: 0.96),
+                    Color(red: 0.85, green: 0.91, blue: 0.91),
+                    Color(red: 0.73, green: 0.82, blue: 0.83)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
 
-            Circle()
-                .fill(Color.white.opacity(0.72))
-                .frame(width: 280, height: 280)
-                .blur(radius: 72)
-                .offset(y: -220)
-
-            Circle()
-                .fill(Color(red: 0.56, green: 0.93, blue: 0.89).opacity(0.18))
-                .frame(width: 320, height: 320)
-                .blur(radius: 86)
-                .offset(x: 120, y: -40)
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(0.44),
+                    AgentPocketDesignTokens.accent.opacity(0.18),
+                    Color.clear
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
         }
+    }
+}
+
+private struct DiscoveryHeroActions: View {
+    let copy: ConnectScreenCopy
+    let scanButtonTitle: String
+    let isBusy: Bool
+    let scanAction: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 7) {
+                Text(copy.appName)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
+                    .textCase(.uppercase)
+
+                Text(copy.connectTitle)
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(AgentPocketDesignTokens.ink)
+                    .multilineTextAlignment(.leading)
+                    .accessibilityAddTraits(.isHeader)
+
+                Text(copy.connectSubtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Button(action: scanAction) {
+                Label(scanButtonTitle, systemImage: "qrcode.viewfinder")
+                    .labelStyle(.titleAndIcon)
+                    .font(.headline.weight(.bold))
+                    .frame(maxWidth: .infinity, minHeight: 56)
+            }
+            .buttonStyle(MintProminentButtonStyle())
+            .disabled(isBusy)
+            .accessibilityIdentifier("connectScanPairingCodeButton")
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 2)
+        .padding(.top, 4)
+        .padding(.bottom, 2)
     }
 }
 
@@ -364,6 +524,7 @@ private struct ConnectHeroCard: View {
     let copy: ConnectScreenCopy
     let onlineTrustedTitle: String
     let trustBadgeTitles: [String]
+    let statusColor: Color
     let primaryButtonTitle: String
     let isBusy: Bool
     let primarySystemImage: String
@@ -373,50 +534,60 @@ private struct ConnectHeroCard: View {
     let secondaryAction: () -> Void
 
     var body: some View {
-        VStack(spacing: 14) {
-            VStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 7) {
+                Text(copy.appName)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
+                    .textCase(.uppercase)
+
                 Text(copy.connectTitle)
                     .font(.title2.weight(.bold))
-                    .foregroundStyle(Color(red: 0.06, green: 0.10, blue: 0.11))
-                    .multilineTextAlignment(.center)
+                    .foregroundStyle(AgentPocketDesignTokens.ink)
+                    .multilineTextAlignment(.leading)
                     .accessibilityAddTraits(.isHeader)
 
                 Text(copy.connectSubtitle)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(3)
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
+                    .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.top, 2)
 
-            VStack(spacing: 12) {
-                Image(systemName: "desktopcomputer")
-                    .font(.system(size: 40, weight: .semibold))
-                    .foregroundStyle(Color(red: 0.09, green: 0.15, blue: 0.16))
-                    .frame(height: 48)
-                    .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .center, spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                            .fill(AgentPocketDesignTokens.ink)
+                            .frame(width: 52, height: 52)
 
-                VStack(spacing: 8) {
-                    Text(copy.deviceName)
-                        .font(.title3.weight(.bold))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.82)
-
-                    HStack(spacing: 7) {
-                        Circle()
-                            .fill(Color(red: 0.11, green: 0.78, blue: 0.53))
-                            .frame(width: 8, height: 8)
-                            .shadow(color: Color(red: 0.11, green: 0.78, blue: 0.53).opacity(0.24), radius: 5)
-
-                        Text(onlineTrustedTitle)
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(Color(red: 0.06, green: 0.45, blue: 0.38))
+                        Image(systemName: "desktopcomputer")
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .accessibilityHidden(true)
                     }
 
-                    TrustBadgeRow(labels: trustBadgeTitles)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(copy.deviceName)
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(AgentPocketDesignTokens.ink)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.82)
+
+                        HStack(spacing: 7) {
+                            Circle()
+                                .fill(statusColor)
+                                .frame(width: 8, height: 8)
+
+                            Text(onlineTrustedTitle)
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(AgentPocketDesignTokens.inkMuted)
+                                .lineLimit(2)
+                        }
+                    }
                 }
+
+                TrustBadgeRow(labels: trustBadgeTitles)
 
                 Button(action: primaryAction) {
                     Label(primaryButtonTitle, systemImage: primarySystemImage)
@@ -427,72 +598,92 @@ private struct ConnectHeroCard: View {
                 .buttonStyle(MintProminentButtonStyle())
                 .disabled(isBusy)
                 .accessibilityIdentifier("connectLocalAgentButton")
+
+                Button(action: secondaryAction) {
+                    Label(secondaryButtonTitle, systemImage: secondarySystemImage)
+                        .labelStyle(.titleAndIcon)
+                        .font(.subheadline.weight(.bold))
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(ConnectSecondaryButtonStyle())
+                .disabled(isBusy)
             }
             .padding(18)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .background(AgentPocketDesignTokens.lightSurface, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .stroke(Color.white.opacity(0.66), lineWidth: 1)
+                RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous)
+                    .stroke(AgentPocketDesignTokens.lightStroke, lineWidth: 1)
             }
-            .shadow(color: Color(red: 0.13, green: 0.20, blue: 0.22).opacity(0.12), radius: 28, y: 18)
-
-            Button(action: secondaryAction) {
-                Label(secondaryButtonTitle, systemImage: secondarySystemImage)
-                    .labelStyle(.titleAndIcon)
-                    .font(.body.weight(.semibold))
-                    .frame(maxWidth: .infinity, minHeight: 44)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(Color(red: 0.13, green: 0.20, blue: 0.21))
-            .disabled(isBusy)
-
-            HStack(alignment: .firstTextBaseline, spacing: 7) {
-                Image(systemName: "lock.fill")
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(.secondary)
-
-                Text(copy.privacyLine)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.bottom, 4)
+            .shadow(color: AgentPocketDesignTokens.lightShadow, radius: 20, y: 10)
         }
-        .padding(.horizontal, 22)
-        .padding(.vertical, 16)
+        .padding(18)
+    }
+}
+
+private struct ManualFallbackButton: View {
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label(title, systemImage: "keyboard")
+                .labelStyle(.titleAndIcon)
+                .font(.callout.weight(.bold))
+                .frame(maxWidth: .infinity, minHeight: 46)
+        }
+        .buttonStyle(ConnectSecondaryButtonStyle())
+    }
+}
+
+private struct ConnectionPrivacyLine: View {
+    let copy: ConnectScreenCopy
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Image(systemName: "lock.fill")
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(AgentPocketDesignTokens.inkMuted)
+
+            Text(copy.privacyLine)
+                .font(.caption)
+                .foregroundStyle(AgentPocketDesignTokens.inkMuted)
+                .multilineTextAlignment(.leading)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 2)
     }
 }
 
 private struct ConnectionRecoveryGuidancePanel: View {
     let presentation: ConnectionReadinessPresentation
+    let language: AppLanguage
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                Text(ConnectionReadinessPresenter.ownerLabel(for: presentation.recoveryOwner))
+                Text(ownerLabel)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(Color.secondary.opacity(0.14), in: Capsule())
 
-                Text(presentation.title)
+                Text(localizedTitle)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
             }
 
-            Text(presentation.message)
+            Text(localizedMessage)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: 12) {
-                Label(presentation.primaryActionTitle, systemImage: "checkmark.circle")
+                Label(localizedPrimaryActionTitle, systemImage: "checkmark.circle")
 
-                if let secondaryActionTitle = presentation.secondaryActionTitle {
+                if let secondaryActionTitle = localizedSecondaryActionTitle {
                     Label(secondaryActionTitle, systemImage: "arrow.turn.up.right")
                 }
             }
@@ -503,10 +694,133 @@ private struct ConnectionRecoveryGuidancePanel: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(AgentPocketDesignTokens.lightSurfaceSubtle, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous)
                 .stroke(Color.white.opacity(0.58), lineWidth: 1)
+        }
+    }
+
+    private var ownerLabel: String {
+        guard language == .chinese else {
+            return ConnectionReadinessPresenter.ownerLabel(for: presentation.recoveryOwner)
+        }
+
+        switch presentation.recoveryOwner {
+        case .phone:
+            return "iPhone"
+        case .hostRuntime:
+            return "Mac"
+        }
+    }
+
+    private var localizedTitle: String {
+        guard language == .chinese else {
+            return presentation.title
+        }
+
+        switch presentation.issue {
+        case .expiredPairingQRCode:
+            return "配对码已过期"
+        case .pairingCodeAlreadyUsed:
+            return "配对码已使用"
+        case .revokedSavedConnection:
+            return "令牌未被接受"
+        case .bridgeUnavailable:
+            return "本机智能体离线"
+        case .savedRuntimeUnavailable:
+            return "Mac 端需要启动"
+        case .missingBonjourHost:
+            return "未找到本机智能体"
+        case .requiredTLSCertificateFailure:
+            return "证书需要处理"
+        case .portConflict:
+            return "Mac 端口需要处理"
+        case .disabledHostAction:
+            return "Mac 端操作暂不可用"
+        case .hostExtensionUnavailable:
+            return "Mac 扩展未准备好"
+        }
+    }
+
+    private var localizedMessage: String {
+        guard language == .chinese else {
+            return presentation.message
+        }
+
+        switch presentation.issue {
+        case .expiredPairingQRCode:
+            return "请扫描 Mac 上刷新的配对二维码。如果 iPhone 仍看到旧码，先在 Mac 上刷新二维码。"
+        case .pairingCodeAlreadyUsed:
+            return "请在 Mac 上生成新的移动端配对码，然后用 iPhone 重新扫描。"
+        case .revokedSavedConnection:
+            return "当前移动端令牌不可用。请在 Mac 上生成新的配对码后重新连接。"
+        case .bridgeUnavailable:
+            return "请确认 Mac 上的 Kaka Mobile Bridge 正在运行，并且 iPhone 可访问。"
+        case .savedRuntimeUnavailable:
+            return "配对仍然有效，不需要先重新扫码。请在 Mac 上启动 Hermes/OpenClaw 或 runtime-kit，然后点“我已启动，重新连接”。"
+        case .missingBonjourHost:
+            return "请允许本地网络访问，或改用扫码/手动输入地址连接。"
+        case .requiredTLSCertificateFailure:
+            return "请使用可信 HTTPS 证书、Tailscale HTTPS，或切换到本地开发连接方式。"
+        case .portConflict:
+            return "请在 Mac 上检查 bridge 端口，换到可用端口后再从 iPhone 重试。"
+        case .disabledHostAction:
+            return "需要等待 Mac 端完成设置、健康检查或能力安装后再重试。"
+        case .hostExtensionUnavailable:
+            return "请在 Mac 上打开 Kaka Mobile Bridge 并完成主机设置。"
+        }
+    }
+
+    private var localizedPrimaryActionTitle: String {
+        guard language == .chinese else {
+            return presentation.primaryActionTitle
+        }
+
+        switch presentation.recoveryAction {
+        case .scanRefreshedPairingQR:
+            return "扫描新二维码"
+        case .generateMobilePairingCode:
+            return "在 Mac 上生成"
+        case .startMobileBridge:
+            if presentation.issue == .savedRuntimeUnavailable {
+                return "Mac 已启动后重连"
+            }
+            return "启动 Mobile Bridge"
+        case .useLocalNetworkOrManualEndpointFallback:
+            return "扫码或手动输入"
+        case .repairHostPort:
+            return "检查 Mac 端口"
+        case .waitForRuntimeStateChange:
+            return "检查运行状态"
+        case .checkHostExtension:
+            return "检查 Mac 设置"
+        }
+    }
+
+    private var localizedSecondaryActionTitle: String? {
+        guard let secondaryActionTitle = presentation.secondaryActionTitle else {
+            return nil
+        }
+        guard language == .chinese else {
+            return secondaryActionTitle
+        }
+
+        switch secondaryActionTitle {
+        case "Refresh QR on Host":
+            return "刷新 Mac 上的二维码"
+        case "Scan New QR", "Scan Pairing QR":
+            return "扫描二维码"
+        case "Discover Local Runtime":
+            return "重新发现"
+        case "I've Started It, Reconnect":
+            return "我已启动，重新连接"
+        case "Enter Endpoint", "Change Endpoint":
+            return "手动输入"
+        case "Try Again":
+            return "重试"
+        default:
+            return secondaryActionTitle
         }
     }
 }
@@ -527,7 +841,7 @@ private struct PairingScannerCard: View {
             .buttonStyle(.bordered)
         }
         .padding(16)
-        .background(AgentPocketColors.surfaceBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(AgentPocketColors.surfaceBackground, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous))
         .shadow(color: .black.opacity(0.06), radius: 18, y: 8)
     }
 }
@@ -540,8 +854,8 @@ private struct ProjectSettingsSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    SettingsCard {
-                        VStack(spacing: 0) {
+            SettingsCard {
+                VStack(spacing: 0) {
                             SettingsRow(title: copy.runtimeTitle, detail: copy.runtimeDescription, value: copy.runtimeValue)
                             SettingsDivider()
                             SettingsRow(title: copy.privacyTitle, detail: copy.privacyDescription, value: copy.privacyValue)
@@ -573,9 +887,9 @@ private struct SettingsCard<Content: View>: View {
         content
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .background(AgentPocketDesignTokens.lightSurface, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous)
                     .stroke(Color.white.opacity(0.68), lineWidth: 1)
             }
     }
@@ -628,14 +942,30 @@ private struct MintProminentButtonStyle: ButtonStyle {
                 LinearGradient(
                     colors: [
                         Color(red: 0.72, green: 1.0, blue: 0.96),
-                        Color(red: 0.56, green: 0.93, blue: 0.89)
+                        AgentPocketDesignTokens.accent
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 ),
-                in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+                in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
             )
             .shadow(color: Color(red: 0.14, green: 0.72, blue: 0.67).opacity(configuration.isPressed ? 0.10 : 0.22), radius: 18, y: 10)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+    }
+}
+
+private struct ConnectSecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(AgentPocketDesignTokens.ink)
+            .background(
+                Color.white.opacity(configuration.isPressed ? 0.58 : 0.72),
+                in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                    .stroke(Color.white.opacity(0.82), lineWidth: 1)
+            }
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
     }
 }
@@ -648,10 +978,10 @@ private struct TrustBadgeRow: View {
             ForEach(labels, id: \.self) { label in
                 Text(label)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                     .padding(.horizontal, 10)
                     .frame(minHeight: 30)
-                    .background(AgentPocketColors.secondaryGroupedBackground, in: Capsule())
+                    .background(AgentPocketColors.secondaryGroupedBackground, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
             }
         }
         .accessibilityElement(children: .combine)
@@ -702,9 +1032,9 @@ private struct RuntimeMark: View {
         switch state {
         case .connected:
             return Color.green
-        case .unauthorized, .invalidCertificate, .missingPhotoEdit, .localNetworkPermissionRequired, .failed:
+        case .unauthorized, .offline, .savedConnectionOffline, .invalidCertificate, .missingPhotoEdit, .localNetworkPermissionRequired, .failed:
             return Color.red
-        case .testing, .scanning, .discovering:
+        case .testing, .scanning, .discovering, .restoringSavedConnection:
             return Color.blue
         default:
             return Color.black
@@ -715,7 +1045,7 @@ private struct RuntimeMark: View {
         switch state {
         case .connected:
             return "checkmark"
-        case .unauthorized, .invalidCertificate, .missingPhotoEdit, .localNetworkPermissionRequired, .failed:
+        case .unauthorized, .offline, .savedConnectionOffline, .invalidCertificate, .missingPhotoEdit, .localNetworkPermissionRequired, .failed:
             return "exclamationmark"
         default:
             return "iphone.radiowaves.left.and.right"
@@ -731,19 +1061,33 @@ private struct ManualEndpointSection: View {
         VStack(alignment: .leading, spacing: 14) {
             Text(copy.manualTitle)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(Color(red: 0.06, green: 0.10, blue: 0.11))
+                .foregroundStyle(AgentPocketDesignTokens.ink)
 
             VStack(spacing: 10) {
-                ManualTextFieldShell(systemImage: "network") {
-                    TextField(copy.endpointPlaceholder, text: $viewModel.endpointText)
-                        .agentURLInputTraits()
-                        .accessibilityLabel("Local agent endpoint")
+                ManualFieldGroup(title: copy.endpointFieldTitle) {
+                    ManualTextFieldShell(systemImage: "network") {
+                        TextField(
+                            "",
+                            text: $viewModel.endpointText,
+                            prompt: Text(copy.endpointPlaceholder)
+                                .foregroundStyle(AgentPocketDesignTokens.inkMuted.opacity(0.72))
+                        )
+                            .agentURLInputTraits()
+                            .accessibilityLabel(copy.endpointFieldTitle)
+                    }
                 }
 
-                ManualTextFieldShell(systemImage: "key.horizontal") {
-                    SecureField(copy.tokenPlaceholder, text: $viewModel.tokenText)
-                        .agentTokenInputTraits()
-                        .accessibilityLabel("Mobile token")
+                ManualFieldGroup(title: copy.tokenFieldTitle) {
+                    ManualTextFieldShell(systemImage: "key.horizontal") {
+                        SecureField(
+                            "",
+                            text: $viewModel.tokenText,
+                            prompt: Text(copy.tokenPlaceholder)
+                                .foregroundStyle(AgentPocketDesignTokens.inkMuted.opacity(0.72))
+                        )
+                            .agentTokenInputTraits()
+                            .accessibilityLabel(copy.tokenFieldTitle)
+                    }
                 }
             }
 
@@ -761,12 +1105,27 @@ private struct ManualEndpointSection: View {
             .disabled(viewModel.state.presentation.isBusy)
         }
         .padding(18)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .background(AgentPocketDesignTokens.lightSurface, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous)
                 .stroke(Color.white.opacity(0.66), lineWidth: 1)
         }
-        .shadow(color: Color(red: 0.13, green: 0.20, blue: 0.22).opacity(0.10), radius: 24, y: 14)
+        .shadow(color: Color(red: 0.13, green: 0.20, blue: 0.22).opacity(0.08), radius: 18, y: 10)
+    }
+}
+
+private struct ManualFieldGroup<Content: View>: View {
+    let title: String
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(AgentPocketDesignTokens.inkMuted)
+
+            content
+        }
     }
 }
 
@@ -778,19 +1137,19 @@ private struct ManualTextFieldShell<Content: View>: View {
         HStack(spacing: 10) {
             Image(systemName: systemImage)
                 .font(.callout.weight(.semibold))
-                .foregroundStyle(Color(red: 0.08, green: 0.46, blue: 0.40).opacity(0.86))
+                .foregroundStyle(AgentPocketDesignTokens.accentStrong)
                 .frame(width: 22)
                 .accessibilityHidden(true)
 
             content
                 .font(.body.weight(.medium))
-                .foregroundStyle(Color(red: 0.06, green: 0.10, blue: 0.11))
+                .foregroundStyle(AgentPocketDesignTokens.ink)
         }
         .padding(.horizontal, 14)
         .frame(minHeight: 48)
-        .background(Color.white.opacity(0.58), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(Color.white.opacity(0.70), in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
                 .stroke(Color.white.opacity(0.78), lineWidth: 1)
         }
     }
@@ -805,11 +1164,11 @@ private struct DiscoveredRuntimeSection: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(copy.nearbyRuntimeTitle)
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(Color(red: 0.06, green: 0.10, blue: 0.11))
+                    .foregroundStyle(AgentPocketDesignTokens.ink)
 
                 Text(copy.nearbyRuntimeDescription)
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -833,23 +1192,23 @@ private struct DiscoveredRuntimeSection: View {
 
                             Image(systemName: "macbook.and.iphone")
                                 .font(.title3.weight(.semibold))
-                                .foregroundStyle(Color(red: 0.07, green: 0.45, blue: 0.39))
+                                .foregroundStyle(AgentPocketDesignTokens.accentStrong)
                         }
 
                         VStack(alignment: .leading, spacing: 3) {
                             Text(runtime.displayName)
                                 .font(.body.weight(.semibold))
-                                .foregroundStyle(Color(red: 0.06, green: 0.10, blue: 0.11))
+                                .foregroundStyle(AgentPocketDesignTokens.ink)
                                 .lineLimit(1)
 
                             HStack(spacing: 6) {
                                 Circle()
-                                    .fill(Color(red: 0.11, green: 0.78, blue: 0.53))
+                                    .fill(AgentPocketDesignTokens.statusSuccess)
                                     .frame(width: 7, height: 7)
 
                                 Text(endpointDetail(for: runtime))
                                     .font(.footnote)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                                     .lineLimit(1)
                             }
                         }
@@ -862,15 +1221,15 @@ private struct DiscoveredRuntimeSection: View {
                             .padding(.horizontal, 14)
                             .frame(minHeight: 34)
                             .background(
-                                Color(red: 0.56, green: 0.93, blue: 0.89).opacity(0.82),
-                                in: Capsule()
+                                AgentPocketDesignTokens.accent.opacity(0.86),
+                                in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
                             )
                     }
                     .padding(.horizontal, 14)
                     .frame(maxWidth: .infinity, minHeight: 68, alignment: .leading)
-                    .background(Color.white.opacity(0.54), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .background(Color.white.opacity(0.64), in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous)
                             .stroke(Color.white.opacity(0.76), lineWidth: 1)
                     }
                     .contentShape(Rectangle())
@@ -884,12 +1243,12 @@ private struct DiscoveredRuntimeSection: View {
             }
         }
         .padding(18)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .background(AgentPocketDesignTokens.lightSurface, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous)
                 .stroke(Color.white.opacity(0.66), lineWidth: 1)
         }
-        .shadow(color: Color(red: 0.13, green: 0.20, blue: 0.22).opacity(0.10), radius: 24, y: 14)
+        .shadow(color: Color(red: 0.13, green: 0.20, blue: 0.22).opacity(0.08), radius: 18, y: 10)
         .accessibilityIdentifier("nearbyLocalAgentSection")
     }
 

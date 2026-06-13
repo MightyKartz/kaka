@@ -9,7 +9,11 @@ final class AppIntentPresentationTests: XCTestCase {
                 "open_inbox",
                 "open_tasks",
                 "review_inbox_item",
-                "review_runtime_task"
+                "review_runtime_task",
+                "open_agent_scanner",
+                "scan_document",
+                "capture_video",
+                "record_voice"
             ]
         )
         XCTAssertTrue(KakaAppIntentCatalog.requiresForegroundConfirmation)
@@ -23,6 +27,10 @@ final class AppIntentPresentationTests: XCTestCase {
         XCTAssertEqual(KakaSystemSurface.tasks.intentTitle, "Show Tasks")
         XCTAssertEqual(KakaSystemSurface.reviewInboxItem.intentTitle, "Review Inbox Item")
         XCTAssertEqual(KakaSystemSurface.reviewRuntimeTask.intentTitle, "Review Runtime Task")
+        XCTAssertEqual(KakaSystemSurface.agentScanner.intentTitle, "Scan")
+        XCTAssertEqual(KakaSystemSurface.documentScanner.intentTitle, "Document Scan")
+        XCTAssertEqual(KakaSystemSurface.videoCapture.intentTitle, "Video")
+        XCTAssertEqual(KakaSystemSurface.voiceRecorder.intentTitle, "Record")
         XCTAssertEqual(KakaAppIntentCatalog.destinationParameterTitle, "Destination")
         XCTAssertEqual(KakaAppIntentCatalog.taskIDParameterTitle, "Task ID")
         XCTAssertEqual(KakaAppIntentCatalog.taskActionParameterTitle, "Task Action")
@@ -33,7 +41,11 @@ final class AppIntentPresentationTests: XCTestCase {
             KakaAppIntentCatalog.actionButtonRecommendedActionIDs,
             [
                 "open_inbox",
-                "open_tasks"
+                "open_tasks",
+                "open_agent_scanner",
+                "scan_document",
+                "capture_video",
+                "record_voice"
             ]
         )
         XCTAssertTrue(KakaAppIntentCatalog.actionButtonUsesForegroundHandoff)
@@ -41,6 +53,17 @@ final class AppIntentPresentationTests: XCTestCase {
         XCTAssertFalse(KakaAppIntentCatalog.actionButtonAllowsRecallMutation)
         XCTAssertFalse(KakaAppIntentCatalog.actionButtonAllowsContextSnapshotCollection)
         XCTAssertFalse(KakaAppIntentCatalog.actionButtonAllowsRuntimeSettingsChanges)
+    }
+
+    func testLocalAgentLensShortcutsAreForegroundOnly() {
+        XCTAssertEqual(
+            KakaAppIntentCatalog.localAgentLensShortcutIDs,
+            ["open_agent_scanner", "scan_document", "capture_video", "record_voice"]
+        )
+        XCTAssertTrue(KakaAppIntentCatalog.actionButtonUsesForegroundHandoff)
+        XCTAssertFalse(KakaAppIntentCatalog.actionButtonAllowsBackgroundTaskMutation)
+        XCTAssertFalse(KakaAppIntentCatalog.actionButtonAllowsRecallMutation)
+        XCTAssertFalse(KakaAppIntentCatalog.actionButtonAllowsContextSnapshotCollection)
     }
 
     func testActionButtonShortcutMetadataMatchesVisibleReviewSurfaces() {
@@ -58,6 +81,30 @@ final class AppIntentPresentationTests: XCTestCase {
                     shortTitle: "Show Tasks",
                     systemImageName: "list.bullet.rectangle",
                     targetSurface: .tasks
+                ),
+                KakaActionButtonShortcutMetadata(
+                    actionID: "open_agent_scanner",
+                    shortTitle: "Scan",
+                    systemImageName: "qrcode.viewfinder",
+                    targetSurface: .agentScanner
+                ),
+                KakaActionButtonShortcutMetadata(
+                    actionID: "scan_document",
+                    shortTitle: "Document",
+                    systemImageName: "doc.viewfinder",
+                    targetSurface: .documentScanner
+                ),
+                KakaActionButtonShortcutMetadata(
+                    actionID: "capture_video",
+                    shortTitle: "Video",
+                    systemImageName: "video.badge.waveform",
+                    targetSurface: .videoCapture
+                ),
+                KakaActionButtonShortcutMetadata(
+                    actionID: "record_voice",
+                    shortTitle: "Record",
+                    systemImageName: "mic.circle",
+                    targetSurface: .voiceRecorder
                 )
             ]
         )
@@ -66,6 +113,10 @@ final class AppIntentPresentationTests: XCTestCase {
     func testOnlyTopLevelReviewSurfacesAreActionButtonRecommended() {
         XCTAssertTrue(KakaSystemSurface.inbox.isActionButtonRecommended)
         XCTAssertTrue(KakaSystemSurface.tasks.isActionButtonRecommended)
+        XCTAssertTrue(KakaSystemSurface.agentScanner.isActionButtonRecommended)
+        XCTAssertTrue(KakaSystemSurface.documentScanner.isActionButtonRecommended)
+        XCTAssertTrue(KakaSystemSurface.videoCapture.isActionButtonRecommended)
+        XCTAssertTrue(KakaSystemSurface.voiceRecorder.isActionButtonRecommended)
         XCTAssertFalse(KakaSystemSurface.reviewInboxItem.isActionButtonRecommended)
         XCTAssertFalse(KakaSystemSurface.reviewRuntimeTask.isActionButtonRecommended)
     }
@@ -75,14 +126,22 @@ final class AppIntentPresentationTests: XCTestCase {
             KakaAppIntentCatalog.actionButtonShortcuts.map(\.shortTitle),
             [
                 "Open Inbox",
-                "Show Tasks"
+                "Show Tasks",
+                "Scan",
+                "Document",
+                "Video",
+                "Record"
             ]
         )
         XCTAssertEqual(
             KakaAppIntentCatalog.actionButtonShortcuts.map(\.systemImageName),
             [
                 "tray.full",
-                "list.bullet.rectangle"
+                "list.bullet.rectangle",
+                "qrcode.viewfinder",
+                "doc.viewfinder",
+                "video.badge.waveform",
+                "mic.circle"
             ]
         )
     }

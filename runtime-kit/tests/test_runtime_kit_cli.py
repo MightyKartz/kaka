@@ -178,6 +178,60 @@ def test_runtime_bridge_hermes_provider_lan_bonjour_sqlite_dry_run_command(tmp_p
     assert "secret-runtime-key" not in rendered
 
 
+def test_runtime_bridge_hermes_profile_api_server_key_maps_to_provider_env(tmp_path, capsys, monkeypatch):
+    hermes_home = tmp_path / "hermes"
+    profile_root = hermes_home / "profiles" / "jiqimao"
+    profile_root.mkdir(parents=True)
+    (profile_root / ".env").write_text(
+        "\n".join(
+            [
+                "API_SERVER_KEY=secret-runtime-key",
+                "API_SERVER_MODEL_NAME=claude-fable-5",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("KAKA_HERMES_API_KEY", raising=False)
+    monkeypatch.delenv("KAKA_HERMES_MODEL", raising=False)
+
+    exit_code = main(
+        [
+            "start",
+            "--provider",
+            "hermes",
+            "--hermes-home",
+            str(hermes_home),
+            "--hermes-profile",
+            "jiqimao",
+            "--dry-run",
+        ]
+    )
+
+    summary = json.loads(capsys.readouterr().out)
+    rendered = json.dumps(summary, sort_keys=True)
+    assert exit_code == 0
+    assert summary["provider_environment"]["api_key_state"] == "set"
+    assert summary["provider_environment"]["model_state"] == "set"
+    assert "missing_hermes_api_key" not in rendered
+    assert "secret-runtime-key" not in rendered
+
+
+def test_runtime_start_rejects_unassigned_bonjour_ipv4(monkeypatch):
+    monkeypatch.setattr(runtime_cli, "local_ipv4_addresses", lambda: {"192.168.121.155"})
+
+    errors = validate_start_config(
+        BridgeConfig(
+            lan=True,
+            bonjour=True,
+            bonjour_host="192.168.1.102",
+        ),
+        require_provider_credentials=False,
+        require_bonjour_host_assignment=True,
+    )
+
+    assert any("--bonjour-host 192.168.1.102 is not assigned to this Mac" in error for error in errors)
+
+
 def test_runtime_start_requires_anthropic_key_outside_dry_run(capsys, monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 

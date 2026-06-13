@@ -696,21 +696,22 @@ final class ConnectionViewModelTests: XCTestCase {
         XCTAssertTrue(discoverer.calls.isEmpty)
     }
 
-    func testLaunchProximityDiscoveryQuietlyReturnsIdleWhenNoSavedConnectionAndNoNearbyRuntime() async {
+    func testLaunchBootstrapRequiresFirstPairingWhenNoSavedConnection() async {
         let discoverer = StubRuntimeDiscoverer(result: [])
         let viewModel = ConnectionViewModel(
             runtimeDiscoverer: discoverer,
             connectionStore: StubConnectionStore()
         )
 
-        await viewModel.restoreSavedConnectionOrDiscoverNearby()
+        let outcome = await viewModel.bootstrapConnectionForLaunch()
 
+        XCTAssertEqual(outcome, .needsFirstPairing)
         XCTAssertEqual(viewModel.state, .idle)
         XCTAssertEqual(viewModel.discoveredRuntimes, [])
-        XCTAssertEqual(discoverer.calls, [2.5])
+        XCTAssertTrue(discoverer.calls.isEmpty)
     }
 
-    func testLaunchProximityDiscoveryAutoPairsSingleNearbyRuntimeWithPairingPayload() async throws {
+    func testLaunchBootstrapDoesNotAutoPairNearbyRuntimeWithoutSavedConnection() async throws {
         let endpoint = try AgentEndpoint(rawURL: "http://macbook-pro.local:8765")
         let runtime = DiscoveredRuntime(
             displayName: "Kartz MacBook Hermes",
@@ -743,7 +744,52 @@ final class ConnectionViewModelTests: XCTestCase {
             connectionStore: StubConnectionStore()
         )
 
-        await viewModel.restoreSavedConnectionOrDiscoverNearby(
+        let outcome = await viewModel.bootstrapConnectionForLaunch(
+            timeout: 0.1
+        )
+
+        XCTAssertEqual(outcome, .needsFirstPairing)
+        XCTAssertEqual(viewModel.state, .idle)
+        XCTAssertEqual(viewModel.discoveredRuntimes, [])
+        XCTAssertTrue(exchanger.calls.isEmpty)
+        XCTAssertTrue(checker.calls.isEmpty)
+    }
+
+    func testManualDiscoveryCanStillAutoPairSingleRuntimeWhenExplicitlyRequested() async throws {
+        let endpoint = try AgentEndpoint(rawURL: "http://macbook-pro.local:8765")
+        let runtime = DiscoveredRuntime(
+            displayName: "Kartz MacBook Hermes",
+            endpoint: endpoint,
+            pairingPayload: """
+            {"version":1,"endpoint":"http://macbook-pro.local:8765","runtime":"hermes","display_name":"Kartz MacBook Hermes","pairing_code":"pair_123","expires_at":"2099-05-30T16:30:00Z"}
+            """
+        )
+        let checker = StubConnectionChecker(
+            result: ConnectedRuntime(
+                displayName: "Kartz MacBook Hermes",
+                runtime: "hermes",
+                runtimeVersion: "2026.5.16"
+            )
+        )
+        let exchanger = StubPairingExchanger(
+            result: PairingExchangeResponse(
+                endpointID: "endpoint_123",
+                displayName: "Kartz MacBook Hermes",
+                runtime: "hermes",
+                runtimeVersion: "2026.5.16",
+                mobileToken: "mobile_secret",
+                tokenExpiresAt: nil
+            )
+        )
+        let viewModel = ConnectionViewModel(
+            connectionChecker: checker,
+            pairingExchanger: exchanger,
+            runtimeDiscoverer: StubRuntimeDiscoverer(result: [runtime]),
+            connectionStore: StubConnectionStore()
+        )
+
+        await viewModel.discoverLocalRuntimes(
+            autoPairSingleRuntime: true,
             deviceName: "Kartz iPhone",
             devicePublicID: "device_abc"
         )
@@ -762,7 +808,7 @@ final class ConnectionViewModelTests: XCTestCase {
         XCTAssertEqual(checker.calls.map(\.token), ["mobile_secret"])
     }
 
-    func testLaunchProximityDiscoveryKeepsMultipleNearbyRuntimesForUserChoice() async throws {
+    func testManualDiscoveryKeepsMultipleNearbyRuntimesForUserChoice() async throws {
         let first = DiscoveredRuntime(
             displayName: "Desk Hermes",
             endpoint: try AgentEndpoint(rawURL: "http://desk.local:8765"),
@@ -793,7 +839,7 @@ final class ConnectionViewModelTests: XCTestCase {
             connectionStore: StubConnectionStore()
         )
 
-        await viewModel.restoreSavedConnectionOrDiscoverNearby()
+        await viewModel.discoverLocalRuntimes(autoPairSingleRuntime: false)
 
         XCTAssertEqual(viewModel.state, .idle)
         XCTAssertEqual(viewModel.discoveredRuntimes, [first, second])
@@ -859,7 +905,7 @@ final class ConnectionViewModelTests: XCTestCase {
         XCTAssertTrue(discoverer.calls.isEmpty)
     }
 
-    func testLaunchProximityDiscoveryRepairsOfflineSavedConnectionFromSingleNearbyRuntime() async throws {
+    func testLaunchBootstrapRepairsOfflineSavedConnectionFromSingleNearbyRuntimeUsingSavedToken() async throws {
         let savedConnection = StoredConnection(
             endpoint: try AgentEndpoint(rawURL: "https://old-hermes.example.com"),
             displayName: "Kartz MacBook Hermes",
@@ -887,16 +933,7 @@ final class ConnectionViewModelTests: XCTestCase {
                 ),
             ]
         )
-        let exchanger = StubPairingExchanger(
-            result: PairingExchangeResponse(
-                endpointID: "endpoint_123",
-                displayName: "Kartz MacBook Hermes",
-                runtime: "hermes",
-                runtimeVersion: "2026.5.16",
-                mobileToken: "repaired_secret",
-                tokenExpiresAt: nil
-            )
-        )
+        let exchanger = StubPairingExchanger(error: TestStoreError.clearFailed)
         let store = StubConnectionStore(savedConnection: savedConnection)
         let viewModel = ConnectionViewModel(
             connectionChecker: checker,
@@ -905,11 +942,9 @@ final class ConnectionViewModelTests: XCTestCase {
             connectionStore: store
         )
 
-        await viewModel.restoreSavedConnectionOrDiscoverNearby(
-            deviceName: "Kartz iPhone",
-            devicePublicID: "device_abc"
-        )
+        let outcome = await viewModel.bootstrapConnectionForLaunch()
 
+        XCTAssertEqual(outcome, .connected)
         XCTAssertEqual(
             viewModel.state,
             .connected(
@@ -920,15 +955,17 @@ final class ConnectionViewModelTests: XCTestCase {
                 )
             )
         )
-        XCTAssertEqual(exchanger.calls.map(\.pairingCode), ["pair_repair"])
+        XCTAssertTrue(exchanger.calls.isEmpty)
         XCTAssertEqual(checker.calls.map(\.endpoint.baseURL.absoluteString), [
             "https://old-hermes.example.com",
             "http://macbook-pro.local:8765",
         ])
-        XCTAssertEqual(store.savedConnections.map(\.mobileToken), ["repaired_secret"])
+        XCTAssertEqual(checker.calls.map(\.token), ["stored_secret", "stored_secret"])
+        XCTAssertEqual(store.savedConnections.map(\.mobileToken), ["stored_secret"])
+        XCTAssertEqual(store.savedConnections.map(\.endpoint.baseURL.absoluteString), ["http://macbook-pro.local:8765"])
     }
 
-    func testLaunchProximityDiscoveryPreservesOfflineStateWhenSavedConnectionAndNoNearbyRuntime() async throws {
+    func testLaunchBootstrapPreservesSavedOfflineStateWhenSavedConnectionAndNoNearbyRuntime() async throws {
         let savedConnection = StoredConnection(
             endpoint: try AgentEndpoint(rawURL: "https://old-hermes.example.com"),
             displayName: "Kartz MacBook Hermes",
@@ -944,10 +981,11 @@ final class ConnectionViewModelTests: XCTestCase {
             connectionStore: StubConnectionStore(savedConnection: savedConnection)
         )
 
-        await viewModel.restoreSavedConnectionOrDiscoverNearby()
+        let outcome = await viewModel.bootstrapConnectionForLaunch()
 
-        XCTAssertEqual(viewModel.state, .offline)
-        XCTAssertEqual(discoverer.calls, [2.5])
+        XCTAssertEqual(outcome, .savedConnectionOffline)
+        XCTAssertEqual(viewModel.state, .savedConnectionOffline(displayName: "Kartz MacBook Hermes"))
+        XCTAssertEqual(discoverer.calls, [1.8])
     }
 
     func testConnectDiscoveredRuntimeUsesPairingPayload() async throws {

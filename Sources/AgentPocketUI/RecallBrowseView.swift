@@ -25,13 +25,16 @@ public struct RecallBrowseView: View {
                 Section {
                     ForEach(viewModel.items, id: \.itemID) { item in
                         itemRow(item, matchReason: matchReason(for: item))
+                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
                                     Task {
                                         await viewModel.delete(itemID: item.itemID, connection: activeConnection())
                                     }
                                 } label: {
-                                    Label("Delete", systemImage: "trash")
+                                    Label(language == .chinese ? "删除" : "Delete", systemImage: "trash")
                                 }
                             }
                     }
@@ -39,8 +42,11 @@ public struct RecallBrowseView: View {
             }
         }
         .listStyle(.plain)
-        .navigationTitle("Recall")
-        .searchable(text: $viewModel.query, prompt: "Search Recall")
+        .scrollContentBackground(.hidden)
+        .background(AgentPocketDesignTokens.darkBackground.ignoresSafeArea())
+        .tint(AgentPocketDesignTokens.accent)
+        .navigationTitle(language == .chinese ? "记忆" : "Recall")
+        .searchable(text: $viewModel.query, prompt: language == .chinese ? "搜索记忆" : "Search Recall")
         .onSubmit(of: .search) {
             Task {
                 await viewModel.search(query: viewModel.query, connection: activeConnection())
@@ -61,7 +67,7 @@ public struct RecallBrowseView: View {
                         await viewModel.export(connection: activeConnection())
                     }
                 } label: {
-                    Label("Export", systemImage: "square.and.arrow.up")
+                    Label(language == .chinese ? "导出" : "Export", systemImage: "square.and.arrow.up")
                 }
                 .disabled(isBusy)
             }
@@ -75,6 +81,10 @@ public struct RecallBrowseView: View {
         }
     }
 
+    private var language: AppLanguage {
+        AppLanguage.resolved(storedValue: nil)
+    }
+
     @ViewBuilder
     private var stateSection: some View {
         switch viewModel.state {
@@ -83,28 +93,45 @@ public struct RecallBrowseView: View {
                 Label(message, systemImage: "exclamationmark.triangle.fill")
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.red)
+                    .recallStateRow()
             }
+            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
         case .exported(let export):
             Section {
-                Label("Exported \(export.items.count) Recall items", systemImage: "checkmark.circle.fill")
+                Label(exportedMessage(count: export.items.count), systemImage: "checkmark.circle.fill")
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(AgentPocketDesignTokens.accent)
+                    .recallStateRow()
             }
+            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
         case .deleting:
             Section {
-                Label("Deleting Recall item", systemImage: "trash")
+                Label(language == .chinese ? "正在删除记忆" : "Deleting Recall item", systemImage: "trash")
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.76))
+                    .recallStateRow()
             }
+            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
         case .exporting:
             Section {
                 HStack(spacing: 10) {
                     ProgressView()
-                    Text("Exporting Recall")
+                        .tint(AgentPocketDesignTokens.accent)
+                    Text(language == .chinese ? "正在导出记忆" : "Exporting Recall")
                         .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.76))
                 }
+                .recallStateRow()
             }
+            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
         case .idle, .loading, .loaded:
             EmptyView()
         }
@@ -112,19 +139,39 @@ public struct RecallBrowseView: View {
 
     private var emptySection: some View {
         Section {
-            ContentUnavailableView(
-                "No Recall Items",
-                systemImage: "brain.head.profile",
-                description: Text("Search or refresh after saving Recall items from completed tasks.")
+            VStack(alignment: .center, spacing: 10) {
+                Image(systemName: "brain.head.profile")
+                    .font(.system(size: 30, weight: .semibold))
+                    .foregroundStyle(AgentPocketDesignTokens.accent)
+                    .frame(width: 54, height: 54)
+
+                Text(language == .chinese ? "还没有记忆" : "No Recall Items")
+                    .font(.headline)
+                    .foregroundStyle(.white.opacity(0.92))
+
+                Text(language == .chinese ? "完成任务后保存的要点会出现在这里，之后可以搜索或导出。" : "Search or refresh after saving Recall items from completed tasks.")
+                    .font(.footnote)
+                    .foregroundStyle(.white.opacity(0.66))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, minHeight: 220)
+            .background(AgentPocketDesignTokens.darkPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                    .stroke(AgentPocketDesignTokens.darkStroke, lineWidth: 1)
             )
         }
+        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
     }
 
     private func itemRow(_ item: RecallItem, matchReason: String?) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(item.summary)
                 .font(.body.weight(.semibold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(.white)
                 .lineLimit(4)
                 .textSelection(.enabled)
 
@@ -136,10 +183,15 @@ public struct RecallBrowseView: View {
                 }
             }
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.white.opacity(0.66))
             .lineLimit(2)
         }
-        .padding(.vertical, 4)
+        .padding(14)
+        .background(AgentPocketDesignTokens.darkPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                .stroke(AgentPocketDesignTokens.darkStroke, lineWidth: 1)
+        )
     }
 
     private var isLoading: Bool {
@@ -161,15 +213,37 @@ public struct RecallBrowseView: View {
     private func provenanceText(_ provenance: RecallItem.Provenance) -> String {
         var parts: [String] = []
         if let sourceTaskID = provenance.sourceTaskID, sourceTaskID.isEmpty == false {
-            parts.append("Task \(sourceTaskID)")
+            parts.append(language == .chinese ? "任务 \(sourceTaskID)" : "Task \(sourceTaskID)")
         }
         if let sourceInboxItemID = provenance.sourceInboxItemID {
-            parts.append("Inbox \(sourceInboxItemID.uuidString)")
+            parts.append(language == .chinese ? "收件箱 \(sourceInboxItemID.uuidString)" : "Inbox \(sourceInboxItemID.uuidString)")
         }
-        return parts.isEmpty ? "No provenance" : parts.joined(separator: " / ")
+        return parts.isEmpty ? (language == .chinese ? "没有来源" : "No provenance") : parts.joined(separator: " / ")
+    }
+
+    private func exportedMessage(count: Int) -> String {
+        switch language {
+        case .chinese:
+            return "已导出 \(count) 条记忆"
+        case .english:
+            return "Exported \(count) Recall items"
+        }
     }
 
     private func matchReason(for item: RecallItem) -> String? {
         viewModel.lastSearchMatches.first { $0.item.itemID == item.itemID }?.matchReason
+    }
+}
+
+private extension View {
+    func recallStateRow() -> some View {
+        self
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AgentPocketDesignTokens.darkPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                    .stroke(AgentPocketDesignTokens.darkStroke, lineWidth: 1)
+            )
     }
 }

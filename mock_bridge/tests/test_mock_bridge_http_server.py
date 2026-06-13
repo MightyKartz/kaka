@@ -275,6 +275,75 @@ def test_http_server_runtime_store_path_preserves_recall_after_restart(tmp_path)
         second_server.server_close()
 
 
+def test_http_server_runtime_store_preserves_image_intake_result_after_restart(tmp_path):
+    from kaka_mobile_runtime_kit.runtime_store import SQLiteRuntimeStore
+
+    db_path = tmp_path / "runtime.sqlite3"
+    first_store = SQLiteRuntimeStore(db_path)
+    first_store.initialize()
+    first_server = create_http_server("127.0.0.1", 0, app=create_app(runtime_store=first_store))
+    first_thread = threading.Thread(target=first_server.serve_forever, daemon=True)
+    first_thread.start()
+    first_base_url = f"http://127.0.0.1:{first_server.server_address[1]}"
+    headers = {
+        "Authorization": "Bearer dev-mobile-token",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        upload_body, upload_content_type = _multipart_body(
+            {"metadata": '{"width":100,"height":100}'},
+            {"file": ("photo.jpg", "image/jpeg", b"source-image")},
+        )
+        upload = _json_request(
+            f"{first_base_url}/mobile/v1/assets",
+            method="POST",
+            body=upload_body,
+            headers={
+                "Authorization": "Bearer dev-mobile-token",
+                "Content-Type": upload_content_type,
+            },
+        )
+        created = _json_request(
+            f"{first_base_url}/mobile/v1/tasks/image-intake",
+            method="POST",
+            body=json.dumps(
+                {
+                    "profile_id": "photo-agent",
+                    "asset_id": upload["asset_id"],
+                    "locale": "en",
+                }
+            ).encode("utf-8"),
+            headers=headers,
+        )
+    finally:
+        first_server.shutdown()
+        first_thread.join(timeout=2)
+        first_server.server_close()
+
+    reopened_store = SQLiteRuntimeStore(db_path)
+    reopened_store.initialize()
+    second_server = create_http_server("127.0.0.1", 0, app=create_app(runtime_store=reopened_store))
+    second_thread = threading.Thread(target=second_server.serve_forever, daemon=True)
+    second_thread.start()
+    second_base_url = f"http://127.0.0.1:{second_server.server_address[1]}"
+
+    try:
+        status = _json_request(
+            f"{second_base_url}/mobile/v1/tasks/{created['task_id']}",
+            headers={"Authorization": "Bearer dev-mobile-token"},
+        )
+
+        assert status["status"] == "completed"
+        assert status["result_type"] == "image_intake"
+        assert status["image_intake"]["title"]
+        assert status["image_intake"]["suggestions"]
+    finally:
+        second_server.shutdown()
+        second_thread.join(timeout=2)
+        second_server.server_close()
+
+
 def test_bonjour_advertisement_publishes_discoverable_pairing_metadata():
     launched_commands = []
     process = FakeProcess()

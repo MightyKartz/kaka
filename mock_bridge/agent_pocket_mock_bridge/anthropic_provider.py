@@ -92,6 +92,13 @@ class AnthropicProvider:
             content.append(_image_block(source_bytes, mime_type or "image/jpeg"))
         elif normalized_type == "pdf" and source_bytes is not None:
             content.append(_document_block(source_bytes, mime_type or "application/pdf"))
+        elif normalized_type == "video" and source_bytes is not None:
+            content.append(
+                {
+                    "type": "text",
+                    "text": f"Video asset received: {len(source_bytes)} bytes, MIME {mime_type or 'video/quicktime'}.",
+                }
+            )
         content.append({"type": "text", "text": _universal_intake_instruction(normalized_type, payload)})
         return _normalize_universal_intake(
             self._call_json(

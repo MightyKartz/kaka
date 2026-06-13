@@ -30,13 +30,14 @@ final class ConnectScreenCopyTests: XCTestCase {
             fallbackDeviceName: "我的电脑"
         )
 
-        XCTAssertEqual(copy.connectTitle, "连接我的本机智能体")
-        XCTAssertEqual(copy.primaryButtonTitle, "连接")
+        XCTAssertEqual(copy.connectTitle, "连接你的本机运行时")
+        XCTAssertEqual(copy.connectSubtitle, "首次连接需要扫描 Mac 上的配对二维码。之后 Kaka 会自动连接。")
+        XCTAssertEqual(copy.primaryButtonTitle, "扫描二维码连接")
         XCTAssertEqual(copy.scanCodeTitle, "扫描二维码")
-        XCTAssertEqual(copy.nearbyRuntimeDescription, "确认这台 Mac 后，Kaka 会保存一个移动端令牌，下次自动连接。")
+        XCTAssertEqual(copy.nearbyRuntimeDescription, "首次建议扫描 Mac 上的二维码；发现附近运行时可作为备选连接方式。")
         XCTAssertEqual(copy.settingsTitle, "项目设置")
         XCTAssertEqual(copy.deviceName, "我的电脑")
-        XCTAssertEqual(copy.onlineTrustedTitle, "点击连接后发现")
+        XCTAssertEqual(copy.onlineTrustedTitle, "首次扫码建立信任")
         XCTAssertEqual(copy.trustBadgeTitles, ["本地网络", "待确认"])
         XCTAssertFalse(copy.visibleCopy.localizedCaseInsensitiveContains("Connect My Local Agent"))
     }
@@ -48,12 +49,12 @@ final class ConnectScreenCopyTests: XCTestCase {
             fallbackDeviceName: "Local Mac"
         )
 
-        XCTAssertEqual(copy.connectTitle, "Connect My Local Agent")
-        XCTAssertEqual(copy.primaryButtonTitle, "Connect")
+        XCTAssertEqual(copy.connectTitle, "Connect Your Local Runtime")
+        XCTAssertEqual(copy.primaryButtonTitle, "Scan Pairing QR")
         XCTAssertEqual(copy.scanCodeTitle, "Scan Code")
-        XCTAssertEqual(copy.nearbyRuntimeDescription, "Confirm this Mac once. Kaka stores a mobile token and reconnects next time.")
+        XCTAssertEqual(copy.nearbyRuntimeDescription, "Scan the QR on your Mac first. Nearby discovery is available as a fallback.")
         XCTAssertEqual(copy.settingsTitle, "Project Settings")
-        XCTAssertEqual(copy.onlineTrustedTitle, "Tap Connect to Find")
+        XCTAssertEqual(copy.onlineTrustedTitle, "Scan Once to Trust")
         XCTAssertEqual(copy.trustBadgeTitles, ["Local Network", "Confirm"])
         XCTAssertFalse(copy.visibleCopy.containsCJKCharacters)
     }
@@ -110,6 +111,20 @@ final class ConnectScreenCopyTests: XCTestCase {
             XCTAssertEqual(copy.connectTitle, "连接失败")
             XCTAssertEqual(copy.connectSubtitle, expectedSubtitle)
         }
+    }
+
+    func testSavedOfflineCopyExplainsMacActionBeforeReconnect() {
+        let copy = ConnectScreenCopy(
+            state: .savedConnectionOffline(displayName: "Kartz Mac"),
+            language: .chinese,
+            fallbackDeviceName: "我的电脑"
+        )
+
+        XCTAssertEqual(copy.connectTitle, "Mac 上的本机运行时未启动")
+        XCTAssertEqual(copy.connectSubtitle, "Kartz Mac 的配对还在。请先在 Mac 上启动 Hermes/OpenClaw 或 runtime-kit，再回到这里重新连接。")
+        XCTAssertEqual(copy.primaryButtonTitle, "我已启动，重新连接")
+        XCTAssertEqual(copy.onlineTrustedTitle, "配对已保存 · Mac 待启动")
+        XCTAssertEqual(copy.trustBadgeTitles, ["配对已保存", "Mac 待启动"])
     }
 }
 

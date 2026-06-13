@@ -32,17 +32,44 @@ public enum MobileBridgeTrustPolicy: Equatable, Sendable {
 }
 
 public enum MobileBridgeURLSessionFactory {
-    public static func makeSession(for policy: MobileBridgeTrustPolicy) -> URLSession {
+    public static func makeSession(
+        for policy: MobileBridgeTrustPolicy,
+        requestTimeout: TimeInterval? = nil,
+        resourceTimeout: TimeInterval? = nil
+    ) -> URLSession {
         switch policy {
         case .systemDefault:
-            return .shared
+            guard requestTimeout != nil || resourceTimeout != nil else {
+                return .shared
+            }
+            return URLSession(configuration: makeConfiguration(
+                requestTimeout: requestTimeout,
+                resourceTimeout: resourceTimeout
+            ))
         case .pinnedPublicKeySHA256(let fingerprint):
             return URLSession(
-                configuration: .ephemeral,
+                configuration: makeConfiguration(
+                    requestTimeout: requestTimeout,
+                    resourceTimeout: resourceTimeout
+                ),
                 delegate: MobileBridgePinnedTrustDelegate(pinnedPublicKeySHA256: fingerprint),
                 delegateQueue: nil
             )
         }
+    }
+
+    private static func makeConfiguration(
+        requestTimeout: TimeInterval?,
+        resourceTimeout: TimeInterval?
+    ) -> URLSessionConfiguration {
+        let configuration = URLSessionConfiguration.ephemeral
+        if let requestTimeout {
+            configuration.timeoutIntervalForRequest = requestTimeout
+        }
+        if let resourceTimeout {
+            configuration.timeoutIntervalForResource = resourceTimeout
+        }
+        return configuration
     }
 }
 

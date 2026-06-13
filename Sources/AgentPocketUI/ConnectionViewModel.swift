@@ -29,9 +29,11 @@ public protocol PairingExchanging {
 
 public struct MobileBridgeConnectionChecker: ConnectionChecking {
     private let session: URLSession?
+    private let requestTimeout: TimeInterval
 
-    public init(session: URLSession? = nil) {
+    public init(session: URLSession? = nil, requestTimeout: TimeInterval = 1.5) {
         self.session = session
+        self.requestTimeout = requestTimeout
     }
 
     public func check(
@@ -42,7 +44,11 @@ public struct MobileBridgeConnectionChecker: ConnectionChecking {
         let client = MobileBridgeHTTPClient(
             endpoint: endpoint,
             token: token,
-            session: session ?? MobileBridgeURLSessionFactory.makeSession(for: trustPolicy)
+            session: session ?? MobileBridgeURLSessionFactory.makeSession(
+                for: trustPolicy,
+                requestTimeout: requestTimeout,
+                resourceTimeout: requestTimeout + 0.5
+            )
         )
         let health = try await client.fetchHealth()
         let capabilities = try await client.fetchCapabilities()
@@ -104,6 +110,13 @@ public struct MobileBridgePairingPayloadRefresher: PairingPayloadRefreshing {
             session: session
         ).fetchPairingPayload()
     }
+}
+
+public enum ConnectionBootstrapOutcome: Equatable, Sendable {
+    case needsFirstPairing
+    case connected
+    case savedConnectionOffline
+    case needsUserAction
 }
 
 @MainActor
@@ -419,35 +432,53 @@ public final class ConnectionViewModel: ObservableObject {
         _ = await restoreSavedConnectionIfAvailable()
     }
 
+    public func bootstrapConnectionForLaunch(
+        timeout: TimeInterval = 1.8
+    ) async -> ConnectionBootstrapOutcome {
+        if case .connected = state {
+            return .connected
+        }
+
+        let restoreOutcome = await restoreSavedConnectionIfAvailable()
+        switch restoreOutcome {
+        case .noSavedConnection:
+            return .needsFirstPairing
+        case .savedConnectionOffline(let savedConnection):
+            if await repairSavedConnectionEndpointFromNearbyRuntime(
+                savedConnection,
+                timeout: timeout
+            ) {
+                return .connected
+            }
+            return .savedConnectionOffline
+        case .attemptedSavedConnection:
+            if case .connected = state {
+                return .connected
+            }
+            return .needsUserAction
+        }
+    }
+
     public func restoreSavedConnectionOrDiscoverNearby(
         timeout: TimeInterval = 2.5,
         now: Date = Date(),
         deviceName: String = "Agent Pocket",
         devicePublicID: String = "agent-pocket-device"
     ) async {
+        _ = now
+        _ = deviceName
+        _ = devicePublicID
         if case .connected = state {
             return
         }
         let restoreOutcome = await restoreSavedConnectionIfAvailable()
         switch restoreOutcome {
         case .noSavedConnection:
-            await discoverLocalRuntimes(
-                timeout: timeout,
-                autoPairSingleRuntime: true,
-                showsNoResultsFailure: false,
-                now: now,
-                deviceName: deviceName,
-                devicePublicID: devicePublicID
-            )
-        case .savedConnectionOffline:
-            await discoverLocalRuntimes(
-                timeout: timeout,
-                autoPairSingleRuntime: true,
-                showsNoResultsFailure: false,
-                fallbackStateWhenNoResults: .offline,
-                now: now,
-                deviceName: deviceName,
-                devicePublicID: devicePublicID
+            state = .idle
+        case .savedConnectionOffline(let savedConnection):
+            _ = await repairSavedConnectionEndpointFromNearbyRuntime(
+                savedConnection,
+                timeout: timeout
             )
         case .attemptedSavedConnection:
             return
@@ -469,7 +500,7 @@ public final class ConnectionViewModel: ObservableObject {
             return .noSavedConnection
         }
 
-        state = .testing
+        state = .restoringSavedConnection(displayName: savedConnection.displayName)
         do {
             let runtime = try await connectionChecker.check(
                 endpoint: savedConnection.endpoint,
@@ -494,13 +525,96 @@ public final class ConnectionViewModel: ObservableObject {
             return .attemptedSavedConnection
         } catch let error as URLError where error.isLikelyOffline {
             activeConnection = nil
-            state = .offline
-            return .savedConnectionOffline
+            state = .savedConnectionOffline(displayName: savedConnection.displayName)
+            return .savedConnectionOffline(savedConnection)
         } catch {
             activeConnection = nil
             state = .failed(message: "Could not restore local agent connection.")
             return .attemptedSavedConnection
         }
+    }
+
+    private func repairSavedConnectionEndpointFromNearbyRuntime(
+        _ savedConnection: StoredConnection,
+        timeout: TimeInterval
+    ) async -> Bool {
+        let runtimes: [DiscoveredRuntime]
+        do {
+            runtimes = try await runtimeDiscoverer.discover(timeout: timeout)
+        } catch RuntimeDiscoveryError.searchFailed {
+            state = .localNetworkPermissionRequired
+            return false
+        } catch {
+            state = .savedConnectionOffline(displayName: savedConnection.displayName)
+            return false
+        }
+
+        guard let runtime = uniqueLikelySameRuntime(
+            as: savedConnection,
+            in: runtimes
+        ) else {
+            discoveredRuntimes = runtimes
+            state = .savedConnectionOffline(displayName: savedConnection.displayName)
+            return false
+        }
+
+        let candidate = StoredConnection(
+            endpoint: runtime.endpoint,
+            displayName: runtime.displayName,
+            runtime: savedConnection.runtime,
+            runtimeVersion: savedConnection.runtimeVersion,
+            mobileToken: savedConnection.mobileToken,
+            tokenExpiresAt: savedConnection.tokenExpiresAt,
+            tlsPublicKeySHA256: savedConnection.tlsPublicKeySHA256
+        )
+
+        state = .restoringSavedConnection(displayName: candidate.displayName)
+        do {
+            let connectedRuntime = try await connectionChecker.check(
+                endpoint: candidate.endpoint,
+                token: candidate.mobileToken,
+                trustPolicy: candidate.trustPolicy
+            )
+            activeConnection = try saveConnection(
+                endpoint: candidate.endpoint,
+                token: candidate.mobileToken,
+                runtime: connectedRuntime,
+                tokenExpiresAt: candidate.tokenExpiresAt,
+                tlsPublicKeySHA256: candidate.tlsPublicKeySHA256
+            )
+            markConnected(connectedRuntime)
+            return true
+        } catch ConnectionCheckError.missingPhotoEdit {
+            activeConnection = nil
+            state = .missingPhotoEdit
+        } catch ConnectionStoreError.saveFailed {
+            state = .failed(message: "Could not save local agent credentials.")
+        } catch MobileBridgeHTTPClient.ClientError.httpStatus(401, _) {
+            try? connectionStore.clear()
+            activeConnection = nil
+            state = .unauthorized
+        } catch let error as URLError where error.isLikelyCertificateProblem {
+            activeConnection = nil
+            state = .invalidCertificate
+        } catch {
+            activeConnection = nil
+            state = .savedConnectionOffline(displayName: savedConnection.displayName)
+        }
+        return false
+    }
+
+    private func uniqueLikelySameRuntime(
+        as savedConnection: StoredConnection,
+        in runtimes: [DiscoveredRuntime]
+    ) -> DiscoveredRuntime? {
+        let matches = runtimes.filter { runtime in
+            runtime.displayName == savedConnection.displayName
+                && (runtime.endpoint.runtime ?? savedConnection.runtime) == savedConnection.runtime
+        }
+        guard matches.count == 1 else {
+            return nil
+        }
+        return matches[0]
     }
 
     public func forgetSavedConnection() {
@@ -562,7 +676,7 @@ private enum ConnectionStoreError: Error {
 
 private enum RestoreSavedConnectionOutcome {
     case noSavedConnection
-    case savedConnectionOffline
+    case savedConnectionOffline(StoredConnection)
     case attemptedSavedConnection
 }
 

@@ -38,6 +38,18 @@ final class CaptureScreenPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.connectedBadge, "已连接 · 本机智能体")
     }
 
+    func testDisconnectedCaptureBadgeDoesNotClaimRuntimeIsConnected() {
+        let presentation = CaptureScreenPresentation(
+            state: .empty,
+            selectedCameraMode: .masterShot,
+            selectedIntent: .naturalEnhance,
+            language: .chinese,
+            connectedRuntimeName: nil
+        )
+
+        XCTAssertEqual(presentation.connectedBadge, "未连接 · 本机智能体")
+    }
+
     func testReadyPresentationEnablesSendActionForKaka() throws {
         let viewModel = CaptureFlowViewModel()
         viewModel.selectedIntent = .portraitPolish
