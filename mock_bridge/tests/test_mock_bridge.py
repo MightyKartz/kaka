@@ -562,10 +562,49 @@ def test_capabilities_advertise_universal_intake_contract():
 
     intake = response.get_json()["tasks"]["intake"]
     assert response.status_code == 200
-    assert intake["accepted_types"] == ["text", "url", "image", "pdf"]
+    assert intake["accepted_types"] == ["text", "url", "image", "pdf", "video"]
     assert intake["supports_context_snapshot"] is True
     assert intake["supports_voice_followup"] is True
     assert intake["supports_sse"] is False
+
+
+def test_video_universal_intake_requires_asset_id():
+    client = create_app().test_client()
+
+    response = client.post(
+        "/mobile/v1/tasks/intake",
+        headers={"Authorization": "Bearer dev-mobile-token"},
+        json={"kind": "video", "source": {"surface": "video_capture"}},
+    )
+
+    assert response.status_code == 400
+    assert response.get_json()["error"]["code"] == "invalid_intake_payload"
+
+
+def test_video_universal_intake_returns_video_result():
+    client = create_app().test_client()
+    headers = {"Authorization": "Bearer dev-mobile-token"}
+    asset = client.post(
+        "/mobile/v1/assets",
+        headers=headers,
+        data={"file": (io.BytesIO(b"movie"), "clip.mov", "video/quicktime")},
+    ).get_json()
+
+    created = client.post(
+        "/mobile/v1/tasks/intake",
+        headers=headers,
+        json={
+            "kind": "video",
+            "asset_id": asset["asset_id"],
+            "note": "Summarize this short video.",
+            "source": {"surface": "video_capture"},
+        },
+    ).get_json()
+    status = client.get(f"/mobile/v1/tasks/{created['task_id']}", headers=headers).get_json()
+
+    assert status["result_type"] == "intake"
+    assert status["intake"]["kind"] == "video"
+    assert "video" in status["intake"]["title"].lower()
 
 
 def test_recall_semantic_search_returns_ranked_results_without_raw_index_ids():
@@ -1714,7 +1753,7 @@ def test_universal_intake_requires_auth_and_rejects_bad_payloads():
         "/mobile/v1/tasks/intake",
         json={"type": "text", "text": "hello"},
     )
-    unknown_type = client.post(
+    missing_video_asset = client.post(
         "/mobile/v1/tasks/intake",
         headers=headers,
         json={"type": "video", "text": "hello"},
@@ -1732,8 +1771,8 @@ def test_universal_intake_requires_auth_and_rejects_bad_payloads():
 
     assert unauthorized.status_code == 401
     assert unauthorized.get_json()["error"]["code"] == "unauthorized"
-    assert unknown_type.status_code == 400
-    assert unknown_type.get_json()["error"]["code"] == "intake_unavailable"
+    assert missing_video_asset.status_code == 400
+    assert missing_video_asset.get_json()["error"]["code"] == "invalid_intake_payload"
     assert missing_image.status_code == 404
     assert missing_image.get_json()["error"]["code"] == "not_found"
     assert missing_text.status_code == 400

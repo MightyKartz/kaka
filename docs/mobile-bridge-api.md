@@ -269,7 +269,7 @@ Response:
       "supports_sse": true
     },
     "intake": {
-      "accepted_types": ["text", "url", "image", "pdf"],
+      "accepted_types": ["text", "url", "image", "pdf", "video"],
       "provider": "heuristic_universal_intake",
       "supports_context_snapshot": true,
       "supports_voice_followup": true,
@@ -303,7 +303,9 @@ This additive endpoint handles visible user-shared non-camera items. The iOS Pha
 
 P3.36b Explicit Paste-to-Inbox Courier uses the same boundary: the phone reads clipboard text only after the user taps the visible Inbox Paste button, creates a pending `.text` or http/https `.url` item with `source.surface = "paste"`, and still waits for visible Inbox `Send` before this endpoint is called.
 
-B.1 voice follow-up, P3.30 Voice-to-Inbox Draft, and P3.32 Inbox Voice Instruction use the same text boundary: Kaka records only while the user explicitly presses the push-to-talk control, transcribes on device with iOS Speech, shows an editable transcript, and sends the reviewed transcript as text. P3.32 saves the reviewed transcript into the selected `KakaInboxItem.note`; P3.33 adds local edit, clear, and send-preview UI for that note; P3.34 adds deterministic local template chips that write selected template text into the same note; the existing submitter sends the note as `note` and `user_instruction` only after the user taps visible Inbox `Send`. For `pdf`, the main app uploads the shared PDF payload from the visible Inbox action, then starts `/mobile/v1/tasks/intake` with the returned `asset_id`. Shared image payloads, including screenshots represented as images, keep routing through `image_intake` so the existing image conversation stays intact.
+B.1 voice follow-up, P3.30 Voice-to-Inbox Draft, and P3.32 Inbox Voice Instruction use the same text boundary: Kaka records only while the user explicitly presses the push-to-talk control, transcribes on device with iOS Speech, shows an editable transcript, and sends the reviewed transcript as text. P3.32 saves the reviewed transcript into the selected `KakaInboxItem.note`; P3.33 adds local edit, clear, and send-preview UI for that note; P3.34 adds deterministic local template chips that write selected template text into the same note; the existing submitter sends the note as `note` and `user_instruction` only after the user taps visible Inbox `Send`. For `pdf` and first-release short `video`, the main app uploads the shared/copied file payload from the visible Inbox action, then starts `/mobile/v1/tasks/intake` with the returned `asset_id`. Shared image payloads, including screenshots represented as images, keep routing through `image_intake` so the existing image conversation stays intact.
+
+M1 Local Agent Lens adds phone-native source surfaces while keeping the same visible-review boundary: `agent_scanner`, `document_scanner`, `video_capture`, `action_button`, and `shortcut`. Scanner results are never opened or submitted automatically; Kaka first shows explicit actions such as ask local agent, open URL, copy, save, or connect local runtime. Document scan and video capture/create only local Inbox drafts until the user reviews and taps visible Inbox `Send`. Action Button and Shortcuts only foreground Kaka to the relevant Lens surface.
 
 `supports_voice_followup: true` means the runtime can accept text follow-up submitted from the visible voice UI and may return a short `summary` that the phone can read aloud. It does not mean B.1, P3.30, or P3.32 uploads raw microphone audio. Raw audio stays local and temporary; always-on listening, hidden background transcription, automatic Inbox submission, and automatic Recall writes are out of scope.
 
@@ -397,20 +399,20 @@ Request for Voice-to-Inbox text:
 }
 ```
 
-Request for image or PDF-capable runtimes:
+Request for image, PDF, or video-capable runtimes:
 
 ```json
 {
-  "kind": "pdf",
-  "asset_id": "asset_pdf_123",
+  "kind": "video",
+  "asset_id": "asset_video_123",
   "source": {
-    "surface": "share_extension",
-    "host_app": "Files"
+    "surface": "video_capture",
+    "host_app": "Kaka"
   }
 }
 ```
 
-The mock bridge also accepts legacy-compatible `"type"` in place of `"kind"`. For `image` and `pdf`, the runtime expects an existing `asset_id`. The iOS app obtains the PDF `asset_id` only from a visible main-app Inbox submission; the Share Extension still never uploads directly.
+The mock bridge also accepts legacy-compatible `"type"` in place of `"kind"`. For `image`, `pdf`, and `video`, the runtime expects an existing `asset_id`. The iOS app obtains PDF/video `asset_id` values only from a visible main-app Inbox submission; the Share Extension, scanner, Action Button, and Shortcuts still never upload directly.
 
 Create response:
 
@@ -474,7 +476,7 @@ Forward-compatible capability shape:
 {
   "tasks": {
     "intake": {
-      "accepted_types": ["image", "screenshot", "text", "url", "pdf"],
+      "accepted_types": ["image", "screenshot", "text", "url", "pdf", "video"],
       "supports_context_snapshot": true,
       "supports_voice_followup": true,
       "supports_recall_actions": true,
@@ -904,9 +906,9 @@ Response:
 }
 ```
 
-Task Inbox E.1 adds iOS system surfaces without changing the Mobile Bridge task API. App Intents open Kaka to visible Inbox or Tasks review surfaces through an app handoff; they do not submit inbox items, approve tasks, cancel tasks, collect Context Snapshot data, or change runtime/provider settings in the background. Approval and cancellation still go through the existing Mobile Bridge endpoints after the app shows the current task state.
+Task Inbox E.1 adds iOS system surfaces without changing the Mobile Bridge task API. App Intents open Kaka to visible Inbox, Tasks, or Local Agent Lens surfaces through an app handoff; they do not submit inbox items, approve tasks, cancel tasks, collect Context Snapshot data, or change runtime/provider settings in the background. Approval and cancellation still go through the existing Mobile Bridge endpoints after the app shows the current task state.
 
-Action Button support reuses the same foreground App Intent handoff and only opens visible Inbox or Tasks review surfaces. It does not add Mobile Bridge fields, endpoints, or hidden task actions.
+Action Button support reuses the same foreground App Intent handoff and may open visible Inbox, Tasks, Scanner, Document Scan, Video Intake, or Voice surfaces. It does not add Mobile Bridge fields, endpoints, or hidden task actions.
 
 Live Activity state is a phone-safe projection of runtime task state. The `title` value is generated by the iPhone from task phase and must not copy the runtime-controlled task title. The allowed system-surface fields are:
 
@@ -914,8 +916,10 @@ Live Activity state is a phone-safe projection of runtime task state. The `title
 - `title`
 - `phase`
 - `approval_needed`
+- `progress`
+- `message`
 
-The projection must not include `message`, `progress`, `updated_at`, bearer tokens, provider endpoints or keys, hidden prompts, task logs, asset bytes, Context Snapshot fields, Recall content, embeddings, retrieval-index rows, or runtime SQLite paths.
+`progress` is clamped to `0...1`. `message` is the same short, phone-visible task message Kaka can already show in Task Inbox; it must be sanitized by the runtime and is trimmed by the phone projection. The projection must not include `updated_at`, bearer tokens, provider endpoints or keys, hidden prompts, task logs, asset bytes, Context Snapshot fields, Recall content, embeddings, retrieval-index rows, or runtime SQLite paths.
 
 The WidgetKit Live Activity extension renders only this projection on the Lock Screen and Dynamic Island. It does not add task approval or cancellation endpoints; those actions still require opening Kaka and using the visible Task Inbox state.
 

@@ -58,6 +58,63 @@ final class UniversalIntakeSubmitterTests: XCTestCase {
         XCTAssertEqual(recordedEvents, [.uploading, .startingTask, .submitted(taskID: "task_intake_pdf")])
     }
 
+    func testVideoIntakeUploadsAssetBeforeStartingTask() async throws {
+        let upload = PreparedAssetUpload(
+            data: Data("movie".utf8),
+            mimeType: "video/quicktime",
+            fileName: "clip.mov",
+            metadata: AssetUploadMetadata(
+                source: "video_capture",
+                originalFileName: "clip.mov",
+                stripSensitiveMetadata: true
+            )
+        )
+        let submitter = MobileBridgeUniversalIntakeSubmitter(
+            session: mockSession(),
+            poller: TaskPoller(intervalNanoseconds: 0),
+            documentLoader: StubDocumentPayloadLoader(upload: upload)
+        )
+        let progress = ProgressRecorder()
+        UniversalIntakeMockURLProtocol.state.update { state in
+            state.expectedUploadFileName = "clip.mov"
+            state.expectedUploadContentType = "video/quicktime"
+            state.expectedUploadSource = "video_capture"
+            state.uploadedAssetID = "asset_video_123"
+            state.expectedSourceSurface = "video_capture"
+        }
+        UniversalIntakeMockURLProtocol.state.setRequestHandler { request in
+            try UniversalIntakeHTTPRecording.response(for: request)
+        }
+
+        let status = try await submitter.submit(
+            item: KakaInboxItem(
+                kind: .video,
+                sourceSurface: "video_capture",
+                note: "Summarize this short video.",
+                fileName: "clip.mov",
+                mimeType: "video/quicktime",
+                relativeFilePath: "SharedPayloads/clip.mov"
+            ),
+            connection: try storedConnection(),
+            contextSnapshot: nil,
+            progress: { event in await progress.append(event) }
+        )
+
+        XCTAssertEqual(
+            UniversalIntakeMockURLProtocol.state.snapshot().requestPaths,
+            [
+                "/mobile/v1/capabilities",
+                "/mobile/v1/assets",
+                "/mobile/v1/tasks/intake",
+                "/mobile/v1/tasks/task_intake_video"
+            ]
+        )
+        XCTAssertEqual(status.intake?.kind, .video)
+        XCTAssertEqual(UniversalIntakeMockURLProtocol.state.snapshot().startedIntakeAssetIDs, ["asset_video_123"])
+        let recordedEvents = await progress.recordedEvents()
+        XCTAssertEqual(recordedEvents, [.uploading, .startingTask, .submitted(taskID: "task_intake_video")])
+    }
+
     func testProvidedContextSnapshotIsEncodedWhenRuntimeSupportsContextSnapshot() async throws {
         UniversalIntakeMockURLProtocol.state.update { state in
             state.supportsContextSnapshot = true
@@ -352,18 +409,19 @@ private enum UniversalIntakeHTTPRecording {
               "profiles": [{"id":"photo-agent","display_name":"Photo Agent","capabilities":["photo_edit","intake"]}],
               "tasks": {
                 "photo_edit": {"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance"],"provider":"recipe_local","renderer":"local_parametric","variant_labels":["Master"],"variant_ids":["variant_clean_pro"],"crop_aspects":["original"],"supports_crop_candidates":false,"supports_upscale_policy":true,"supports_sse":false,"return_variants_max":1},
-                "intake": {"accepted_types":["text","url","image","pdf"],"provider":"heuristic_universal_intake","supports_sse":false\(contextSnapshotCapability)}
+                "intake": {"accepted_types":["text","url","image","pdf","video"],"provider":"heuristic_universal_intake","supports_sse":false\(contextSnapshotCapability)}
               },
               "retention": {"input_assets_days":7,"output_assets_days":30,"task_history_days":30}
             }
             """)
         case ("POST", "/mobile/v1/assets"):
             let body = String(data: request.httpBodyStreamData(), encoding: .utf8) ?? ""
-            XCTAssertTrue(body.contains("name=\"file\"; filename=\"brief.pdf\""))
-            XCTAssertTrue(body.contains("Content-Type: application/pdf"))
-            XCTAssertTrue(body.contains("\"source\":\"share_extension\""))
+            let snapshot = UniversalIntakeMockURLProtocol.state.snapshot()
+            XCTAssertTrue(body.contains("name=\"file\"; filename=\"\(snapshot.expectedUploadFileName)\""))
+            XCTAssertTrue(body.contains("Content-Type: \(snapshot.expectedUploadContentType)"))
+            XCTAssertTrue(body.contains("\"source\":\"\(snapshot.expectedUploadSource)\""))
             return ok(request, """
-            {"asset_id":"asset_pdf_123","mime_type":"application/pdf","size_bytes":8,"sha256":"def"}
+            {"asset_id":"\(snapshot.uploadedAssetID)","mime_type":"\(snapshot.expectedUploadContentType)","size_bytes":8,"sha256":"def"}
             """)
         case ("POST", "/mobile/v1/tasks/intake"):
             let payload = try JSONSerialization.jsonObject(with: request.httpBodyStreamData()) as? [String: Any]
@@ -396,6 +454,10 @@ private enum UniversalIntakeHTTPRecording {
         case ("GET", "/mobile/v1/tasks/task_intake_url"):
             return ok(request, """
             {"task_id":"task_intake_url","status":"completed","progress":1.0,"result_type":"intake","intake":{"kind":"url","title":"URL ready","summary":"Kaka received a URL.","suggestions":[]}}
+            """)
+        case ("GET", "/mobile/v1/tasks/task_intake_video"):
+            return ok(request, """
+            {"task_id":"task_intake_video","status":"completed","progress":1.0,"result_type":"intake","intake":{"kind":"video","title":"Video ready","summary":"Kaka received a short video.","suggestions":[]}}
             """)
         default:
             throw URLError(.badServerResponse)
@@ -492,6 +554,10 @@ private struct UniversalIntakeMockSnapshot {
     var expectedSourceApp: String?
     var expectedNote: String?
     var expectedUserInstruction: String?
+    var expectedUploadFileName = "brief.pdf"
+    var expectedUploadContentType = "application/pdf"
+    var expectedUploadSource = "share_extension"
+    var uploadedAssetID = "asset_pdf_123"
 }
 
 private final class UniversalIntakeMockState: @unchecked Sendable {

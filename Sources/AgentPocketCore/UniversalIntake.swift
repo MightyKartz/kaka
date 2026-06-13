@@ -6,6 +6,7 @@ public enum UniversalIntakeKind: String, Codable, CaseIterable, Sendable {
     case image
     case screenshot
     case pdf
+    case video
 }
 
 public struct IntakeSource: Codable, Equatable, Sendable {

@@ -18,7 +18,27 @@ final class RuntimeTaskActivityTests: XCTestCase {
         XCTAssertEqual(snapshot.title, "Review task in Kaka")
         XCTAssertEqual(snapshot.phase, .needsApproval)
         XCTAssertTrue(snapshot.approvalNeeded)
-        XCTAssertEqual(RuntimeTaskActivitySnapshot.phoneSafeFieldNames, ["task_id", "title", "phase", "approval_needed"])
+        XCTAssertEqual(RuntimeTaskActivitySnapshot.phoneSafeFieldNames, ["task_id", "title", "phase", "approval_needed", "progress", "message"])
+    }
+
+    func testActivitySnapshotIncludesOnlyPhoneSafeProgressAndMessage() {
+        let task = RuntimeTaskSummary(
+            id: "task_video",
+            title: "Analyze short video",
+            status: .running,
+            progress: 0.42,
+            message: " Extracting key moments ",
+            updatedAt: "2026-06-13T10:00:00Z"
+        )
+
+        let snapshot = RuntimeTaskActivitySnapshot(task: task)
+
+        XCTAssertEqual(snapshot.progress, 0.42)
+        XCTAssertEqual(snapshot.message, "Extracting key moments")
+        XCTAssertEqual(
+            RuntimeTaskActivitySnapshot.phoneSafeFieldNames,
+            ["task_id", "title", "phase", "approval_needed", "progress", "message"]
+        )
     }
 
     func testActivitySnapshotDoesNotExposeRuntimeControlledTaskTitle() {

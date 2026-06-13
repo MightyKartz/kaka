@@ -6,6 +6,10 @@ public enum KakaSystemSurface: String, CaseIterable, Codable, Equatable, Sendabl
     case tasks
     case reviewInboxItem
     case reviewRuntimeTask
+    case agentScanner
+    case documentScanner
+    case videoCapture
+    case voiceRecorder
 
     public var actionID: String {
         switch self {
@@ -17,6 +21,14 @@ public enum KakaSystemSurface: String, CaseIterable, Codable, Equatable, Sendabl
             return "review_inbox_item"
         case .reviewRuntimeTask:
             return "review_runtime_task"
+        case .agentScanner:
+            return "open_agent_scanner"
+        case .documentScanner:
+            return "scan_document"
+        case .videoCapture:
+            return "capture_video"
+        case .voiceRecorder:
+            return "record_voice"
         }
     }
 
@@ -30,6 +42,14 @@ public enum KakaSystemSurface: String, CaseIterable, Codable, Equatable, Sendabl
             return "Review Inbox Item"
         case .reviewRuntimeTask:
             return "Review Runtime Task"
+        case .agentScanner:
+            return "Scan"
+        case .documentScanner:
+            return "Document Scan"
+        case .videoCapture:
+            return "Video"
+        case .voiceRecorder:
+            return "Record"
         }
     }
 
@@ -39,12 +59,14 @@ public enum KakaSystemSurface: String, CaseIterable, Codable, Equatable, Sendabl
             return .inbox
         case .tasks, .reviewRuntimeTask:
             return .tasks
+        case .agentScanner, .documentScanner, .videoCapture, .voiceRecorder:
+            return .capture
         }
     }
 
     public var isActionButtonRecommended: Bool {
         switch self {
-        case .inbox, .tasks:
+        case .inbox, .tasks, .agentScanner, .documentScanner, .videoCapture, .voiceRecorder:
             return true
         case .reviewInboxItem, .reviewRuntimeTask:
             return false
@@ -82,7 +104,17 @@ public enum KakaAppIntentCatalog {
     public static let taskActionParameterTitle = "Task Action"
     public static let actionButtonRecommendedActionIDs = [
         KakaSystemSurface.inbox.actionID,
-        KakaSystemSurface.tasks.actionID
+        KakaSystemSurface.tasks.actionID,
+        KakaSystemSurface.agentScanner.actionID,
+        KakaSystemSurface.documentScanner.actionID,
+        KakaSystemSurface.videoCapture.actionID,
+        KakaSystemSurface.voiceRecorder.actionID
+    ]
+    public static let localAgentLensShortcutIDs = [
+        KakaSystemSurface.agentScanner.actionID,
+        KakaSystemSurface.documentScanner.actionID,
+        KakaSystemSurface.videoCapture.actionID,
+        KakaSystemSurface.voiceRecorder.actionID
     ]
     public static let actionButtonUsesForegroundHandoff = true
     public static let actionButtonAllowsBackgroundTaskMutation = false
@@ -101,6 +133,30 @@ public enum KakaAppIntentCatalog {
             shortTitle: "Show Tasks",
             systemImageName: "list.bullet.rectangle",
             targetSurface: .tasks
+        ),
+        KakaActionButtonShortcutMetadata(
+            actionID: KakaSystemSurface.agentScanner.actionID,
+            shortTitle: "Scan",
+            systemImageName: "qrcode.viewfinder",
+            targetSurface: .agentScanner
+        ),
+        KakaActionButtonShortcutMetadata(
+            actionID: KakaSystemSurface.documentScanner.actionID,
+            shortTitle: "Document",
+            systemImageName: "doc.viewfinder",
+            targetSurface: .documentScanner
+        ),
+        KakaActionButtonShortcutMetadata(
+            actionID: KakaSystemSurface.videoCapture.actionID,
+            shortTitle: "Video",
+            systemImageName: "video.badge.waveform",
+            targetSurface: .videoCapture
+        ),
+        KakaActionButtonShortcutMetadata(
+            actionID: KakaSystemSurface.voiceRecorder.actionID,
+            shortTitle: "Record",
+            systemImageName: "mic.circle",
+            targetSurface: .voiceRecorder
         )
     ]
 }
@@ -159,11 +215,19 @@ import AppIntents
 public enum KakaSystemDestination: String, AppEnum {
     case inbox
     case tasks
+    case agentScanner
+    case documentScanner
+    case videoCapture
+    case voiceRecorder
 
     public static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Destination")
     public static let caseDisplayRepresentations: [Self: DisplayRepresentation] = [
         .inbox: "Inbox",
-        .tasks: "Tasks"
+        .tasks: "Tasks",
+        .agentScanner: "Scan",
+        .documentScanner: "Document Scan",
+        .videoCapture: "Video",
+        .voiceRecorder: "Record"
     ]
 
     var surface: KakaSystemSurface {
@@ -172,6 +236,14 @@ public enum KakaSystemDestination: String, AppEnum {
             return .inbox
         case .tasks:
             return .tasks
+        case .agentScanner:
+            return .agentScanner
+        case .documentScanner:
+            return .documentScanner
+        case .videoCapture:
+            return .videoCapture
+        case .voiceRecorder:
+            return .voiceRecorder
         }
     }
 }
@@ -281,6 +353,42 @@ public struct AgentPocketUIAppShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Show Tasks",
             systemImageName: "list.bullet.rectangle"
+        )
+        AppShortcut(
+            intent: OpenKakaSurfaceIntent(destination: .agentScanner),
+            phrases: [
+                "Scan with \(.applicationName)",
+                "Open scanner in \(.applicationName)"
+            ],
+            shortTitle: "Scan",
+            systemImageName: "qrcode.viewfinder"
+        )
+        AppShortcut(
+            intent: OpenKakaSurfaceIntent(destination: .documentScanner),
+            phrases: [
+                "Scan a document with \(.applicationName)",
+                "Open document scan in \(.applicationName)"
+            ],
+            shortTitle: "Document",
+            systemImageName: "doc.viewfinder"
+        )
+        AppShortcut(
+            intent: OpenKakaSurfaceIntent(destination: .videoCapture),
+            phrases: [
+                "Capture video with \(.applicationName)",
+                "Open video in \(.applicationName)"
+            ],
+            shortTitle: "Video",
+            systemImageName: "video.badge.waveform"
+        )
+        AppShortcut(
+            intent: OpenKakaSurfaceIntent(destination: .voiceRecorder),
+            phrases: [
+                "Record with \(.applicationName)",
+                "Open recorder in \(.applicationName)"
+            ],
+            shortTitle: "Record",
+            systemImageName: "mic.circle"
         )
     }
 }

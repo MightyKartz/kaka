@@ -76,6 +76,15 @@ public struct CaptureScreenPresentation: Equatable, Sendable {
     }
 
     private static func connectedBadge(language: AppLanguage, connectedRuntimeName: String?) -> String {
+        guard connectedRuntimeName?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            switch language {
+            case .chinese:
+                return "未连接 · 本机智能体"
+            case .english:
+                return "Not Connected · Local Agent"
+            }
+        }
+
         let name = Self.friendlyRuntimeName(connectedRuntimeName)
         switch language {
         case .chinese:

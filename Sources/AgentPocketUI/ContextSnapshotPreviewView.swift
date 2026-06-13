@@ -11,13 +11,13 @@ public struct ContextSnapshotPreviewView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Toggle(isOn: $viewModel.includeContext) {
-                Label("Share Context", systemImage: "location.circle")
+                Label(language == .chinese ? "共享上下文" : "Share Context", systemImage: "location.circle")
                     .font(.headline)
             }
             .tint(Color(red: 0.55, green: 0.96, blue: 0.89))
 
             if viewModel.includeContext && viewModel.isContextSnapshotPreparing {
-                Label("Preparing context", systemImage: "clock")
+                Label(language == .chinese ? "正在准备上下文" : "Preparing context", systemImage: "clock")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -46,6 +46,10 @@ public struct ContextSnapshotPreviewView: View {
         .task {
             await viewModel.refreshForInclusionIfNeeded()
         }
+    }
+
+    private var language: AppLanguage {
+        AppLanguage.resolved(storedValue: nil)
     }
 
     @ViewBuilder

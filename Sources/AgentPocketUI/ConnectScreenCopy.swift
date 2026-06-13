@@ -48,7 +48,9 @@ public struct ConnectScreenCopy: Equatable, Sendable {
     public let defaultSceneDescription: String
     public let defaultSceneValue: String
     public let manualTitle: String
+    public let endpointFieldTitle: String
     public let endpointPlaceholder: String
+    public let tokenFieldTitle: String
     public let tokenPlaceholder: String
     public let testConnectionTitle: String
     public let enterManuallyTitle: String
@@ -83,12 +85,14 @@ public struct ConnectScreenCopy: Equatable, Sendable {
             defaultSceneDescription = "拍照后优先使用的成片风格。"
             defaultSceneValue = "自然"
             manualTitle = "手动连接"
+            endpointFieldTitle = "本机地址"
             endpointPlaceholder = "https://你的本机运行时.local"
+            tokenFieldTitle = "移动端令牌"
             tokenPlaceholder = "移动端令牌"
             testConnectionTitle = "测试连接"
             enterManuallyTitle = "手动输入"
             nearbyRuntimeTitle = "附近的本机智能体"
-            nearbyRuntimeDescription = "确认这台 Mac 后，Kaka 会保存一个移动端令牌，下次自动连接。"
+            nearbyRuntimeDescription = "首次建议扫描 Mac 上的二维码；发现附近运行时可作为备选连接方式。"
             connectRuntimeTitle = "连接"
         case .english:
             let connectedRuntime = state.connectedRuntime
@@ -111,12 +115,14 @@ public struct ConnectScreenCopy: Equatable, Sendable {
             defaultSceneDescription = "Preferred look after capture."
             defaultSceneValue = "Natural"
             manualTitle = "Manual Connection"
+            endpointFieldTitle = "Local Agent Endpoint"
             endpointPlaceholder = "https://your-runtime.local"
+            tokenFieldTitle = "Mobile Token"
             tokenPlaceholder = "Mobile token"
             testConnectionTitle = "Test Connection"
             enterManuallyTitle = "Enter Manually"
             nearbyRuntimeTitle = "Nearby Local Agents"
-            nearbyRuntimeDescription = "Confirm this Mac once. Kaka stores a mobile token and reconnects next time."
+            nearbyRuntimeDescription = "Scan the QR on your Mac first. Nearby discovery is available as a fallback."
             connectRuntimeTitle = "Connect"
         }
     }
@@ -143,7 +149,9 @@ public struct ConnectScreenCopy: Equatable, Sendable {
             defaultSceneDescription,
             defaultSceneValue,
             manualTitle,
+            endpointFieldTitle,
             endpointPlaceholder,
+            tokenFieldTitle,
             tokenPlaceholder,
             testConnectionTitle,
             enterManuallyTitle,
@@ -176,10 +184,18 @@ private extension ConnectionState {
             return "正在发现本机智能体"
         case (.discovering, .english):
             return "Finding Local Agent"
+        case (.restoringSavedConnection, .chinese):
+            return "正在恢复已保存连接"
+        case (.restoringSavedConnection, .english):
+            return "Restoring Saved Runtime"
         case (.testing, .chinese):
             return "正在测试连接"
         case (.testing, .english):
             return "Testing Connection"
+        case (.savedConnectionOffline, .chinese):
+            return "Mac 上的本机运行时未启动"
+        case (.savedConnectionOffline, .english):
+            return "Start the Runtime on Your Mac"
         case (.offline, .chinese):
             return "本机运行时离线"
         case (.offline, .english):
@@ -204,6 +220,10 @@ private extension ConnectionState {
             return "连接失败"
         case (.failed, .english):
             return "Connection Failed"
+        case (.idle, .chinese):
+            return "连接你的本机运行时"
+        case (.idle, .english):
+            return "Connect Your Local Runtime"
         case (_, .chinese):
             return "连接我的本机智能体"
         case (_, .english):
@@ -225,10 +245,18 @@ private extension ConnectionState {
             return "正在查找本地网络中的私有运行时。"
         case (.discovering, .english):
             return "Looking for private runtimes on your local network."
+        case (.restoringSavedConnection(let displayName), .chinese):
+            return "正在用已保存配对检查 \(displayName)。"
+        case (.restoringSavedConnection(let displayName), .english):
+            return "Checking \(displayName) with your saved pairing."
         case (.testing, .chinese):
             return "正在检查健康状态和照片处理能力。"
         case (.testing, .english):
             return "Checking health and photo editing capabilities."
+        case (.savedConnectionOffline(let displayName), .chinese):
+            return "\(displayName) 的配对还在。请先在 Mac 上启动 Hermes/OpenClaw 或 runtime-kit，再回到这里重新连接。"
+        case (.savedConnectionOffline(let displayName), .english):
+            return "\(displayName) is still paired. Start Hermes/OpenClaw or runtime-kit on your Mac, then reconnect here."
         case (.offline, .chinese):
             return "请确认本机智能体正在运行，并且 iPhone 可访问。"
         case (.offline, .english):
@@ -253,6 +281,10 @@ private extension ConnectionState {
             return Self.localizedFailureMessage(message, language: language)
         case (.failed(let message), .english):
             return message
+        case (.idle, .chinese):
+            return "首次连接需要扫描 Mac 上的配对二维码。之后 Kaka 会自动连接。"
+        case (.idle, .english):
+            return "Scan the pairing QR on your Mac once. Kaka will reconnect automatically after that."
         case (_, .chinese):
             return "发现附近运行时，确认后即可拍照成片。"
         case (_, .english):
@@ -305,6 +337,10 @@ private extension ConnectionState {
             return "发现中..."
         case (.discovering, .english):
             return "Finding..."
+        case (.restoringSavedConnection, .chinese):
+            return "检查中..."
+        case (.restoringSavedConnection, .english):
+            return "Checking..."
         case (.testing, .chinese):
             return "测试中..."
         case (.testing, .english):
@@ -321,10 +357,18 @@ private extension ConnectionState {
             return "打开设置指南"
         case (.missingPhotoEdit, .english):
             return "Open Setup Guide"
+        case (.savedConnectionOffline, .chinese):
+            return "我已启动，重新连接"
+        case (.savedConnectionOffline, .english):
+            return "I've Started It, Reconnect"
         case (.offline, .chinese):
             return "重新发现"
         case (.offline, .english):
             return "Discover Again"
+        case (.idle, .chinese):
+            return "扫描二维码连接"
+        case (.idle, .english):
+            return "Scan Pairing QR"
         case (_, .chinese):
             return "连接"
         case (_, .english):
@@ -346,6 +390,14 @@ private extension ConnectionState {
             return "测试中"
         case (.testing, .english):
             return "Testing"
+        case (.restoringSavedConnection, .chinese):
+            return "恢复中"
+        case (.restoringSavedConnection, .english):
+            return "Restoring"
+        case (.savedConnectionOffline, .chinese):
+            return "配对已保存 · Mac 待启动"
+        case (.savedConnectionOffline, .english):
+            return "Saved · Mac Action Needed"
         case (.offline, .chinese):
             return "离线"
         case (.offline, .english):
@@ -359,9 +411,9 @@ private extension ConnectionState {
         case (.failed, .english):
             return "Reconnect Needed"
         case (.idle, .chinese):
-            return "点击连接后发现"
+            return "首次扫码建立信任"
         case (.idle, .english):
-            return "Tap Connect to Find"
+            return "Scan Once to Trust"
         case (_, .chinese):
             return "待连接"
         case (_, .english):
@@ -375,6 +427,10 @@ private extension ConnectionState {
             return ["本地网络", "已信任"]
         case (.connected, .english):
             return ["Local Network", "Trusted"]
+        case (.savedConnectionOffline, .chinese):
+            return ["配对已保存", "Mac 待启动"]
+        case (.savedConnectionOffline, .english):
+            return ["Saved Pairing", "Mac Action Needed"]
         case (_, .chinese):
             return ["本地网络", "待确认"]
         case (_, .english):

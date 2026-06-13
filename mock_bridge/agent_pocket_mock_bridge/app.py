@@ -1185,7 +1185,7 @@ class MockBridgeApp:
                     "supports_sse": True,
                 },
                 "intake": {
-                    "accepted_types": ["text", "url", "image", "pdf"],
+                    "accepted_types": ["text", "url", "image", "pdf", "video"],
                     "provider": self._intake_provider_name(),
                     "supports_context_snapshot": True,
                     "supports_voice_followup": True,
@@ -1445,11 +1445,11 @@ class MockBridgeApp:
 
     def _create_universal_intake_task(self, payload: Mapping[str, Any]) -> MockResponse:
         intake_type = str(payload.get("type", payload.get("kind", ""))).strip().lower()
-        if intake_type not in {"text", "url", "image", "pdf"}:
+        if intake_type not in {"text", "url", "image", "pdf", "video"}:
             return self._error("intake_unavailable", "The requested intake type is not available.", 400)
 
         asset_id = self._source_asset_id(payload)
-        if intake_type in {"image", "pdf"}:
+        if intake_type in {"image", "pdf", "video"}:
             if not asset_id:
                 return self._error("invalid_intake_payload", "The intake source must include an asset_id.", 400)
             if not self._asset_exists(asset_id):
@@ -1861,6 +1861,10 @@ class MockBridgeApp:
         for key in (
             "provider",
             "result_type",
+            "failure_code",
+            "vision",
+            "image_intake",
+            "intake",
             "explanation",
             "recipe_metadata",
             "renderer",
@@ -1954,6 +1958,10 @@ class MockBridgeApp:
         for key in (
             "provider",
             "result_type",
+            "failure_code",
+            "vision",
+            "image_intake",
+            "intake",
             "explanation",
             "recipe_metadata",
             "renderer",
@@ -2115,6 +2123,16 @@ class MockBridgeApp:
                     self._intake_suggestion("forget", "Forget", requires_confirmation=True),
                 ],
                 "image_intake": image_intake,
+            }
+        elif intake_type == "video":
+            result = {
+                "title": "Video ready",
+                "summary": "Kaka received a short video for local-agent analysis.",
+                "suggestions": [
+                    self._intake_suggestion("summarize", "Summarize video"),
+                    self._intake_suggestion("extract_actions", "Extract actions"),
+                    self._intake_suggestion("forget", "Forget", requires_confirmation=True),
+                ],
             }
         else:
             filename = str(metadata.get("filename") or "PDF").strip() or "PDF"
@@ -2324,10 +2342,15 @@ class MockBridgeApp:
                         f"data: {json.dumps({'progress': progress, 'message': message})}\n\n"
                     )
                 if task.status in {"completed", "failed", "cancelled"}:
-                    variant_count = len(self._safe_task_variants(dict(task.metadata or {}).get("variants")))
+                    task_metadata = dict(task.metadata or {})
+                    variant_count = len(self._safe_task_variants(task_metadata.get("variants")))
+                    completed_payload: Dict[str, Any] = {"variant_count": variant_count}
+                    result_type = task_metadata.get("result_type")
+                    if isinstance(result_type, str) and result_type:
+                        completed_payload["result_type"] = result_type
                     chunks.append(
                         "event: task.completed\n"
-                        f"data: {json.dumps({'variant_count': variant_count})}\n\n"
+                        f"data: {json.dumps(completed_payload)}\n\n"
                     )
                 payload = "".join(chunks)
             else:

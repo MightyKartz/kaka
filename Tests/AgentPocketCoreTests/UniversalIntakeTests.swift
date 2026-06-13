@@ -10,6 +10,15 @@ final class UniversalIntakeTests: XCTestCase {
         XCTAssertEqual(UniversalIntakeKind.pdf.rawValue, "pdf")
     }
 
+    func testUniversalIntakeKindsIncludeShortVideo() {
+        XCTAssertEqual(UniversalIntakeKind.video.rawValue, "video")
+        XCTAssertTrue(UniversalIntakeKind.allCases.contains(.video))
+    }
+
+    func testVideoDefaultsToUniversalIntakeRoute() {
+        XCTAssertEqual(KakaInboxRoute.defaultRoute(for: .video), .universalIntake)
+    }
+
     func testUniversalIntakeRequestEncodesURLPayloadWithSnakeCaseMetadata() throws {
         let request = UniversalIntakeTaskRequest(
             kind: .url,
@@ -92,7 +101,7 @@ final class UniversalIntakeTests: XCTestCase {
             "photo_edit":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"styles":["natural_enhance"],"provider":"recipe_local","renderer":"local_parametric","supports_sse":true,"return_variants_max":2},
             "vision":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"modes":["scan"],"provider":"fixture_vision","supports_sse":true},
             "image_intake":{"max_upload_mb":30,"accepted_mime_types":["image/jpeg"],"provider":"heuristic_image_intake","supports_sse":true},
-            "intake":{"accepted_types":["text","url","image","screenshot","pdf"],"supports_sse":true}
+            "intake":{"accepted_types":["text","url","image","screenshot","pdf","video"],"supports_sse":true}
           },
           "retention":{"input_assets_days":7,"output_assets_days":30,"task_history_days":30}
         }
@@ -103,7 +112,7 @@ final class UniversalIntakeTests: XCTestCase {
         XCTAssertEqual(capabilities.tasks.photoEdit.provider, "recipe_local")
         XCTAssertEqual(capabilities.tasks.vision?.provider, "fixture_vision")
         XCTAssertEqual(capabilities.tasks.imageIntake?.provider, "heuristic_image_intake")
-        XCTAssertEqual(capabilities.tasks.intake?.acceptedTypes, [.text, .url, .image, .screenshot, .pdf])
+        XCTAssertEqual(capabilities.tasks.intake?.acceptedTypes, [.text, .url, .image, .screenshot, .pdf, .video])
         XCTAssertEqual(capabilities.tasks.intake?.supportsSSE, true)
     }
 }

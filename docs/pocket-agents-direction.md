@@ -1,12 +1,12 @@
 # Kaka Pocket Agents Direction
 
-Updated: 2026-06-11
+Updated: 2026-06-13
 
 ## Purpose
 
 This document captures the product discussion and current recommendation for evolving Kaka from a single-capture visual agent client into a voice-first Pocket Agents front end.
 
-The near-term implementation truth is now Phase A plus the original camera loop: Kaka focuses on iPhone capture or library selection, `image_intake`, suggested image skills, local vision tasks, local recipe photo editing, Share Extension inbox capture, real push-to-talk voice follow-up, P3.30 Voice-to-Inbox Draft, P3.32 Inbox Voice Instruction, P3.33 Inbox Instruction Polish, P3.34 Inbox Instruction Templates, P3.36b Explicit Paste-to-Inbox Courier, an opt-in Context Snapshot preview, Recall explicit actions plus result-review provenance, browse/search/export/delete controls, runtime-owned semantic Recall search with provider-backed adapter support, production retrieval packaging readiness, and retrieval materials intake/review, Runtime Kit SQLite persistence for Recall/tasks behind `--runtime-store-path`, runtime settings/status, native runtime packaging scaffolds, Runtime Kit `consumer_ui` and `process_ownership` contracts for Hermes/OpenClaw runtime controls, P2.9 `host-adapter-run` for Mac/runtime-side host action execution, production-capable short-lived QR pairing and mobile token revocation scaffolding, an in-app Runtime Task Inbox foundation, safe foreground App Intent and Action Button review handoff, a Live Activity-safe task-state projection with WidgetKit Lock Screen and Dynamic Island presentation through a user-owned runtime, runtime-side local renderer readiness, phone-facing `photo_edit` capability truth for the current two-variant `recipe_local` renderer, and P3.29 one-shot motion/calendar Context Snapshot sampling.
+The near-term implementation truth is now Phase A plus the original camera loop: Kaka focuses on iPhone capture or library selection, `image_intake`, suggested image skills, local vision tasks, local recipe photo editing, Local Agent Lens entry points for Scan/Document/Video/Record/Inbox/Activity, Share Extension inbox capture, real push-to-talk voice follow-up, P3.30 Voice-to-Inbox Draft, P3.32 Inbox Voice Instruction, P3.33 Inbox Instruction Polish, P3.34 Inbox Instruction Templates, P3.36b Explicit Paste-to-Inbox Courier, an opt-in Context Snapshot preview, Recall explicit actions plus result-review provenance, browse/search/export/delete controls, runtime-owned semantic Recall search with provider-backed adapter support, production retrieval packaging readiness, and retrieval materials intake/review, Runtime Kit SQLite persistence for Recall/tasks behind `--runtime-store-path`, runtime settings/status, native runtime packaging scaffolds, Runtime Kit `consumer_ui` and `process_ownership` contracts for Hermes/OpenClaw runtime controls, P2.9 `host-adapter-run` for Mac/runtime-side host action execution, production-capable short-lived QR pairing and mobile token revocation scaffolding, an in-app Runtime Task Inbox foundation, safe foreground App Intent and Action Button review handoff, a Live Activity-safe task-state projection with WidgetKit Lock Screen and Dynamic Island presentation through a user-owned runtime, runtime-side local renderer readiness, phone-facing `photo_edit` capability truth for the current two-variant `recipe_local` renderer, and P3.29 one-shot motion/calendar Context Snapshot sampling.
 
 Pocket Agents remains the next product direction; real host-native Hermes/OpenClaw private adapter APIs, passive context, and production-grade long-running task orchestration remain future phases.
 
@@ -20,6 +20,8 @@ Current UI prototype artifacts:
 - app handoff prototype: `docs/ui/kaka-pocket-agents-app-handoff.html`
 - app handoff desktop screenshot: `docs/ui/kaka-pocket-agents-app-handoff-desktop.png`
 - app handoff mobile screenshot: `docs/ui/kaka-pocket-agents-app-handoff-mobile.png`
+- Local Agent Lens reference: `docs/assets/kaka-local-agent-lens-ui-4k.png`
+- Local Agent Lens QA receipts: `docs/qa-receipts/local-agent-lens-20260613/`
 
 ## Product Thesis
 
@@ -178,6 +180,17 @@ locale/profile when present, and Context Snapshot inclusion state. It does not
 compute file size, read payload bytes, fetch URLs, parse PDFs/OCR, summarize
 content, submit, write/delete Recall, add a `/mobile/v1` endpoint, add an App
 Intent, delete source files, or change Host Extension packaging.
+
+M1 **Local Agent Lens / Quiet Lens UI** is implemented as the current main-line
+phone-native surface. Capture now opens with a local connection-aware Lens Hub
+and six first-mile actions: scanner, document scan, video intake, voice record,
+Inbox review, and Activity. Scanner actions remain explicit; document scan and
+short video intake create visible Inbox drafts; App Intents, Shortcuts, and
+Action Button hand off only to foreground Kaka surfaces; ActivityKit renders
+phone-safe phase, approval, progress, and short message fields. This slice does
+not add cloud relay, public-internet remote access, VPN/Tailscale dependency,
+hidden uploads, background recording, automatic Recall, or Host Extension
+installation changes.
 
 Implementation implication: future host-side work should improve the
 plugin/skill package, host UI panel, install drill, release gates, and evidence

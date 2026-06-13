@@ -57,7 +57,7 @@ public struct MobileBridgeUniversalIntakeSubmitter: UniversalIntakeSubmitting {
             : nil
         let assetID: String?
 
-        if item.kind == .pdf {
+        if Self.fileBackedKinds.contains(item.kind) {
             await progress(.uploading)
             let upload = try documentLoader.preparedUpload(for: item)
             let uploaded = try await client.uploadAsset(upload)
@@ -104,4 +104,6 @@ public struct MobileBridgeUniversalIntakeSubmitter: UniversalIntakeSubmitting {
         }
         return profile.id
     }
+
+    private static let fileBackedKinds: Set<UniversalIntakeKind> = [.pdf, .video]
 }

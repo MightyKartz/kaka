@@ -31,6 +31,12 @@ struct AgentPocketApp: App {
                 SimulatorResultGalleryDownloadedSmokeView()
             } else if SimulatorShareSheetSmokeConfiguration(processArguments: processArguments) != nil {
                 SimulatorShareSheetSmokeView()
+            } else if SimulatorInboxSmokeConfiguration(processArguments: processArguments) != nil {
+                SimulatorInboxSmokeView()
+            } else if SimulatorRecallSmokeConfiguration(processArguments: processArguments) != nil {
+                SimulatorRecallSmokeView()
+            } else if SimulatorActivitySmokeConfiguration(processArguments: processArguments) != nil {
+                SimulatorActivitySmokeView()
             } else {
                 AgentPocketRootView()
             }
@@ -131,6 +137,30 @@ private struct SimulatorResultGalleryDownloadedSmokeConfiguration: Equatable {
 private struct SimulatorShareSheetSmokeConfiguration: Equatable {
     init?(processArguments: [String]) {
         guard processArguments.contains("--agent-pocket-simulator-share-sheet-smoke") else {
+            return nil
+        }
+    }
+}
+
+private struct SimulatorInboxSmokeConfiguration: Equatable {
+    init?(processArguments: [String]) {
+        guard processArguments.contains("--agent-pocket-simulator-inbox-smoke") else {
+            return nil
+        }
+    }
+}
+
+private struct SimulatorRecallSmokeConfiguration: Equatable {
+    init?(processArguments: [String]) {
+        guard processArguments.contains("--agent-pocket-simulator-recall-smoke") else {
+            return nil
+        }
+    }
+}
+
+private struct SimulatorActivitySmokeConfiguration: Equatable {
+    init?(processArguments: [String]) {
+        guard processArguments.contains("--agent-pocket-simulator-activity-smoke") else {
             return nil
         }
     }
@@ -751,6 +781,270 @@ private struct SimulatorShareSheetPresenter: View {
     }
 }
 #endif
+
+private struct SimulatorInboxSmokeView: View {
+    @StateObject private var viewModel: InboxViewModel
+
+    @MainActor
+    init() {
+        _viewModel = StateObject(
+            wrappedValue: InboxViewModel(
+                store: SimulatorInboxStore(items: SimulatorInboxFixtures.items),
+                imageSubmitter: UnavailableImageInboxSubmitter()
+            )
+        )
+    }
+
+    var body: some View {
+        NavigationStack {
+            InboxView(viewModel: viewModel) {
+                SimulatorSmokeFixtures.connection
+            }
+        }
+        .task {
+            writeReceipt()
+        }
+    }
+
+    private func writeReceipt() {
+        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return
+        }
+        let payload: [String: Any] = [
+            "phase": "inbox-ui",
+            "ok": SimulatorInboxFixtures.items.count == 3,
+            "item_count": SimulatorInboxFixtures.items.count,
+            "routes": SimulatorInboxFixtures.items.map(\.route.rawValue)
+        ]
+        let receiptURL = documentsURL.appendingPathComponent("agent-pocket-inbox-smoke.json")
+        if let data = try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]) {
+            try? data.write(to: receiptURL, options: [.atomic])
+        }
+    }
+}
+
+private struct SimulatorRecallSmokeView: View {
+    @StateObject private var viewModel = RecallBrowseViewModel(
+        browser: SimulatorRecallBrowser(items: SimulatorRecallFixtures.items)
+    )
+
+    var body: some View {
+        NavigationStack {
+            RecallBrowseView(viewModel: viewModel) {
+                SimulatorSmokeFixtures.connection
+            }
+        }
+    }
+}
+
+private struct SimulatorActivitySmokeView: View {
+    @StateObject private var viewModel = TaskInboxViewModel(
+        performer: SimulatorTaskInboxPerformer(tasks: SimulatorActivityFixtures.tasks),
+        activityCoordinator: NoopRuntimeTaskActivityCoordinator()
+    )
+
+    var body: some View {
+        NavigationStack {
+            TaskInboxView(viewModel: viewModel) {
+                SimulatorSmokeFixtures.connection
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background(Color(red: 0.045, green: 0.052, blue: 0.052).ignoresSafeArea())
+        }
+    }
+}
+
+private final class SimulatorInboxStore: KakaInboxStoring, @unchecked Sendable {
+    private var items: [KakaInboxItem]
+
+    init(items: [KakaInboxItem]) {
+        self.items = items
+    }
+
+    func loadItems() throws -> [KakaInboxItem] {
+        items
+    }
+
+    func addOrUpdate(_ item: KakaInboxItem) throws {
+        items.removeAll { $0.id == item.id }
+        items.append(item)
+    }
+
+    func append(_ item: KakaInboxItem) throws {
+        try addOrUpdate(item)
+    }
+
+    func remove(id: UUID) throws {
+        items.removeAll { $0.id == id }
+    }
+
+    func clear() throws {
+        items.removeAll()
+    }
+}
+
+private struct SimulatorRecallBrowser: RecallBrowsing {
+    let items: [RecallItem]
+
+    func fetchRecallItems(query: String?, limit: Int?, connection: StoredConnection) async throws -> [RecallItem] {
+        guard let query, query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            return limited(items, limit: limit)
+        }
+        return limited(items.filter { $0.summary.localizedCaseInsensitiveContains(query) }, limit: limit)
+    }
+
+    func searchRecall(_ request: RecallSearchRequest, connection: StoredConnection) async throws -> RecallSearchResponse {
+        let matches = limited(items, limit: request.limit).map {
+            RecallSearchResponse.Result(item: $0, score: 0.82, matchReason: "Matches simulator recall context")
+        }
+        return RecallSearchResponse(query: request.query, mode: "simulator", items: matches)
+    }
+
+    func deleteRecallItem(itemID: String, connection: StoredConnection) async throws -> RecallDeleteResponse {
+        RecallDeleteResponse(status: "deleted", deletedItemIDs: [itemID])
+    }
+
+    func exportRecallItems(connection: StoredConnection) async throws -> RecallExportResponse {
+        RecallExportResponse(format: "json", generatedAt: "2026-06-12T12:00:00Z", items: items)
+    }
+
+    private func limited(_ items: [RecallItem], limit: Int?) -> [RecallItem] {
+        Array(items.prefix(limit ?? items.count))
+    }
+}
+
+private struct SimulatorTaskInboxPerformer: RuntimeTaskInboxPerforming {
+    let tasks: [RuntimeTaskSummary]
+
+    func fetchRuntimeTasks(connection: StoredConnection) async throws -> [RuntimeTaskSummary] {
+        tasks
+    }
+
+    func cancelRuntimeTask(taskID: String, connection: StoredConnection) async throws -> RuntimeTaskActionResponse {
+        RuntimeTaskActionResponse(
+            status: "ok",
+            task: RuntimeTaskSummary(
+                id: taskID,
+                title: "Simulator cancelled task",
+                status: .cancelled,
+                progress: 1.0,
+                message: "Cancelled from simulator smoke.",
+                updatedAt: "2026-06-12T12:08:00Z"
+            )
+        )
+    }
+
+    func approveRuntimeTask(
+        taskID: String,
+        approval: RuntimeTaskApprovalRequest,
+        connection: StoredConnection
+    ) async throws -> RuntimeTaskActionResponse {
+        RuntimeTaskActionResponse(
+            status: "ok",
+            task: RuntimeTaskSummary(
+                id: taskID,
+                title: "Simulator approved task",
+                status: .running,
+                progress: 0.72,
+                message: "Approval received. Continuing local render.",
+                updatedAt: "2026-06-12T12:09:00Z"
+            )
+        )
+    }
+}
+
+private enum SimulatorInboxFixtures {
+    static let items: [KakaInboxItem] = [
+        KakaInboxItem(
+            id: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!,
+            kind: .text,
+            receivedAt: Date(timeIntervalSince1970: 1_781_265_600),
+            sourceApp: "Kaka Voice",
+            sourceSurface: "voice",
+            note: "整理成三条可执行建议",
+            locale: "zh-Hans",
+            text: "把这张产品图改成更适合小红书封面的构图。",
+            route: .universalIntake
+        ),
+        KakaInboxItem(
+            id: UUID(uuidString: "22222222-2222-2222-2222-222222222222")!,
+            kind: .url,
+            receivedAt: Date(timeIntervalSince1970: 1_781_264_400),
+            sourceApp: "Safari",
+            sourceSurface: "share_extension",
+            note: "提炼页面视觉风格",
+            locale: "zh-Hans",
+            url: "https://example.com/moodboard",
+            route: .universalIntake
+        ),
+        KakaInboxItem(
+            id: UUID(uuidString: "33333333-3333-3333-3333-333333333333")!,
+            kind: .image,
+            receivedAt: Date(timeIntervalSince1970: 1_781_263_200),
+            sourceApp: "Photos",
+            sourceSurface: "share_extension",
+            note: "保留真实质感，增强光线层次。",
+            locale: "zh-Hans",
+            fileName: "kaka-smoke-product.png",
+            mimeType: "image/png",
+            relativeFilePath: "SharedPayloads/kaka-smoke-product.png",
+            route: .imageIntake
+        )
+    ]
+}
+
+private enum SimulatorRecallFixtures {
+    static let items: [RecallItem] = [
+        RecallItem(
+            itemID: "recall-style-001",
+            summary: "Kaka 的图片结果页采用暗色工作区、薄荷主按钮和 8pt 控件半径，适合保持为全局视觉基线。",
+            createdAt: "2026-06-12T11:48:00Z",
+            provenance: RecallItem.Provenance(sourceTaskID: "task_result_polish")
+        ),
+        RecallItem(
+            itemID: "recall-runtime-002",
+            summary: "Hermes 本机智能体连接成功后，移动端应保留收件箱和记忆入口，不要用连接页阻断全部导航。",
+            createdAt: "2026-06-12T11:32:00Z",
+            provenance: RecallItem.Provenance(sourceInboxItemID: UUID(uuidString: "11111111-1111-1111-1111-111111111111"))
+        ),
+        RecallItem(
+            itemID: "recall-camera-003",
+            summary: "拍照页首屏应优先展示取景和发送动作，辅助说明放入低对比卡片，避免抢主 CTA。",
+            createdAt: "2026-06-12T10:55:00Z",
+            provenance: RecallItem.Provenance(sourceTaskID: "task_capture_review")
+        )
+    ]
+}
+
+private enum SimulatorActivityFixtures {
+    static let tasks: [RuntimeTaskSummary] = [
+        RuntimeTaskSummary(
+            id: "task_waiting_approval",
+            title: "需要确认是否把成片加入社交封面比例",
+            status: .waitingForApproval,
+            progress: 0.58,
+            message: "Kaka 已完成主体识别，等待你批准裁切方向。",
+            updatedAt: "2026-06-12T12:04:00Z"
+        ),
+        RuntimeTaskSummary(
+            id: "task_rendering",
+            title: "正在生成大师版自然增强",
+            status: .running,
+            progress: 0.76,
+            message: "保留原始构图，提升亮部层次。",
+            updatedAt: "2026-06-12T12:03:00Z"
+        ),
+        RuntimeTaskSummary(
+            id: "task_completed",
+            title: "小红书封面构图已完成",
+            status: .completed,
+            progress: 1.0,
+            message: "结果已保存到本机运行时，可在成片页查看。",
+            updatedAt: "2026-06-12T11:59:00Z"
+        )
+    ]
+}
 
 private enum SimulatorResultGallerySmokeFixtures {
     static let completedStatus: TaskStatusResponse = {

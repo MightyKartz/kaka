@@ -18,6 +18,8 @@ public struct ResultScreenPresentation: Equatable, Sendable {
     public let beforeLabel: String
     public let afterLabel: String
     public let afterDetail: String
+    public let summaryTitle: String
+    public let summaryMessage: String
     public let comparisonAccessibilityLabel: String
     public let variantTabs: [VariantTab]
     public let downloadAction: Action
@@ -38,6 +40,12 @@ public struct ResultScreenPresentation: Equatable, Sendable {
         beforeLabel = language == .chinese ? "原图" : comparison.beforeLabel
         afterLabel = Self.localizedVariantTitle(comparison.afterLabel, language: language)
         afterDetail = Self.localizedAfterDetail(comparison.afterDetail, language: language)
+        summaryTitle = language == .chinese ? "Kaka 做了什么" : "What Kaka made"
+        summaryMessage = Self.summaryMessage(
+            afterLabel: comparison.afterLabel,
+            isDownloaded: comparison.isDownloaded,
+            language: language
+        )
         comparisonAccessibilityLabel = language == .chinese ? "原图与成片前后对比" : "Before and after comparison"
         variantTabs = variants.map { variant in
             VariantTab(
@@ -131,6 +139,26 @@ public struct ResultScreenPresentation: Equatable, Sendable {
             return "社交"
         default:
             return title
+        }
+    }
+
+    private static func summaryMessage(
+        afterLabel: String,
+        isDownloaded: Bool,
+        language: AppLanguage
+    ) -> String {
+        let localizedTitle = localizedVariantTitle(afterLabel, language: language)
+        switch language {
+        case .chinese:
+            if isDownloaded {
+                return "已生成\(localizedTitle)版本。拖动分割线查看前后差异，然后保存或分享。"
+            }
+            return "正在准备\(localizedTitle)版本。下载完成后可以保存或分享。"
+        case .english:
+            if isDownloaded {
+                return "\(localizedTitle) is ready. Drag the divider to compare, then save or share."
+            }
+            return "Preparing \(localizedTitle). Save and share will unlock after download."
         }
     }
 

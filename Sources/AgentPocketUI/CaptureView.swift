@@ -16,6 +16,7 @@ public struct CaptureView: View {
     @StateObject private var viewModel: CaptureFlowViewModel
     private let connectedRuntime: ConnectedRuntime?
     private let onChangeRuntime: (() -> Void)?
+    private let onLensAction: ((String) -> Void)?
     private let activeConnection: () -> StoredConnection?
     @State private var isModeSelectorExpanded = false
     @State private var modeSelectorCollapseTask: Task<Void, Never>?
@@ -34,11 +35,13 @@ public struct CaptureView: View {
     public init(
         connectedRuntime: ConnectedRuntime? = nil,
         onChangeRuntime: (() -> Void)? = nil,
+        onLensAction: ((String) -> Void)? = nil,
         activeConnection: @escaping () -> StoredConnection? = { nil }
     ) {
         _viewModel = StateObject(wrappedValue: CaptureFlowViewModel())
         self.connectedRuntime = connectedRuntime
         self.onChangeRuntime = onChangeRuntime
+        self.onLensAction = onLensAction
         self.activeConnection = activeConnection
     }
 
@@ -47,11 +50,13 @@ public struct CaptureView: View {
         viewModel: CaptureFlowViewModel,
         connectedRuntime: ConnectedRuntime? = nil,
         onChangeRuntime: (() -> Void)? = nil,
+        onLensAction: ((String) -> Void)? = nil,
         activeConnection: @escaping () -> StoredConnection? = { nil }
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.connectedRuntime = connectedRuntime
         self.onChangeRuntime = onChangeRuntime
+        self.onLensAction = onLensAction
         self.activeConnection = activeConnection
     }
 
@@ -64,13 +69,20 @@ public struct CaptureView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 14) {
                         captureHeader(presentation)
-                        capturePreview(presentation)
-                            .frame(height: previewHeight(for: geometry.size))
+                        if geometry.size.height < 760 {
+                            capturePreview(presentation)
+                                .frame(height: previewHeight(for: geometry.size))
+                            localAgentLensHub()
+                        } else {
+                            localAgentLensHub()
+                            capturePreview(presentation)
+                                .frame(height: previewHeight(for: geometry.size))
+                        }
                         captureControls(presentation)
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 18)
-                    .padding(.bottom, 18)
+                    .padding(.bottom, 96)
                     .frame(maxWidth: 620)
                     .frame(maxWidth: .infinity)
                 }
@@ -156,7 +168,19 @@ public struct CaptureView: View {
 
     private func previewHeight(for size: CGSize) -> CGFloat {
         let contentWidth = min(size.width - 32, 588)
-        return min(contentWidth * 4.0 / 3.0, size.height * 0.62)
+        return min(contentWidth * 4.0 / 3.0, size.height * 0.42)
+    }
+
+    private func localAgentLensHub() -> some View {
+        LocalAgentLensView(
+            presentation: LocalAgentLensPresentation(
+                isConnected: connectedRuntime != nil,
+                language: language,
+                runtimeAddress: activeConnection()?.endpoint.baseURL.host ?? connectedRuntime?.displayName
+            )
+        ) { actionID in
+            onLensAction?(actionID)
+        }
     }
 
     @ViewBuilder
@@ -331,8 +355,9 @@ public struct CaptureView: View {
     }
 
     private func captureControls(_ presentation: CaptureScreenPresentation) -> some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 12) {
             captureStatus(presentation)
+            captureIntentSummary(presentation)
 
             HStack(alignment: .center, spacing: 20) {
                 primaryActionControl(presentation)
@@ -342,10 +367,20 @@ public struct CaptureView: View {
         .padding(.horizontal, 12)
         .padding(.top, 12)
         .padding(.bottom, 16)
-        .background(.black.opacity(0.28), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .background(AgentPocketDesignTokens.darkPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous)
                 .stroke(.white.opacity(0.12), lineWidth: 1)
+        )
+    }
+
+    private func captureIntentSummary(_ presentation: CaptureScreenPresentation) -> some View {
+        CaptureIntentSummaryCard(
+            title: language == .chinese ? "Kaka 会自动判断" : "Kaka will decide",
+            message: viewModel.preparedUpload == nil
+                ? (language == .chinese ? "拍照或选图后，先理解画面，再选择识别、OCR 或修图。" : "After capture, Kaka reads the image and chooses identify, OCR, or edit.")
+                : (language == .chinese ? "发送后会先理解图片，再给出可执行建议或成片结果。" : "After sending, Kaka reads the image and returns suggestions or a finished result."),
+            systemImage: viewModel.preparedUpload == nil ? "viewfinder" : "sparkles"
         )
     }
 
@@ -384,9 +419,11 @@ public struct CaptureView: View {
                     ProgressView(presentation.statusText)
                         .tint(Color(red: 0.55, green: 0.96, blue: 0.89))
                 case .ready:
-                    Label(presentation.statusText, systemImage: "checkmark.circle.fill")
-                        .font(.callout.weight(.medium))
-                        .foregroundStyle(Color(red: 0.55, green: 0.96, blue: 0.89))
+                    CaptureStatusLabel(
+                        text: presentation.statusText,
+                        systemImage: "checkmark.circle.fill",
+                        tint: AgentPocketDesignTokens.accent
+                    )
                         .accessibilityIdentifier("selectedPhotoReadyStatus")
                 case .uploading:
                     ProgressView(presentation.statusText)
@@ -409,16 +446,20 @@ public struct CaptureView: View {
                             .foregroundStyle(.white.opacity(0.58))
                     }
                 case .completed:
-                    Label(presentation.statusText, systemImage: "checkmark.circle.fill")
-                        .font(.callout.weight(.medium))
-                        .foregroundStyle(Color(red: 0.55, green: 0.96, blue: 0.89))
+                    CaptureStatusLabel(
+                        text: presentation.statusText,
+                        systemImage: "checkmark.circle.fill",
+                        tint: AgentPocketDesignTokens.accent
+                    )
                 case .failed:
-                    Label(presentation.statusText, systemImage: "exclamationmark.triangle.fill")
-                        .font(.callout.weight(.medium))
-                        .foregroundStyle(Color(red: 1.0, green: 0.45, blue: 0.40))
+                    CaptureStatusLabel(
+                        text: presentation.statusText,
+                        systemImage: "exclamationmark.triangle.fill",
+                        tint: Color(red: 1.0, green: 0.45, blue: 0.40)
+                    )
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 44, alignment: .center)
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             .transition(.opacity.combined(with: .move(edge: .top)))
         }
     }
@@ -1206,27 +1247,81 @@ private struct CapturePrimaryActionButton: View {
     let presentation: CaptureScreenPresentation
 
     var body: some View {
-        VStack(spacing: 8) {
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.55, green: 0.96, blue: 0.89))
-                    .frame(width: 82, height: 82)
-                    .overlay(Circle().stroke(.white.opacity(0.38), lineWidth: 5))
-
-                Image(systemName: presentation.primaryAction.systemImage)
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundStyle(.black)
-                    .accessibilityHidden(true)
-            }
-            .opacity(presentation.primaryAction.isEnabled ? 1 : 0.58)
+        HStack(spacing: 10) {
+            Image(systemName: presentation.primaryAction.systemImage)
+                .font(.system(size: 17, weight: .bold))
+                .foregroundStyle(.black)
+                .accessibilityHidden(true)
+                .frame(width: 28, height: 28)
+                .background(.black.opacity(0.08), in: Circle())
 
             Text(presentation.primaryAction.title)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.64)
+                .font(.headline.weight(.bold))
+                .foregroundStyle(.black)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.78)
         }
-        .frame(width: 122)
+        .padding(.horizontal, 18)
+        .frame(maxWidth: 280, minHeight: 56)
+        .background(AgentPocketDesignTokens.accent, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+        .opacity(presentation.primaryAction.isEnabled ? 1 : 0.52)
+        .contentShape(RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+    }
+}
+
+private struct CaptureStatusLabel: View {
+    let text: String
+    let systemImage: String
+    let tint: Color
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: systemImage)
+                .font(.callout.weight(.semibold))
+                .foregroundStyle(tint)
+                .accessibilityHidden(true)
+
+            Text(text)
+                .font(.callout.weight(.medium))
+                .foregroundStyle(tint)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct CaptureIntentSummaryCard: View {
+    let title: String
+    let message: String
+    let systemImage: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(AgentPocketDesignTokens.accent)
+                .frame(width: 28, height: 28)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.white.opacity(0.92))
+
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.68))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
     }
 }
 

@@ -53,6 +53,7 @@ public struct ResultGalleryView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 14) {
                     beforeAfterComparison(presentation)
+                    resultSummary(presentation)
                     variantTabs(presentation)
                     actionPanel(presentation)
                 }
@@ -67,18 +68,6 @@ public struct ResultGalleryView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Button {
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.86))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(language == .chinese ? "更多" : "More")
-            }
-        }
         .task {
             await downloadSelectedVariantIfNeeded()
             refreshShareURL()
@@ -170,6 +159,14 @@ public struct ResultGalleryView: View {
         .accessibilityLabel(presentation.comparisonAccessibilityLabel)
     }
 
+    private func resultSummary(_ presentation: ResultScreenPresentation) -> some View {
+        ResultSummaryCard(
+            title: presentation.summaryTitle,
+            message: presentation.summaryMessage,
+            detail: presentation.afterDetail
+        )
+    }
+
     private func variantTabs(_ presentation: ResultScreenPresentation) -> some View {
         HStack(spacing: 6) {
             ForEach(presentation.variantTabs) { tab in
@@ -259,6 +256,14 @@ public struct ResultGalleryView: View {
                     .font(.callout)
                     .foregroundStyle(Color(red: 1.0, green: 0.48, blue: 0.42))
                     .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            if saveFlow.state == .saved {
+                ResultInlineStatus(
+                    text: language == .chinese ? "已保存到照片图库。" : "Saved to Photos.",
+                    systemImage: "checkmark.circle.fill",
+                    tint: AgentPocketDesignTokens.accent
+                )
             }
 
             if saveFlow.state == .permissionDenied {
@@ -455,6 +460,59 @@ private struct ResultPillLabel: View {
     }
 }
 
+private struct ResultSummaryCard: View {
+    let title: String
+    let message: String
+    let detail: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(AgentPocketDesignTokens.accent)
+                    .accessibilityHidden(true)
+
+                Text(title)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.white)
+            }
+
+            Text(message)
+                .font(.footnote)
+                .foregroundStyle(.white.opacity(0.70))
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text(detail)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AgentPocketDesignTokens.accent.opacity(0.92))
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                .stroke(.white.opacity(0.08), lineWidth: 1)
+        )
+    }
+}
+
+private struct ResultInlineStatus: View {
+    let text: String
+    let systemImage: String
+    let tint: Color
+
+    var body: some View {
+        Label(text, systemImage: systemImage)
+            .font(.callout.weight(.semibold))
+            .foregroundStyle(tint)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
 private struct ResultActionLabel: View {
     let action: ResultScreenPresentation.Action
     let isProminent: Bool
@@ -464,14 +522,17 @@ private struct ResultActionLabel: View {
             .font(.callout.weight(.semibold))
             .foregroundStyle(isProminent ? .black : .white)
             .frame(maxWidth: .infinity, minHeight: 52)
-            .background(backgroundStyle, in: Capsule())
-            .overlay(Capsule().stroke(.white.opacity(isProminent ? 0 : 0.1), lineWidth: 1))
+            .background(backgroundStyle, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                    .stroke(.white.opacity(isProminent ? 0 : 0.1), lineWidth: 1)
+            )
             .opacity(action.isEnabled ? 1 : 0.48)
     }
 
     private var backgroundStyle: Color {
         if isProminent {
-            return Color(red: 0.55, green: 0.96, blue: 0.89)
+            return AgentPocketDesignTokens.accent
         }
         return Color.white.opacity(0.09)
     }

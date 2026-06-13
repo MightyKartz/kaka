@@ -35,25 +35,25 @@ public struct FileInboxDocumentPayloadLoader: InboxDocumentPayloadLoading {
     }
 
     public func preparedUpload(for item: KakaInboxItem) throws -> PreparedAssetUpload {
-        guard item.kind == .pdf else {
+        guard item.kind == .pdf || item.kind == .video else {
             throw LoadError.unsupportedKind
         }
         guard let relativePath = item.relativeFilePath else {
             throw LoadError.missingRelativePath
         }
-        let mimeType = item.mimeType ?? "application/pdf"
-        guard mimeType.lowercased() == "application/pdf" else {
+        let mimeType = item.mimeType ?? defaultMimeType(for: item.kind)
+        guard supports(mimeType: mimeType, for: item.kind) else {
             throw LoadError.unsupportedMimeType
         }
 
         let fileURL = try payloadURL(relativePath: relativePath)
         let resourceValues = try fileURL.resourceValues(forKeys: [.fileSizeKey])
         if let fileSize = resourceValues.fileSize,
-           fileSize > maxUploadBytes {
+           fileSize > maxUploadBytes(for: item.kind) {
             throw LoadError.exceedsMaxUploadSize
         }
         let data = try Data(contentsOf: fileURL)
-        guard data.count <= maxUploadBytes else {
+        guard data.count <= maxUploadBytes(for: item.kind) else {
             throw LoadError.exceedsMaxUploadSize
         }
 
@@ -70,8 +70,34 @@ public struct FileInboxDocumentPayloadLoader: InboxDocumentPayloadLoading {
         )
     }
 
-    private var maxUploadBytes: Int {
-        maxUploadMB * 1_024 * 1_024
+    private func maxUploadBytes(for kind: UniversalIntakeKind) -> Int {
+        if kind == .video {
+            return VideoIntakePolicy.firstReleaseMaxBytes
+        }
+        return maxUploadMB * 1_024 * 1_024
+    }
+
+    private func defaultMimeType(for kind: UniversalIntakeKind) -> String {
+        switch kind {
+        case .pdf:
+            return "application/pdf"
+        case .video:
+            return "video/quicktime"
+        case .text, .url, .image, .screenshot:
+            return "application/octet-stream"
+        }
+    }
+
+    private func supports(mimeType: String, for kind: UniversalIntakeKind) -> Bool {
+        let lowercased = mimeType.lowercased()
+        switch kind {
+        case .pdf:
+            return lowercased == "application/pdf"
+        case .video:
+            return lowercased.hasPrefix("video/")
+        case .text, .url, .image, .screenshot:
+            return false
+        }
     }
 
     private func payloadURL(relativePath: String) throws -> URL {

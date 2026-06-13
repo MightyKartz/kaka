@@ -5,6 +5,7 @@ public enum ConnectionReadinessIssue: String, CaseIterable, Equatable, Sendable 
     case pairingCodeAlreadyUsed
     case revokedSavedConnection
     case bridgeUnavailable
+    case savedRuntimeUnavailable
     case missingBonjourHost
     case requiredTLSCertificateFailure
     case portConflict
@@ -117,6 +118,17 @@ public enum ConnectionReadinessPresenter {
                 recoveryAction: .startMobileBridge,
                 compatibleConnectionState: .offline
             )
+        case .savedRuntimeUnavailable:
+            return ConnectionReadinessPresentation(
+                issue: issue,
+                title: "Start Runtime on Mac",
+                message: "Your pairing is still saved. Start Hermes/OpenClaw or runtime-kit on the Mac, then return to this iPhone and reconnect.",
+                primaryActionTitle: "I've Started It, Reconnect",
+                secondaryActionTitle: "Scan New QR",
+                recoveryOwner: .hostRuntime,
+                recoveryAction: .startMobileBridge,
+                compatibleConnectionState: nil
+            )
         case .missingBonjourHost:
             return ConnectionReadinessPresentation(
                 issue: issue,
@@ -180,13 +192,15 @@ public enum ConnectionReadinessPresenter {
             return presentation(for: .revokedSavedConnection)
         case .offline:
             return presentation(for: .bridgeUnavailable)
+        case .savedConnectionOffline:
+            return presentation(for: .savedRuntimeUnavailable)
         case .localNetworkPermissionRequired:
             return presentation(for: .missingBonjourHost)
         case .invalidCertificate:
             return presentation(for: .requiredTLSCertificateFailure)
         case .failed(let message):
             return presentation(forFailureMessage: message)
-        case .idle, .scanning, .discovering, .testing, .connected, .missingPhotoEdit:
+        case .idle, .scanning, .discovering, .testing, .restoringSavedConnection, .connected, .missingPhotoEdit:
             return nil
         }
     }

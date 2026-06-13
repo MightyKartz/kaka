@@ -1,0 +1,97 @@
+[0/1] Planning build
+Building for debugging...
+[0/4] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.16s)
+Test Suite 'Selected tests' started at 2026-06-13 18:10:32.889.
+Test Suite 'AgentPocketPackageTests.xctest' started at 2026-06-13 18:10:32.890.
+Test Suite 'AgentLensSourceSurfaceTests' started at 2026-06-13 18:10:32.890.
+Test Case '-[AgentPocketCoreTests.AgentLensSourceSurfaceTests testAgentLensSourceSurfacesUseStableBridgeValues]' started.
+Test Case '-[AgentPocketCoreTests.AgentLensSourceSurfaceTests testAgentLensSourceSurfacesUseStableBridgeValues]' passed (0.001 seconds).
+Test Suite 'AgentLensSourceSurfaceTests' passed at 2026-06-13 18:10:32.891.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'AgentScanActionPolicyTests' started at 2026-06-13 18:10:32.891.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testHTTPURLOffersSafeNextActionsWithoutAutoOpening]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testHTTPURLOffersSafeNextActionsWithoutAutoOpening]' passed (0.001 seconds).
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testKakaPairingQRPrefersConnectAction]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testKakaPairingQRPrefersConnectAction]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testPaymentLikeURLDoesNotAutoOpen]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testPaymentLikeURLDoesNotAutoOpen]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testTextScanBuildsInboxDraftWithInstruction]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testTextScanBuildsInboxDraftWithInstruction]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testUnknownCodeCanBeCopiedAndSentAsText]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testUnknownCodeCanBeCopiedAndSentAsText]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testURLScanBuildsInboxDraftWithScannerSourceSurface]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testURLScanBuildsInboxDraftWithScannerSourceSurface]' passed (0.000 seconds).
+Test Suite 'AgentScanActionPolicyTests' passed at 2026-06-13 18:10:32.893.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'AppIntentPresentationTests' started at 2026-06-13 18:10:32.893.
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testActionButtonRecommendedShortcutsStayForegroundReviewOnly]' started.
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testActionButtonRecommendedShortcutsStayForegroundReviewOnly]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testActionButtonShortcutMetadataMatchesVisibleReviewSurfaces]' started.
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testActionButtonShortcutMetadataMatchesVisibleReviewSurfaces]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testActionButtonShortcutTitlesAreUserVisibleReviewLabels]' started.
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testActionButtonShortcutTitlesAreUserVisibleReviewLabels]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testLocalAgentLensShortcutsAreForegroundOnly]' started.
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testLocalAgentLensShortcutsAreForegroundOnly]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testOnlyTopLevelReviewSurfacesAreActionButtonRecommended]' started.
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testOnlyTopLevelReviewSurfacesAreActionButtonRecommended]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testSystemSurfaceIntentCatalogContainsOnlySafeForegroundActions]' started.
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testSystemSurfaceIntentCatalogContainsOnlySafeForegroundActions]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testSystemSurfaceIntentMetadataUsesUserVisibleLabels]' started.
+Test Case '-[AgentPocketUITests.AppIntentPresentationTests testSystemSurfaceIntentMetadataUsesUserVisibleLabels]' passed (0.000 seconds).
+Test Suite 'AppIntentPresentationTests' passed at 2026-06-13 18:10:32.895.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'DocumentScanInboxBuilderTests' started at 2026-06-13 18:10:32.895.
+Test Case '-[AgentPocketUITests.DocumentScanInboxBuilderTests testBuildsPDFInboxItemForScannedDocument]' started.
+Test Case '-[AgentPocketUITests.DocumentScanInboxBuilderTests testBuildsPDFInboxItemForScannedDocument]' passed (0.002 seconds).
+Test Suite 'DocumentScanInboxBuilderTests' passed at 2026-06-13 18:10:32.897.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'LocalAgentLensPresentationTests' started at 2026-06-13 18:10:32.897.
+Test Case '-[AgentPocketUITests.LocalAgentLensPresentationTests testConnectedLensShowsPhoneFirstActions]' started.
+Test Case '-[AgentPocketUITests.LocalAgentLensPresentationTests testConnectedLensShowsPhoneFirstActions]' passed (0.001 seconds).
+Test Case '-[AgentPocketUITests.LocalAgentLensPresentationTests testDisconnectedLensKeepsActionsVisibleButExplainsLocalRuntime]' started.
+Test Case '-[AgentPocketUITests.LocalAgentLensPresentationTests testDisconnectedLensKeepsActionsVisibleButExplainsLocalRuntime]' passed (0.000 seconds).
+Test Suite 'LocalAgentLensPresentationTests' passed at 2026-06-13 18:10:32.898.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'RuntimeTaskActivityTests' started at 2026-06-13 18:10:32.898.
+Test Case '-[AgentPocketCoreTests.RuntimeTaskActivityTests testActivitySnapshotIncludesOnlyPhoneSafeProgressAndMessage]' started.
+Test Case '-[AgentPocketCoreTests.RuntimeTaskActivityTests testActivitySnapshotIncludesOnlyPhoneSafeProgressAndMessage]' passed (0.000 seconds).
+Test Suite 'RuntimeTaskActivityTests' passed at 2026-06-13 18:10:32.898.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'UniversalIntakeSubmitterTests' started at 2026-06-13 18:10:32.898.
+Test Case '-[AgentPocketUITests.UniversalIntakeSubmitterTests testVideoIntakeUploadsAssetBeforeStartingTask]' started.
+Test Case '-[AgentPocketUITests.UniversalIntakeSubmitterTests testVideoIntakeUploadsAssetBeforeStartingTask]' passed (0.009 seconds).
+Test Suite 'UniversalIntakeSubmitterTests' passed at 2026-06-13 18:10:32.907.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.009 (0.009) seconds
+Test Suite 'UniversalIntakeTests' started at 2026-06-13 18:10:32.907.
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testCapabilitiesDecodeImageIntakeAndUniversalIntakeAcceptedTypes]' started.
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testCapabilitiesDecodeImageIntakeAndUniversalIntakeAcceptedTypes]' passed (0.000 seconds).
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testTaskStatusDecodesUniversalIntakeResult]' started.
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testTaskStatusDecodesUniversalIntakeResult]' passed (0.000 seconds).
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testUniversalIntakeKindsIncludeShortVideo]' started.
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testUniversalIntakeKindsIncludeShortVideo]' passed (0.000 seconds).
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testUniversalIntakeKindsUseStableBridgeRawValues]' started.
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testUniversalIntakeKindsUseStableBridgeRawValues]' passed (0.000 seconds).
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testUniversalIntakeRequestEncodesImageAndPDFPayloads]' started.
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testUniversalIntakeRequestEncodesImageAndPDFPayloads]' passed (0.000 seconds).
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testUniversalIntakeRequestEncodesURLPayloadWithSnakeCaseMetadata]' started.
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testUniversalIntakeRequestEncodesURLPayloadWithSnakeCaseMetadata]' passed (0.000 seconds).
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testVideoDefaultsToUniversalIntakeRoute]' started.
+Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testVideoDefaultsToUniversalIntakeRoute]' passed (0.000 seconds).
+Test Suite 'UniversalIntakeTests' passed at 2026-06-13 18:10:32.909.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'VideoInboxBuilderTests' started at 2026-06-13 18:10:32.909.
+Test Case '-[AgentPocketUITests.VideoInboxBuilderTests testBuildsVideoInboxItemWithVisibleInstruction]' started.
+Test Case '-[AgentPocketUITests.VideoInboxBuilderTests testBuildsVideoInboxItemWithVisibleInstruction]' passed (0.001 seconds).
+Test Case '-[AgentPocketUITests.VideoInboxBuilderTests testRejectsVideoOverFirstReleaseLimit]' started.
+Test Case '-[AgentPocketUITests.VideoInboxBuilderTests testRejectsVideoOverFirstReleaseLimit]' passed (0.000 seconds).
+Test Suite 'VideoInboxBuilderTests' passed at 2026-06-13 18:10:32.910.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'AgentPocketPackageTests.xctest' passed at 2026-06-13 18:10:32.910.
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.019 (0.021) seconds
+Test Suite 'Selected tests' passed at 2026-06-13 18:10:32.910.
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.019 (0.022) seconds
+􀟈  Test run started.
+􀄵  Testing Library Version: 1902
+􀄵  Target Platform: arm64e-apple-macos14.0
+􁁛  Test run with 0 tests in 0 suites passed after 0.001 seconds.

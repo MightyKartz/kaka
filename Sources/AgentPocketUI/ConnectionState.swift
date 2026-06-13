@@ -17,9 +17,11 @@ public enum ConnectionState: Equatable, Sendable {
     case scanning
     case discovering
     case testing
+    case restoringSavedConnection(displayName: String)
     case connected(ConnectedRuntime)
     case unauthorized
     case offline
+    case savedConnectionOffline(displayName: String)
     case invalidCertificate
     case missingPhotoEdit
     case localNetworkPermissionRequired
@@ -29,10 +31,10 @@ public enum ConnectionState: Equatable, Sendable {
         switch self {
         case .idle:
             return ConnectionPresentation(
-                title: "Connect My Local Agent",
-                message: "Pair with your private runtime to send photos for editing.",
-                primaryActionTitle: "Discover Local Runtime",
-                secondaryActionTitle: "Scan Pairing QR",
+                title: "Connect Your Local Runtime",
+                message: "Scan the pairing QR on your Mac once. Kaka will reconnect automatically after that.",
+                primaryActionTitle: "Scan Pairing QR",
+                secondaryActionTitle: "Find Nearby Runtime",
                 isBusy: false,
                 showsManualEntry: false
             )
@@ -59,6 +61,15 @@ public enum ConnectionState: Equatable, Sendable {
                 title: "Testing Connection",
                 message: "Checking health and photo editing capabilities.",
                 primaryActionTitle: "Testing...",
+                secondaryActionTitle: nil,
+                isBusy: true,
+                showsManualEntry: false
+            )
+        case .restoringSavedConnection(let displayName):
+            return ConnectionPresentation(
+                title: "Restoring Saved Runtime",
+                message: "Checking \(displayName) with your saved pairing.",
+                primaryActionTitle: "Checking...",
                 secondaryActionTitle: nil,
                 isBusy: true,
                 showsManualEntry: false
@@ -90,6 +101,16 @@ public enum ConnectionState: Equatable, Sendable {
                 secondaryActionTitle: "Scan Pairing QR",
                 isBusy: false,
                 showsManualEntry: false
+            )
+        case .savedConnectionOffline(let displayName):
+            return ConnectionPresentation(
+                title: "Start Runtime on Mac",
+                message: "\(displayName) is still paired. Start the runtime on your Mac, then reconnect here.",
+                primaryActionTitle: "I've Started It, Reconnect",
+                secondaryActionTitle: "Scan New QR",
+                isBusy: false,
+                showsManualEntry: false,
+                trustBadges: ["Saved Pairing", "Mac Action Needed"]
             )
         case .invalidCertificate:
             return ConnectionPresentation(
