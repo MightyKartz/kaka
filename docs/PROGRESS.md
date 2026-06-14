@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-06-14 · Local Agent Lens · Inbox result source app copy
+
+- 优化 Inbox 提交完成结果横幅来源展示:保留有用 source app provenance,如 `Paste from Safari`、`系统分享来自 Photos`。
+- 结果横幅继续避免 Files 导入重复显示 `Files from Files`,保持 Local Agent Lens 来源名和 Context Snapshot 文案不变。
+- 新增 TDD 覆盖 `testSourceAppProvenanceShowsWhenItAddsContext`;红测确认旧横幅只显示 `Source: Paste`。
+- QA receipt:`docs/qa-receipts/inbox-result-source-app-copy-20260614/`,含 focused/full Swift 测试与 `git diff --check` 日志。
+- 验证:`swift test --filter InboxResultPresentationTests` 3 passed; `swift test` 463 passed; `git diff --check`。
+- 遗留:本轮为 presentation-copy 单测切片,未跑模拟器截图、真机硬件路径或 runtime/mock bridge pytest。
+
+---
+
 ## 2026-06-14 · Local Agent Lens · Inbox result source guard fix
 
 - 修复 PR #19 验证阻塞:更新 `ios/tests/test_inbox_result_review_provenance_source.py`,不再把 Context Snapshot 结果横幅文案硬绑在 `InboxView.swift`。

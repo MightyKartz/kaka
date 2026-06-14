@@ -31,11 +31,40 @@ public struct InboxResultPresentation: Equatable, Sendable {
 
 private extension InboxResultPresentation {
     static func sourceText(_ context: InboxSubmissionContext, language: AppLanguage) -> String {
-        let source = context.sourceSurface ?? context.sourceApp ?? context.kind.rawValue
+        let sourceSurface = context.sourceSurface ?? context.sourceApp ?? context.kind.rawValue
+        let source = localizedSource(sourceSurface, language: language)
+        let sourceWithApp = sourceTextWithApp(
+            source,
+            sourceSurface: sourceSurface,
+            sourceApp: context.sourceApp,
+            language: language
+        )
         if language == .chinese {
-            return "来源：\(localizedSource(source, language: language))"
+            return "来源：\(sourceWithApp)"
         }
-        return "Source: \(localizedSource(source, language: language))"
+        return "Source: \(sourceWithApp)"
+    }
+
+    static func sourceTextWithApp(
+        _ source: String,
+        sourceSurface: String,
+        sourceApp: String?,
+        language: AppLanguage
+    ) -> String {
+        guard let app = visible(sourceApp),
+              shouldShowSourceApp(sourceSurface, source: source, app: app) else {
+            return source
+        }
+        return language == .chinese ? "\(source)来自 \(app)" : "\(source) from \(app)"
+    }
+
+    static func shouldShowSourceApp(_ sourceSurface: String, source: String, app: String) -> Bool {
+        switch sourceSurface {
+        case "file_picker", "document_picker":
+            return app != "Files"
+        default:
+            return app != source
+        }
     }
 
     static func contextText(_ context: InboxSubmissionContext, language: AppLanguage) -> String {
@@ -68,5 +97,10 @@ private extension InboxResultPresentation {
         default:
             return source
         }
+    }
+
+    static func visible(_ value: String?) -> String? {
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed?.isEmpty == false ? trimmed : nil
     }
 }
