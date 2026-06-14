@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-06-14 · Local Agent Lens · Inbox source review copy
+
+- 优化 Inbox pending item `Review Details` 来源展示:Local Agent Lens 的 `agent_scanner`、`document_scanner`、`video_capture` 不再显示 raw source surface。
+- 新增 TDD 覆盖英文/中文来源名:Scanner/扫描、Document Scan/文档扫描、Video/视频。
+- QA receipt:`docs/qa-receipts/lens-source-review-copy-20260614/`,含 focused/full Swift 测试与 `git diff --check` 日志。
+- 验证:`swift test --filter InboxPendingItemReviewPresentationTests` 6 passed; `swift test` 458 passed; `git diff --check`。
+- 遗留:本轮为 presentation-copy 单测切片,未跑模拟器截图或真机硬件路径。
+
+---
+
 ## 2026-06-14 · Local Agent Lens · Scanner payment URL actions
 
 - 收紧 Agent Scanner 本地动作策略:支付/结账类 HTTPS 链接仍保留 Ask Agent、Copy、Save to Inbox 的可见审阅路径,但不提供 Open 动作。

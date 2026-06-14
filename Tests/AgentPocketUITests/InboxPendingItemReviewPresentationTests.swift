@@ -120,6 +120,39 @@ final class InboxPendingItemReviewPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.value(for: "route"), "图片处理")
     }
 
+    func testLocalAgentLensSourcesUseUserFacingNames() {
+        let englishCases: [(AgentLensSourceSurface, UniversalIntakeKind, String)] = [
+            (.agentScanner, .text, "Scanner"),
+            (.documentScanner, .pdf, "Document Scan"),
+            (.videoCapture, .video, "Video")
+        ]
+        let chineseCases: [(AgentLensSourceSurface, UniversalIntakeKind, String)] = [
+            (.agentScanner, .text, "扫描"),
+            (.documentScanner, .pdf, "文档扫描"),
+            (.videoCapture, .video, "视频")
+        ]
+
+        for (surface, kind, expectedSource) in englishCases {
+            let presentation = InboxPendingItemReviewPresentation(
+                item: KakaInboxItem(kind: kind, sourceSurface: surface.rawValue, route: .universalIntake),
+                contextIncluded: false,
+                language: .english
+            )
+
+            XCTAssertEqual(presentation.value(for: "source"), expectedSource)
+        }
+
+        for (surface, kind, expectedSource) in chineseCases {
+            let presentation = InboxPendingItemReviewPresentation(
+                item: KakaInboxItem(kind: kind, sourceSurface: surface.rawValue, route: .universalIntake),
+                contextIncluded: false,
+                language: .chinese
+            )
+
+            XCTAssertEqual(presentation.value(for: "source"), expectedSource)
+        }
+    }
+
     func testImageIntakeNoteIsNotShownAsInstruction() {
         let item = KakaInboxItem(
             kind: .image,

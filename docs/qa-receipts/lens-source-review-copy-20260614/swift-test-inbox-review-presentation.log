@@ -1,0 +1,28 @@
+Building for debugging...
+[0/4] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.16s)
+Test Suite 'Selected tests' started at 2026-06-14 11:49:01.518.
+Test Suite 'AgentPocketPackageTests.xctest' started at 2026-06-14 11:49:01.519.
+Test Suite 'InboxPendingItemReviewPresentationTests' started at 2026-06-14 11:49:01.519.
+Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testChinesePresentationIsLocalized]' started.
+Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testChinesePresentationIsLocalized]' passed (0.002 seconds).
+Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testFileItemShowsFileNameAndMimeTypeWithoutLeakingRelativePath]' started.
+Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testFileItemShowsFileNameAndMimeTypeWithoutLeakingRelativePath]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testImageIntakeNoteIsNotShownAsInstruction]' started.
+Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testImageIntakeNoteIsNotShownAsInstruction]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testLocalAgentLensSourcesUseUserFacingNames]' started.
+Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testLocalAgentLensSourcesUseUserFacingNames]' passed (0.001 seconds).
+Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testLongTextIsTrimmedAndBounded]' started.
+Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testLongTextIsTrimmedAndBounded]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testURLItemShowsSourceTypeContentInstructionAndIncludedContext]' started.
+Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testURLItemShowsSourceTypeContentInstructionAndIncludedContext]' passed (0.001 seconds).
+Test Suite 'InboxPendingItemReviewPresentationTests' passed at 2026-06-14 11:49:01.524.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'AgentPocketPackageTests.xctest' passed at 2026-06-14 11:49:01.524.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'Selected tests' passed at 2026-06-14 11:49:01.524.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.004 (0.007) seconds
+􀟈  Test run started.
+􀄵  Testing Library Version: 1902
+􀄵  Target Platform: arm64e-apple-macos14.0
+􁁛  Test run with 0 tests in 0 suites passed after 0.001 seconds.
