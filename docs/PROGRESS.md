@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-06-14 · Local Agent Lens · Inbox Files source dedupe copy
+
+- 优化 Inbox pending item `Review Details` 来源展示:Files 导入不再显示重复的 `Files from Files`,改为 `Files`。
+- 新增 TDD 覆盖现有 `InboxPendingItemReviewPresentationTests`;红测确认旧来源行重复。
+- QA receipt:`docs/qa-receipts/inbox-files-source-dedupe-copy-20260614/`,含 focused/full Swift 测试与 `git diff --check` 日志。
+- 验证:`swift test --filter InboxPendingItemReviewPresentationTests` 6 passed; `swift test` 460 passed; `git diff --check`。
+- 遗留:本轮为 presentation-copy 单测切片,未跑模拟器截图或真机硬件路径。
+
+---
+
 ## 2026-06-14 · Local Agent Lens · Context Snapshot courier source copy
 
 - 优化 Context Snapshot 预览的 Source 行:显式 `paste` 显示为 Paste,`file_picker`/`document_picker` 显示为 Files,与 Inbox Review 来源命名对齐。

@@ -61,7 +61,7 @@ final class InboxPendingItemReviewPresentationTests: XCTestCase {
             language: .english
         )
 
-        XCTAssertEqual(presentation.value(for: "source"), "Files from Files")
+        XCTAssertEqual(presentation.value(for: "source"), "Files")
         XCTAssertEqual(presentation.value(for: "type"), "PDF")
         XCTAssertEqual(presentation.value(for: "file"), "brief.pdf")
         XCTAssertEqual(presentation.value(for: "mime_type"), "application/pdf")
