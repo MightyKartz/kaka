@@ -1,0 +1,48 @@
+Building for debugging...
+[0/4] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.08s)
+Test Suite 'Selected tests' started at 2026-06-14 12:27:54.647.
+Test Suite 'AgentPocketPackageTests.xctest' started at 2026-06-14 12:27:54.648.
+Test Suite 'ContextSnapshotViewModelTests' started at 2026-06-14 12:27:54.648.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testCollectExposesPreparingStateAndResetClearsIt]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testCollectExposesPreparingStateAndResetClearsIt]' passed (0.001 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testDeniedCollectorSetsPermissionMessageWithoutForcingIncludeContext]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testDeniedCollectorSetsPermissionMessageWithoutForcingIncludeContext]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testIncludeContextDefaultsFalse]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testIncludeContextDefaultsFalse]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testPermissionedCollectorKeepsDeniedFieldStatusesPreviewableWithoutForcingSubmission]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testPermissionedCollectorKeepsDeniedFieldStatusesPreviewableWithoutForcingSubmission]' passed (0.001 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testPreviewRowsDescribeCoarseContextValues]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testPreviewRowsDescribeCoarseContextValues]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testPreviewRowsDescribeMotionAndCalendarBusyWindowValuesWithoutChangingPayload]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testPreviewRowsDescribeMotionAndCalendarBusyWindowValuesWithoutChangingPayload]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testPreviewRowsDescribePermissionSentinelsWithoutChangingSubmittedSnapshot]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testPreviewRowsDescribePermissionSentinelsWithoutChangingSubmittedSnapshot]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testPreviewRowsUseInboxFacingCourierSourceNames]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testPreviewRowsUseInboxFacingCourierSourceNames]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testPreviewRowsUseUserFacingLocalAgentLensSources]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testPreviewRowsUseUserFacingLocalAgentLensSources]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testRefreshForInclusionCollectsFreshPreviewAfterReset]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testRefreshForInclusionCollectsFreshPreviewAfterReset]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testResetIgnoresInFlightSnapshotResult]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testResetIgnoresInFlightSnapshotResult]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testResetPerTaskConsentClearsCachedPreviewForNextTask]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testResetPerTaskConsentClearsCachedPreviewForNextTask]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testResetPerTaskConsentTurnsIncludeContextOff]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testResetPerTaskConsentTurnsIncludeContextOff]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testResetThenIncludeAgainCollectsFreshNetworkStatus]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testResetThenIncludeAgainCollectsFreshNetworkStatus]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testSelectedSnapshotForSubmissionIsNilWhenIncludeContextIsFalse]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testSelectedSnapshotForSubmissionIsNilWhenIncludeContextIsFalse]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testSuccessfulCollectorCanBeIncludedWhenIncludeContextIsTrue]' started.
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testSuccessfulCollectorCanBeIncludedWhenIncludeContextIsTrue]' passed (0.000 seconds).
+Test Suite 'ContextSnapshotViewModelTests' passed at 2026-06-14 12:27:54.652.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'AgentPocketPackageTests.xctest' passed at 2026-06-14 12:27:54.652.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'Selected tests' passed at 2026-06-14 12:27:54.652.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+􀟈  Test run started.
+􀄵  Testing Library Version: 1902
+􀄵  Target Platform: arm64e-apple-macos14.0
+􁁛  Test run with 0 tests in 0 suites passed after 0.001 seconds.

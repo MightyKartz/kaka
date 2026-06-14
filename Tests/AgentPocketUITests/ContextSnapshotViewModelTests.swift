@@ -175,6 +175,29 @@ final class ContextSnapshotViewModelTests: XCTestCase {
         }
     }
 
+    func testPreviewRowsUseInboxFacingCourierSourceNames() async {
+        let cases: [(String, String)] = [
+            ("paste", "Paste"),
+            ("file_picker", "Files"),
+            ("document_picker", "Files")
+        ]
+
+        for (sourceSurface, expectedValue) in cases {
+            let snapshot = ContextSnapshotPayload(
+                timestamp: "2026-06-07T10:00:00Z",
+                timezone: "Asia/Shanghai",
+                sourceSurface: sourceSurface
+            )
+            let viewModel = ContextSnapshotViewModel(
+                collector: StubContextSnapshotCollector(result: .success(snapshot))
+            )
+
+            await viewModel.refresh()
+
+            XCTAssertTrue(viewModel.previewRows.contains(.init(label: "Source", value: expectedValue)))
+        }
+    }
+
     func testPreviewRowsDescribeMotionAndCalendarBusyWindowValuesWithoutChangingPayload() async {
         let snapshot = ContextSnapshotPayload(
             timestamp: "2026-06-07T10:00:00Z",

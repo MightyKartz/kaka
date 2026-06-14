@@ -103,8 +103,12 @@ private extension ContextSnapshotViewModel {
 
     static func sourceDisplayValue(_ value: String) -> String {
         switch value {
+        case "paste":
+            return "Paste"
         case "share_extension":
             return "Share Extension"
+        case "file_picker", "document_picker":
+            return "Files"
         case "voice":
             return "Voice"
         case "inbox":
