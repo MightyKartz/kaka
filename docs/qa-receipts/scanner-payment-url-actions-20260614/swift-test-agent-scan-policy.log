@@ -1,0 +1,30 @@
+Building for debugging...
+[0/4] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.12s)
+Test Suite 'Selected tests' started at 2026-06-14 11:27:26.736.
+Test Suite 'AgentPocketPackageTests.xctest' started at 2026-06-14 11:27:26.737.
+Test Suite 'AgentScanActionPolicyTests' started at 2026-06-14 11:27:26.737.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testHTTPURLOffersSafeNextActionsWithoutAutoOpening]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testHTTPURLOffersSafeNextActionsWithoutAutoOpening]' passed (0.002 seconds).
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testKakaPairingQRPrefersConnectAction]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testKakaPairingQRPrefersConnectAction]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testPaymentLikeHTTPSURLCanBeReviewedWithoutOpenAction]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testPaymentLikeHTTPSURLCanBeReviewedWithoutOpenAction]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testPaymentLikeURLDoesNotAutoOpen]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testPaymentLikeURLDoesNotAutoOpen]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testTextScanBuildsInboxDraftWithInstruction]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testTextScanBuildsInboxDraftWithInstruction]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testUnknownCodeCanBeCopiedAndSentAsText]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testUnknownCodeCanBeCopiedAndSentAsText]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testURLScanBuildsInboxDraftWithScannerSourceSurface]' started.
+Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testURLScanBuildsInboxDraftWithScannerSourceSurface]' passed (0.000 seconds).
+Test Suite 'AgentScanActionPolicyTests' passed at 2026-06-14 11:27:26.739.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'AgentPocketPackageTests.xctest' passed at 2026-06-14 11:27:26.739.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'Selected tests' passed at 2026-06-14 11:27:26.739.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+􀟈  Test run started.
+􀄵  Testing Library Version: 1902
+􀄵  Target Platform: arm64e-apple-macos14.0
+􁁛  Test run with 0 tests in 0 suites passed after 0.001 seconds.

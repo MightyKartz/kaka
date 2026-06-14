@@ -28,7 +28,29 @@ public struct AgentScanResult: Equatable, Identifiable, Sendable {
         return lowercased.hasPrefix("alipays://")
             || lowercased.hasPrefix("weixin://")
             || lowercased.hasPrefix("wechat://")
-            || lowercased.contains("pay")
+            || lowercased.hasPrefix("paypal://")
+            || lowercased.hasPrefix("venmo://")
+            || lowercased.hasPrefix("cashapp://")
+    }
+
+    public var isPaymentLikeWebURL: Bool {
+        guard let url else {
+            return false
+        }
+
+        let host = url.host?.lowercased() ?? ""
+        let path = url.path.lowercased()
+        let query = url.query?.lowercased() ?? ""
+        let searchable = "\(host) \(path) \(query)"
+
+        return searchable.contains("paypal")
+            || searchable.contains("venmo")
+            || searchable.contains("cash.app")
+            || searchable.contains("stripe")
+            || searchable.contains("checkout")
+            || searchable.contains("payment")
+            || searchable.contains("pay.")
+            || searchable.contains("/pay")
     }
 }
 
