@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-06-14 · Local Agent Lens · Inbox action feedback empty failure copy
+
+- 修复 Inbox action feedback 失败横幅空白文案:空/仅空白错误会回落到本地化 review/retry 文案。
+- 保留非空失败消息、失败图标和可 dismiss 行为,不改提交、队列、Recall、runtime 或 `/mobile/v1` 合约。
+- 新增 TDD 覆盖 `testBlankFailureMessageFallsBackToLocalizedReviewCopy`;红测确认旧横幅直接显示空白字符串。
+- QA receipt:`docs/qa-receipts/inbox-action-feedback-empty-failure-copy-20260614/`,含红绿 focused Swift、完整 Swift 与 `git diff --check` 结果。
+- 验证:`swift test --filter InboxActionFeedbackPresentationTests` 5 passed; `swift test` 464 passed; `git diff --check`。
+- 遗留:本轮为 presentation-copy 防御切片,未跑模拟器截图、真机硬件路径或 runtime/mock bridge pytest。
+
+---
+
 ## 2026-06-14 · Local Agent Lens · Inbox result source app copy
 
 - 优化 Inbox 提交完成结果横幅来源展示:保留有用 source app provenance,如 `Paste from Safari`、`系统分享来自 Photos`。
