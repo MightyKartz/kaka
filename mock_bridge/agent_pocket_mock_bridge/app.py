@@ -38,7 +38,7 @@ except Exception:
 
 DEV_MOBILE_TOKEN = "dev-mobile-token"
 DEV_PAIRING_CODE = "pair_dev"
-DEV_DISPLAY_NAME = "Agent Pocket Mock Hermes"
+DEV_DISPLAY_NAME = "Pocket Agent Mock Hermes"
 DEFAULT_INPUT_ASSETS_DAYS = 7
 DEFAULT_OUTPUT_ASSETS_DAYS = 30
 DEFAULT_TASK_HISTORY_DAYS = 30
@@ -906,16 +906,16 @@ class MockBridgeApp:
             qr_markup = f"""
     <figure class="pairing-qr-card">
       <div class="qr-shell">
-        <img class="pairing-qr" src="{qr_data_uri}" alt="Pairing QR code for Agent Pocket" data-pairing-payload="{escaped_payload_attribute}">
+        <img class="pairing-qr" src="{qr_data_uri}" alt="Pairing QR code for Pocket Agent" data-pairing-payload="{escaped_payload_attribute}">
       </div>
     </figure>
 """
         body = f"""<!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><title>Agent Pocket Production Pairing</title></head>
+<head><meta charset="utf-8"><title>Pocket Agent Production Pairing</title></head>
 <body>
   <main>
-    <h1>Kaka Mobile Bridge Pairing</h1>
+    <h1>Pocket Agent Mobile Bridge Pairing</h1>
 {qr_markup}
     <pre>{escaped_payload}</pre>
   </main>
@@ -998,9 +998,9 @@ class MockBridgeApp:
             qr_markup = f"""
     <figure class="pairing-qr-card">
       <div class="qr-shell">
-        <img class="pairing-qr" src="{qr_data_uri}" alt="Pairing QR code for Agent Pocket" data-pairing-payload="{escaped_payload_attribute}">
+        <img class="pairing-qr" src="{qr_data_uri}" alt="Pairing QR code for Pocket Agent" data-pairing-payload="{escaped_payload_attribute}">
       </div>
-      <figcaption>Scan this QR in Agent Pocket to pair with the mock Hermes bridge.</figcaption>
+      <figcaption>Scan this QR in Pocket Agent to pair with the mock Hermes bridge.</figcaption>
     </figure>
 """
 
@@ -1009,7 +1009,7 @@ class MockBridgeApp:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agent Pocket Mock Hermes Pairing</title>
+  <title>Pocket Agent Mock Hermes Pairing</title>
   <style>
     :root {{
       color-scheme: light dark;
@@ -1077,7 +1077,7 @@ class MockBridgeApp:
 <body>
   <main>
     <h1>Mock Hermes Pairing</h1>
-    <p>Open Agent Pocket, choose Scan Pairing QR or Discover Local Runtime, then use this development payload for local QA.</p>
+    <p>Open Pocket Agent, choose Scan Pairing QR or Discover Local Runtime, then use this development payload for local QA.</p>
     <p class="endpoint">{escaped_endpoint}</p>
 {qr_markup}
 
@@ -1672,7 +1672,7 @@ class MockBridgeApp:
                 "recall_store": {
                     "enabled": has_runtime_store,
                     "owner": "runtime" if has_runtime_store else "mock_bridge",
-                    "label": "Local Kaka Recall and task store" if has_runtime_store else "In-memory development store",
+                    "label": "Local Pocket Agent Recall and task store" if has_runtime_store else "In-memory development store",
                     "phone_can_change": False,
                 },
                 "semantic_recall": semantic_recall,
@@ -2069,7 +2069,7 @@ class MockBridgeApp:
                     mime_type=mime_type,
                 ),
                 fallback_title=f"{intake_type.title()} ready",
-                fallback_summary="Kaka received this item for runtime intake.",
+                fallback_summary="Pocket Agent received this item for runtime intake.",
             )
             result.update(
                 {
@@ -2083,7 +2083,7 @@ class MockBridgeApp:
                 result["image_intake"] = _sanitize_image_intake_result(
                     image_intake,
                     fallback_title=str(result.get("title", "Image ready")),
-                    fallback_summary=str(result.get("summary", "Kaka can inspect this image.")),
+                    fallback_summary=str(result.get("summary", "Pocket Agent can inspect this image.")),
                 )
                 result["image_intake"]["suggestions"] = self._capability_aware_intake_suggestions(
                     result["image_intake"].get("suggestions", [])
@@ -2094,7 +2094,7 @@ class MockBridgeApp:
             text_value = self._source_text(payload)
             result = {
                 "title": "Shared text ready",
-                "summary": f"Kaka received {len(text_value)} characters of text from {metadata.get('source_app', 'an app')}.",
+                "summary": f"Pocket Agent received {len(text_value)} characters of text from {metadata.get('source_app', 'an app')}.",
                 "suggestions": [
                     self._intake_suggestion("summarize", "Summarize"),
                     self._intake_suggestion("extract_tasks", "Extract Tasks"),
@@ -2105,7 +2105,7 @@ class MockBridgeApp:
             url_value = self._source_url(payload)
             result = {
                 "title": "Shared link ready",
-                "summary": f"Kaka received a link from {metadata.get('source_app', 'an app')}: {url_value}",
+                "summary": f"Pocket Agent received a link from {metadata.get('source_app', 'an app')}: {url_value}",
                 "suggestions": [
                     self._intake_suggestion("summarize", "Summarize"),
                     self._intake_suggestion("remember", "Remember", requires_confirmation=True),
@@ -2117,7 +2117,7 @@ class MockBridgeApp:
             image_intake = self._build_image_intake_result_for_asset(asset_id, payload)
             result = {
                 "title": image_intake.get("title", "Image ready"),
-                "summary": image_intake.get("summary", "Kaka can inspect this image and suggest visual skills."),
+                "summary": image_intake.get("summary", "Pocket Agent can inspect this image and suggest visual skills."),
                 "suggestions": [
                     self._intake_suggestion("open_image_conversation", "Open Image Conversation"),
                     self._intake_suggestion("forget", "Forget", requires_confirmation=True),
@@ -2127,7 +2127,7 @@ class MockBridgeApp:
         elif intake_type == "video":
             result = {
                 "title": "Video ready",
-                "summary": "Kaka received a short video for local-agent analysis.",
+                "summary": "Pocket Agent received a short video for local-agent analysis.",
                 "suggestions": [
                     self._intake_suggestion("summarize", "Summarize video"),
                     self._intake_suggestion("extract_actions", "Extract actions"),
@@ -2140,7 +2140,7 @@ class MockBridgeApp:
             pages = f" with {page_count} pages" if page_count else ""
             result = {
                 "title": "PDF ready",
-                "summary": f"Kaka received {filename}{pages} for local runtime intake.",
+                "summary": f"Pocket Agent received {filename}{pages} for local runtime intake.",
                 "suggestions": [
                     self._intake_suggestion("summarize", "Summarize"),
                     self._intake_suggestion("extract_tasks", "Extract Tasks"),
@@ -2605,7 +2605,7 @@ def _safe_failure_code(exc: BaseException, fallback: str) -> str:
 def _sanitize_image_intake_result(
     value: Mapping[str, Any],
     fallback_title: str = "Image ready",
-    fallback_summary: str = "Kaka can inspect this image and suggest visual skills.",
+    fallback_summary: str = "Pocket Agent can inspect this image and suggest visual skills.",
 ) -> Dict[str, Any]:
     image_type = str(value.get("image_type") or value.get("type") or "photo").strip() or "photo"
     title = _safe_provider_text(value.get("title"), fallback_title)

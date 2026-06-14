@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/host-codex-developer-plugin-source.schema.json",
-  "title": "Kaka Host Codex Developer Plugin Source",
+  "title": "Pocket Agent Host Codex Developer Plugin Source",
   "type": "object",
   "additionalProperties": false,
   "required": [

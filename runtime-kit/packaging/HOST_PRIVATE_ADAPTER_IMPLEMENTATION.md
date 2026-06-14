@@ -1,7 +1,7 @@
 # Host Private Adapter Implementation Guide
 
 This guide is for external Hermes/OpenClaw host-shell teams that implement the
-private adapter command consumed by Kaka Runtime Kit.
+private adapter command consumed by Pocket Agent Runtime Kit.
 
 Runtime Kit defines the command contract, schemas, conformance runner, and pilot
 readiness receipt. It does not implement, bundle, distribute, sign, or own any
@@ -17,7 +17,7 @@ The private adapter is a runtime-side command bridge:
 - The command writes one JSON response on stdout.
 - The command may write diagnostics to stderr.
 - The iPhone never invokes this command.
-- The phone API remains Kaka Mobile Bridge `/mobile/v1`.
+- The phone API remains Pocket Agent Mobile Bridge `/mobile/v1`.
 - Host-native install, login-item, update, uninstall, log, health, port repair,
   and supervision behavior belongs to the host shell.
 
@@ -300,7 +300,7 @@ retrieval internals out of the response.
 ## Conformance Command
 
 Before preflight or conformance, generate the P3.4i host-shell pilot request
-bundle from the Kaka repository root and send it to the external host shell
+bundle from the Pocket Agent repository root and send it to the external host shell
 team:
 
 ```bash
@@ -347,7 +347,7 @@ refs, mutate host state, submit handoff, or change the iPhone `/mobile/v1`
 surface.
 
 After sending the request and collecting the host-owned materials, run the
-P3.4f preflight from the Kaka repository root to check local host inputs without
+P3.4f preflight from the Pocket Agent repository root to check local host inputs without
 invoking the private command:
 
 ```bash
@@ -397,7 +397,7 @@ P3.4h artifact review comes after the request, preflight, conformance report,
 pilot receipt, and handoff JSON files have already been generated; it is not a
 substitute for the request, runbook, or conformance execution.
 
-Run conformance from the Kaka repository root after the external command exists:
+Run conformance from the Pocket Agent repository root after the external command exists:
 
 ```bash
 PYTHONPATH=runtime-kit python3 -m kaka_mobile_runtime_kit host-private-adapter-conformance \
@@ -417,12 +417,12 @@ The conformance report schema is `kaka.host_private_adapter_conformance.v1`.
 It validates the 9 required action IDs plus negative checks for unapproved
 install and disabled health-check behavior. Passing conformance proves only that
 the external command satisfies the Runtime Kit command boundary; it does not
-make Kaka the owner or distributor of the host binary.
+make Pocket Agent the owner or distributor of the host binary.
 
 ## P3.4 Pilot Ready Command
 
 P3.4 pilot readiness requires a real external host-owned command outside the
-Kaka repository, a passing conformance run, verified native distribution,
+Pocket Agent repository, a passing conformance run, verified native distribution,
 verified signature, verified update feed, install/update/failure drills, and
 release notes.
 

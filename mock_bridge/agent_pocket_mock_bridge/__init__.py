@@ -1,2 +1,2 @@
-"""Local mock Mobile Bridge for Agent Pocket development."""
+"""Local mock Mobile Bridge for Pocket Agent development."""
 

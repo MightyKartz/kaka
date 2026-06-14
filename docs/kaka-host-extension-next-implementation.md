@@ -13,12 +13,12 @@ command chains.
 The normal user path is:
 
 1. Install a host-native Hermes Plugin or OpenClaw Skill/sidecar.
-2. Open the host runtime's **Kaka Mobile Bridge** panel.
+2. Open the host runtime's **Pocket Agent Mobile Bridge** panel.
 3. Explicitly enable or start the bridge.
 4. Show a short-lived QR code or opt into Bonjour discovery.
-5. Pair Kaka iPhone and keep all phone traffic on `/mobile/v1`.
+5. Pair Pocket Agent iPhone and keep all phone traffic on `/mobile/v1`.
 
-That means Kaka should not ship a phone-side Hermes/OpenClaw private API client.
+That means Pocket Agent should not ship a phone-side Hermes/OpenClaw private API client.
 It also means a public Codex plugin or public Codex skill is not the ordinary
 user installer. Codex automation can help Hermes/OpenClaw engineers scaffold,
 validate, and review package materials, but the install surface users see must
@@ -31,7 +31,7 @@ Every future task in this area must name the surface it changes.
 | Surface | Owner | Intended user | Allowed work |
 | --- | --- | --- | --- |
 | Host-native extension | Hermes/OpenClaw host team | Ordinary users | Plugin/Skill package, host UI, bridge enable/start, QR/Bonjour, health, logs, revoke, update, uninstall |
-| Runtime Kit generators | Kaka repository | Host engineers and release engineers | Read-only contracts, starter packages, handoff artifacts, readiness/intake/conformance reports |
+| Runtime Kit generators | Pocket Agent repository | Host engineers and release engineers | Read-only contracts, starter packages, handoff artifacts, readiness/intake/conformance reports |
 | Codex developer automation | Host engineers using Codex | Host engineers only | Source-only scaffolding, validation, release-gate review, packaging checklists |
 
 Do not mix these surfaces. If a task installs a Codex skill for an ordinary user,
@@ -49,7 +49,7 @@ before implementation:
 - For Hermes/OpenClaw engineers, "plugin/skill" may also mean optional Codex
   developer automation that scaffolds, validates, or reviews the host-native
   package.
-- For Kaka iPhone, "plugin/skill" must not mean a new phone API, a private host
+- For Pocket Agent iPhone, "plugin/skill" must not mean a new phone API, a private host
   API client, a hidden adapter setup flow, or user-visible Codex installation.
 
 A future Codex plugin or Codex skill is acceptable only as source-only
@@ -150,7 +150,7 @@ An install-focused plan is acceptable only when it proves these gates:
 - LAN binding, Bonjour, QR generation, login items, token minting, update,
   repair, and uninstall are explicit host-owned actions;
 - the private adapter command is extension-internal and host-owned;
-- Kaka iPhone communicates only through `/mobile/v1`;
+- Pocket Agent iPhone communicates only through `/mobile/v1`;
 - phone-bound responses do not include private adapter command paths, provider
   endpoints or keys, bearer/mobile tokens, SQLite paths, private key paths, raw
   logs, embeddings, or proprietary host API details;

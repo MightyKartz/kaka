@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/runtime-shell-manifest.schema.json",
-  "title": "Kaka Runtime Shell Manifest",
+  "title": "Pocket Agent Runtime Shell Manifest",
   "type": "object",
   "required": [
     "schema_version",
@@ -295,7 +295,7 @@
       ]
     },
     "display_name": {
-      "const": "Kaka Mobile Bridge"
+      "const": "Pocket Agent Mobile Bridge"
     },
     "description": {
       "type": "string"

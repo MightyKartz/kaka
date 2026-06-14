@@ -11,10 +11,10 @@ chains.
 
 The ordinary-user path should be host-native:
 
-1. Install **Kaka Mobile Bridge** as a Hermes Plugin or OpenClaw Skill/sidecar.
-2. Open the host runtime UI entry point for Kaka Mobile Bridge.
+1. Install **Pocket Agent Mobile Bridge** as a Hermes Plugin or OpenClaw Skill/sidecar.
+2. Open the host runtime UI entry point for Pocket Agent Mobile Bridge.
 3. Enable the bridge explicitly.
-4. Pair Kaka iPhone with a short-lived QR code or visible Bonjour discovery.
+4. Pair Pocket Agent iPhone with a short-lived QR code or visible Bonjour discovery.
 5. Keep all phone traffic on `/mobile/v1`.
 
 Runtime Kit can generate contracts, starter materials, handoff packages,
@@ -133,7 +133,7 @@ host package candidate handoff, not another Runtime Kit wrapper.
 Ask the Hermes/OpenClaw owner for one sanitized host package candidate bundle:
 
 - a real Plugin/Skill package or native-channel package ref;
-- the declared host UI path for **Kaka Mobile Bridge**;
+- the declared host UI path for **Pocket Agent Mobile Bridge**;
 - evidence that install is disabled-by-default and does not auto-start the
   bridge;
 - the extension-internal `hermes-kaka-host-api` or
@@ -141,7 +141,7 @@ Ask the Hermes/OpenClaw owner for one sanitized host package candidate bundle:
 - local TLS, QR, Bonjour, revoke/re-pair, health, update, logs, repair, and
   uninstall drill receipt refs;
 - P3.2 conformance report and P3.4 evidence manifest refs;
-- release notes stating that Kaka iPhone talks only to `/mobile/v1`;
+- release notes stating that Pocket Agent iPhone talks only to `/mobile/v1`;
 - a `kaka.host_extension_materials.v1` manifest reviewed by
   `host-extension-material-intake`.
 
@@ -158,7 +158,7 @@ Every future installation task must name which surface it is changing.
 | Surface | Owner | User |
 | --- | --- | --- |
 | Host-native extension | Hermes/OpenClaw host team | Ordinary users |
-| Runtime Kit generators | Kaka repository | Host engineers and release engineers |
+| Runtime Kit generators | Pocket Agent repository | Host engineers and release engineers |
 | Codex developer automation | Host engineers using Codex | Host engineers only |
 
 ### Host-Native Extension
@@ -167,7 +167,7 @@ This is the real product package:
 
 - Hermes Plugin or OpenClaw Skill/sidecar package.
 - Host-owned install and update channel.
-- Host UI panel for Kaka Mobile Bridge.
+- Host UI panel for Pocket Agent Mobile Bridge.
 - Extension-internal `hermes-kaka-host-api` or `openclaw-kaka-host-api`.
 - Health, logs, revoke, re-pair, update, repair, and uninstall controls.
 - Signed package and signature/notarization evidence.
@@ -369,5 +369,5 @@ Do not implement future onboarding as:
 - a phone-side private Hermes/OpenClaw API client.
 
 The crisp user story remains: install the host-native plugin or skill, enable
-Kaka Mobile Bridge in the host UI, scan the QR or choose Bonjour, then use Kaka
+Pocket Agent Mobile Bridge in the host UI, scan the QR or choose Bonjour, then use Kaka
 iPhone through `/mobile/v1`.

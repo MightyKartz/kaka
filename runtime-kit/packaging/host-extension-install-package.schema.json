@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/host-extension-install-package.schema.json",
-  "title": "Kaka Host Extension Install Package Handoff",
+  "title": "Pocket Agent Host Extension Install Package Handoff",
   "type": "object",
   "required": [
     "schema_version",
@@ -645,8 +645,8 @@
         },
         "entrypoint": {
           "enum": [
-            "Hermes Plugin: Kaka Mobile Bridge",
-            "OpenClaw Skill: Kaka Mobile Bridge"
+            "Hermes Plugin: Pocket Agent Mobile Bridge",
+            "OpenClaw Skill: Pocket Agent Mobile Bridge"
           ]
         },
         "phone_api_path": {
@@ -783,8 +783,8 @@
             },
             "ordinary_user_entrypoint": {
               "enum": [
-                "Hermes Plugin: Kaka Mobile Bridge",
-                "OpenClaw Skill: Kaka Mobile Bridge"
+                "Hermes Plugin: Pocket Agent Mobile Bridge",
+                "OpenClaw Skill: Pocket Agent Mobile Bridge"
               ]
             },
             "host_package_owner": {

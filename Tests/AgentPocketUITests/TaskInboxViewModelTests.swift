@@ -171,7 +171,7 @@ final class TaskInboxViewModelTests: XCTestCase {
 
         let plan = planner.plan(tasks: [sensitive])
 
-        XCTAssertEqual(plan.activeSnapshots.first?.title, "Review task in Kaka")
+        XCTAssertEqual(plan.activeSnapshots.first?.title, "Review task in Pocket Agent")
     }
 
     func testMissingConnectionFailsClearly() async {

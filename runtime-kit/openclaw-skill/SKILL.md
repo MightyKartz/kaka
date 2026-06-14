@@ -1,11 +1,11 @@
 ---
 name: kaka-mobile-bridge
-description: Connect Kaka iPhone to this OpenClaw runtime through a local Mobile Bridge or sidecar after explicit user approval.
+description: Connect Pocket Agent iPhone to this OpenClaw runtime through a local Mobile Bridge or sidecar after explicit user approval.
 ---
 
-# Kaka Mobile Bridge Skill For OpenClaw
+# Pocket Agent Mobile Bridge Skill For OpenClaw
 
-Use this skill when the user asks OpenClaw to connect Kaka, show a pairing QR, or start a compatible Kaka Mobile Bridge sidecar.
+Use this skill when the user asks OpenClaw to connect Pocket Agent, show a pairing QR, or start a compatible Pocket Agent Mobile Bridge sidecar.
 
 ## Safety Rules
 
@@ -23,7 +23,7 @@ Use this skill when the user asks OpenClaw to connect Kaka, show a pairing QR, o
   it may generate README/manifest/runtime-command scaffolding, but it must not
   install the Skill/sidecar, start the bridge, bind LAN, advertise Bonjour,
   create login items, mint mobile tokens, invoke private OpenClaw commands, or
-  expose private host APIs to Kaka iPhone.
+  expose private host APIs to Pocket Agent iPhone.
 - Treat P3.13 Host Extension installable package handoff as host-team packaging
   input too: it may generate package-shaped handoff materials, but
   signing, update channels, proprietary OpenClaw implementation, conformance
@@ -49,13 +49,13 @@ Use this skill when the user asks OpenClaw to connect Kaka, show a pairing QR, o
 3. Let the user choose loopback/LAN, Bonjour, local Recall/task store path, Recall retrieval provider, and the opt-in Start with OpenClaw setting on the OpenClaw side.
 4. Start the bridge only after the user asks.
 5. Show the pairing QR URL or QR image; use the production QR when `pairing_mode=production`.
-6. Confirm Kaka iPhone pairing and then keep the bridge running only for the approved session or opt-in autostart setting.
+6. Confirm Pocket Agent iPhone pairing and then keep the bridge running only for the approved session or opt-in autostart setting.
 7. Offer Revoke iPhone through runtime-side action metadata when production pairing is enabled, and keep Install/Update/Uninstall/Open Logs/Health Check/Repair Port Conflict on the OpenClaw runtime side.
 8. Execute approved host actions through `kaka_mobile_runtime_kit host-adapter-run --runtime openclaw`; use `--adapter mock` for conformance/local QA, and use `--adapter private` only when the installed OpenClaw Skill or sidecar provides an extension-internal host-private command behind the Runtime Kit contract.
 
 ## Host-Team Release/Pilot Workflow Only
 
-These steps are not part of an ordinary "connect Kaka" user flow.
+These steps are not part of an ordinary "connect Pocket Agent" user flow.
 
 1. Resolve the host-owned command through the OpenClaw Skill or sidecar first. Explicit `--private-adapter-command` / OpenClaw `private_adapter_command` config, `OPENCLAW_KAKA_HOST_API`, `host_private_adapter.command` in the manifest, or `~/Library/Application Support/OpenClaw/Kaka/openclaw-kaka-host-api` remain developer/pilot fallback discovery sources; require a signed or explicitly host-approved command binary before stable distribution.
 2. First generate `kaka_mobile_runtime_kit host-shell-pilot-request --runtime openclaw --request-id P3.4-openclaw --pilot-owner "OpenClaw host team" --expected-private-adapter-command-path "~/Library/Application Support/OpenClaw/Kaka/openclaw-kaka-host-api" --artifact-root artifacts/openclaw` and send it to the OpenClaw host team as the read-only materials request.
@@ -77,18 +77,18 @@ local renderer contract, advertise `photo_edit.return_variants_max: 2` and
 variant or direct HEIC/PNG photo-edit renderer support unless a new renderer
 contract and readiness proof lands first.
 
-For image-conversation vision skills, OpenClaw or its sidecar should provide a runtime-owned vision endpoint and start the bridge with `--vision-provider runtime_http --vision-endpoint <local-url>`. `scan`, `identify`, `translate`, and `food` are bottom-layer mappings used after Kaka suggests a skill or routes typed text; the default `fixture_vision` provider is only for UI/protocol tests and does not inspect real images.
+For image-conversation vision skills, OpenClaw or its sidecar should provide a runtime-owned vision endpoint and start the bridge with `--vision-provider runtime_http --vision-endpoint <local-url>`. `scan`, `identify`, `translate`, and `food` are bottom-layer mappings used after Pocket Agent suggests a skill or routes typed text; the default `fixture_vision` provider is only for UI/protocol tests and does not inspect real images.
 
 Persistence and Recall retrieval settings are runtime-side controls. OpenClaw may show the local SQLite path and local Recall provider endpoint in its own UI, but `/mobile/v1/runtime/settings` must remain phone-safe and expose only non-secret status such as store availability and retrieval mode.
 
-The sidecar manifest, package preview, and P2.8 `host-package-preview` handoff are disabled by default, do not autostart on install, and classify local paths, provider endpoints, env files, credentials, TLS private key paths, and mobile tokens as runtime-side values. `consumer_ui` is the renderer contract for OpenClaw, `process_ownership` is the runtime-side lifecycle contract for install/start-at-login/update/uninstall/logs/health/port-conflict repair, and `host-package-preview` is the host packaging handoff contract. They must stay derived from Runtime Kit settings and must not copy runtime-only values into Kaka iPhone settings or `phone_safe_summary`.
+The sidecar manifest, package preview, and P2.8 `host-package-preview` handoff are disabled by default, do not autostart on install, and classify local paths, provider endpoints, env files, credentials, TLS private key paths, and mobile tokens as runtime-side values. `consumer_ui` is the renderer contract for OpenClaw, `process_ownership` is the runtime-side lifecycle contract for install/start-at-login/update/uninstall/logs/health/port-conflict repair, and `host-package-preview` is the host packaging handoff contract. They must stay derived from Runtime Kit settings and must not copy runtime-only values into Pocket Agent iPhone settings or `phone_safe_summary`.
 
-P2.9 adds `host-adapter-run` as a Mac/runtime-side action execution surface. It is not a phone API and must not move host action results into Kaka iPhone settings. The iPhone still talks to OpenClaw only through Kaka Mobile Bridge `/mobile/v1`. `mock` adapter mode is for conformance/local QA. P3.1 `private` adapter mode is a host-private command bridge contract: Runtime Kit invokes the configured command with `shell=False`, sends a sanitized JSON request on stdin, expects JSON on stdout, and returns structured safe failures for missing, failed, invalid, or timed-out commands. Runtime Kit does not include the proprietary OpenClaw private API implementation; OpenClaw supplies that behind the command.
+P2.9 adds `host-adapter-run` as a Mac/runtime-side action execution surface. It is not a phone API and must not move host action results into Pocket Agent iPhone settings. The iPhone still talks to OpenClaw only through Pocket Agent Mobile Bridge `/mobile/v1`. `mock` adapter mode is for conformance/local QA. P3.1 `private` adapter mode is a host-private command bridge contract: Runtime Kit invokes the configured command with `shell=False`, sends a sanitized JSON request on stdin, expects JSON on stdout, and returns structured safe failures for missing, failed, invalid, or timed-out commands. Runtime Kit does not include the proprietary OpenClaw private API implementation; OpenClaw supplies that behind the command.
 
 P3.2 `host-private-adapter-conformance` is also Mac/runtime-side only. It validates
 the configured OpenClaw-owned command through the P3.1 private adapter behavior
 across install, login-item, update, uninstall, logs, health, port repair, and
-supervision. Passing conformance does not make Kaka or Runtime Kit the owner or
+supervision. Passing conformance does not make Pocket Agent or Runtime Kit the owner or
 distributor of OpenClaw proprietary binaries; distribution remains an OpenClaw
 host manifest/package responsibility.
 
@@ -109,7 +109,7 @@ cannot mark P3.4 complete.
 
 P3.5 adds the Host Extension productization contract. The stable OpenClaw path is
 an installable Skill or sidecar that bundles or internally discovers
-`openclaw-kaka-host-api`, renders Kaka Mobile Bridge pairing/lifecycle UI, and
+`openclaw-kaka-host-api`, renders Pocket Agent Mobile Bridge pairing/lifecycle UI, and
 keeps manual command paths and environment variables out of the ordinary-user
 setup flow. OpenClaw should render `host-extension-preview` alongside the
 existing settings, package, host package, and private adapter package contracts.
@@ -289,9 +289,9 @@ PYTHONPATH=runtime-kit python3 -m kaka_mobile_runtime_kit host-shell-pilot-evide
 
 ## P3.4a Pilot Receipt Checklist
 
-Before Kaka can mark P3.4 complete, the OpenClaw host shell must provide:
+Before Pocket Agent can mark P3.4 complete, the OpenClaw host shell must provide:
 
-- host-owned private adapter command outside the Kaka repository
+- host-owned private adapter command outside the Pocket Agent repository
 - native distribution channel evidence
 - signature or notarization evidence
 - update-feed evidence

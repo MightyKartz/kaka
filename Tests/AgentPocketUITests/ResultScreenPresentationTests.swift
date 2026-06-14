@@ -76,7 +76,7 @@ final class ResultScreenPresentationTests: XCTestCase {
             "social_difference_score": 0.31
           },
           "recipe_summary": "Balanced exposure while preserving the original frame.",
-          "share_caption": "Shot polished locally with Kaka."
+          "share_caption": "Shot polished locally with Pocket Agent."
         }
         """.data(using: .utf8)!
 

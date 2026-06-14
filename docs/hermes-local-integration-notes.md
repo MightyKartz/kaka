@@ -287,7 +287,7 @@ Limitations:
 - Image bytes must be embedded as image data URLs or made available as `http(s)`
   image URLs.
 - Uploaded files and non-image data URLs are rejected.
-- PDF input is not accepted as a native file part by the API server. Kaka should
+- PDF input is not accepted as a native file part by the API server. Pocket Agent should
   extract text before sending, or treat PDF support as a later extension.
 
 ### What Is The Auth Model?
@@ -354,7 +354,7 @@ Use `POST /v1/chat/completions` for the minimal implementation:
 - It is familiar, OpenAI-compatible, and enough for image intake, vision skills,
   and universal intake.
 - It can return non-streaming final assistant content for task results.
-- Kaka can ask for strict JSON in the prompt and parse it into the existing
+- Pocket Agent can ask for strict JSON in the prompt and parse it into the existing
   Mobile Bridge result structures.
 
 Consider `POST /v1/responses` later if Kaka wants server-side response chaining
@@ -478,7 +478,7 @@ for explicit memory writes/deletes.
 - Current running dashboard at `9120` can look superficially useful because it
   exposes OpenAPI and `/api/status`, but it is not the agent API and must not be
   used for Kaka provider calls.
-- The API server allows tools to execute on the Hermes host. Kaka should treat
+- The API server allows tools to execute on the Hermes host. Pocket Agent should treat
   the Hermes base URL/key as a high-trust runtime-side configuration, not as a
   phone-visible setting.
 - Multimodal support is input-shape supported by the API server, but actual
@@ -491,7 +491,7 @@ for explicit memory writes/deletes.
 - The active profile currently reports `claude-fable-5`, while root config shows
   `openai-codex`/`gpt-5.5`; provider implementation should rely on API server
   model discovery or explicit env override, not parse config files.
-- Dashboard HTML includes a transient session token for its own UI. Kaka should
+- Dashboard HTML includes a transient session token for its own UI. Pocket Agent should
   never scrape dashboard pages or reuse dashboard auth.
 - More protocol-rich alternatives exist (`mcp serve`, ACP, TUI gateway), but they
   add subprocess/session complexity and do not map as cleanly to Kaka's current

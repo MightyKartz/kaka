@@ -641,11 +641,11 @@ private struct ConnectionPrivacyLine: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 7) {
             Image(systemName: "lock.fill")
-                .font(.caption2.weight(.bold))
+                .font(.caption.weight(.bold))
                 .foregroundStyle(AgentPocketDesignTokens.inkMuted)
 
             Text(copy.privacyLine)
-                .font(.caption)
+                .font(.footnote.weight(.medium))
                 .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                 .multilineTextAlignment(.leading)
                 .lineLimit(2)
@@ -756,19 +756,19 @@ private struct ConnectionRecoveryGuidancePanel: View {
         case .revokedSavedConnection:
             return "当前移动端令牌不可用。请在 Mac 上生成新的配对码后重新连接。"
         case .bridgeUnavailable:
-            return "请确认 Mac 上的 Kaka Mobile Bridge 正在运行，并且 iPhone 可访问。"
+            return "请确认 Mac 上的 Pocket Agent Mobile Bridge 正在运行，并且 iPhone 可访问。"
         case .savedRuntimeUnavailable:
             return "配对仍然有效，不需要先重新扫码。请在 Mac 上启动 Hermes/OpenClaw 或 runtime-kit，然后点“我已启动，重新连接”。"
         case .missingBonjourHost:
             return "请允许本地网络访问，或改用扫码/手动输入地址连接。"
         case .requiredTLSCertificateFailure:
-            return "请使用可信 HTTPS 证书、Tailscale HTTPS，或切换到本地开发连接方式。"
+            return "请使用可信 HTTPS 证书，或切换到本地开发连接方式。"
         case .portConflict:
             return "请在 Mac 上检查 bridge 端口，换到可用端口后再从 iPhone 重试。"
         case .disabledHostAction:
             return "需要等待 Mac 端完成设置、健康检查或能力安装后再重试。"
         case .hostExtensionUnavailable:
-            return "请在 Mac 上打开 Kaka Mobile Bridge 并完成主机设置。"
+            return "请在 Mac 上打开 Pocket Agent Mobile Bridge 并完成主机设置。"
         }
     }
 
@@ -995,9 +995,9 @@ private enum PairingDeviceInfo {
         #if os(iOS)
         UIDevice.current.name
         #elseif canImport(AppKit)
-        Host.current().localizedName ?? "Agent Pocket Mac"
+        Host.current().localizedName ?? "Pocket Agent Mac"
         #else
-        "Agent Pocket"
+        "Pocket Agent"
         #endif
     }
 

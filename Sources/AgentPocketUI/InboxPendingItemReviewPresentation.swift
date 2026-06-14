@@ -41,7 +41,7 @@ public struct InboxPendingItemReviewPresentation: Equatable, Sendable {
         }
 
         if item.relativeFilePath != nil {
-            nextRows.append(Self.row("local_payload", Self.label("Local Payload", "本地副本", language), Self.text("Copied into Kaka Inbox", "已复制到 Kaka 收件箱", language), "tray.full"))
+            nextRows.append(Self.row("local_payload", Self.label("Local Payload", "本地副本", language), Self.text("Copied into Pocket Agent Inbox", "已复制到 Pocket Agent 收件箱", language), "tray.full"))
         }
 
         if item.route == .universalIntake,

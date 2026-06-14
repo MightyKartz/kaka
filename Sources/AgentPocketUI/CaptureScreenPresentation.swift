@@ -130,7 +130,7 @@ public struct CaptureScreenPresentation: Equatable, Sendable {
         switch state {
         case .ready:
             return PrimaryAction(
-                title: language == .chinese ? "发送给 Kaka" : "Send to Kaka",
+                title: language == .chinese ? "发送给 Pocket Agent" : "Send to Pocket Agent",
                 systemImage: "paperplane.fill",
                 isEnabled: true
             )
@@ -169,17 +169,17 @@ public struct CaptureScreenPresentation: Equatable, Sendable {
     ) -> String {
         switch (state, language) {
         case (.empty, .chinese):
-            return "拍一张照片，让 Kaka 判断可以做什么。"
+            return "拍一张照片，让 Pocket Agent 判断可以做什么。"
         case (.empty, .english):
-            return "Take a photo and let Kaka decide what it can do."
+            return "Take a photo and let Pocket Agent decide what it can do."
         case (.loadingPhoto, .chinese):
             return "正在准备照片..."
         case (.loadingPhoto, .english):
             return "Preparing selected photo..."
         case (.ready, .chinese):
-            return "照片已准备好，Kaka 会先判断适合做什么。"
+            return "照片已准备好，Pocket Agent 会先判断适合做什么。"
         case (.ready, .english):
-            return "The photo is ready. Kaka will decide what it can do first."
+            return "The photo is ready. Pocket Agent will decide what it can do first."
         case (.uploading, .chinese):
             return "正在发送照片到本机智能体..."
         case (.uploading, .english):

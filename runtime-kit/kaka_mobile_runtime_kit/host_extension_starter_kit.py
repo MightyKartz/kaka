@@ -19,8 +19,8 @@ INSTALL_SHAPES = {
     "openclaw": "openclaw_skill",
 }
 ENTRYPOINT_LABELS = {
-    "hermes": "Hermes Plugin: Kaka Mobile Bridge",
-    "openclaw": "OpenClaw Skill: Kaka Mobile Bridge",
+    "hermes": "Hermes Plugin: Pocket Agent Mobile Bridge",
+    "openclaw": "OpenClaw Skill: Pocket Agent Mobile Bridge",
 }
 DISPLAY_NAMES = {
     "hermes": "Hermes",
@@ -86,10 +86,10 @@ def build_host_extension_starter_kit(
         },
         "ordinary_user_flow": [
             "Install the host Plugin/Skill package from the host-owned channel.",
-            "Open the host UI entry point for Kaka Mobile Bridge.",
-            "Enable Kaka Mobile Bridge explicitly.",
+            "Open the host UI entry point for Pocket Agent Mobile Bridge.",
+            "Enable Pocket Agent Mobile Bridge explicitly.",
             "Show a short-lived QR or opt into Bonjour on a trusted LAN.",
-            "Pair Kaka iPhone through /mobile/v1.",
+            "Pair Pocket Agent iPhone through /mobile/v1.",
             "Run Health Check, Revoke iPhone, Update, Uninstall, and Open Logs from the host UI.",
         ],
         "phone_api": preview["phone_api"],
@@ -172,15 +172,15 @@ def _command(args: list[str]) -> Mapping[str, object]:
 
 def _readme(*, runtime_name: str, command_name: str) -> str:
     return (
-        f"# Kaka Mobile Bridge For {runtime_name}\n\n"
+        f"# Pocket Agent Mobile Bridge For {runtime_name}\n\n"
         "This starter kit is a host-side packaging scaffold. It is not the final signed "
-        "public package and it does not start Kaka Mobile Bridge during installation.\n\n"
+        "public package and it does not start Pocket Agent Mobile Bridge during installation.\n\n"
         "Ordinary-user flow:\n\n"
         "1. Install the host Plugin/Skill package from the host-owned channel.\n"
-        "2. Open the host Kaka Mobile Bridge settings surface.\n"
+        "2. Open the host Pocket Agent Mobile Bridge settings surface.\n"
         "3. Enable the bridge explicitly.\n"
         "4. Show a short-lived QR or opt into Bonjour on a trusted LAN.\n"
-        "5. Pair Kaka iPhone through `/mobile/v1`.\n\n"
+        "5. Pair Pocket Agent iPhone through `/mobile/v1`.\n\n"
         f"The extension-internal adapter command is `{command_name}`. The host team owns "
         "the real implementation and signature for that command.\n"
     )

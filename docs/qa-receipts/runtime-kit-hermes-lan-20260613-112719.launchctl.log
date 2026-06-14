@@ -1,0 +1,203 @@
+{
+  "bridge": "Kaka Mobile Bridge",
+  "runtime": "hermes",
+  "bind_url": "http://0.0.0.0:8765",
+  "lan_exposed": true,
+  "bonjour": true,
+  "pairing_page": "http://192.168.121.155:8765/mobile/v1/pairing/dev.html",
+  "pairing_mode": "development",
+  "provider": "hermes",
+  "provider_environment": {
+    "provider": "hermes",
+    "required_env_vars": [
+      "KAKA_HERMES_API_KEY"
+    ],
+    "api_key_env_var": "KAKA_HERMES_API_KEY",
+    "api_key_state": "set",
+    "base_url_env_var": "KAKA_HERMES_BASE_URL",
+    "base_url_state": "set",
+    "base_url": "http://127.0.0.1:8642/v1",
+    "default_base_url": "http://127.0.0.1:8642/v1",
+    "model_env_var": "KAKA_HERMES_MODEL",
+    "model_state": "set",
+    "default_model": "",
+    "setup_doc": "docs/hermes-local-integration-notes.md"
+  },
+  "photo_provider": "recipe_local",
+  "vision_provider": "fixture",
+  "recall_search_provider": "local",
+  "semantic_recall_mode": "local_deterministic",
+  "runtime_store_path": "/Users/kartz/.kaka/kaka-runtime.sqlite3",
+  "recall_store_enabled": true,
+  "recall_store_owner": "runtime",
+  "retention": {
+    "input_assets_days": 7,
+    "output_assets_days": 30,
+    "task_history_days": 30
+  },
+  "phone_safe_summary": {
+    "recall_store_enabled": true,
+    "recall_store_owner": "runtime",
+    "semantic_recall_mode": "local_deterministic"
+  },
+  "warnings": [],
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "-m",
+    "agent_pocket_mock_bridge.server",
+    "--host",
+    "0.0.0.0",
+    "--port",
+    "8765",
+    "--runtime",
+    "hermes",
+    "--provider",
+    "hermes",
+    "--photo-provider",
+    "recipe_local",
+    "--photo-pack-root",
+    "photo-pack",
+    "--vision-provider",
+    "fixture",
+    "--bonjour",
+    "--bonjour-name",
+    "Kaka Mobile Bridge",
+    "--pairing-code",
+    "pair_dev",
+    "--bonjour-host",
+    "192.168.121.155",
+    "--hermes-profile",
+    "jiqimao",
+    "--runtime-store-path",
+    "/Users/kartz/.kaka/kaka-runtime.sqlite3"
+  ]
+}
+Bonjour advertising Kaka Mobile Bridge at http://192.168.121.155:8765
+Agent Pocket mock bridge listening on http://0.0.0.0:8765
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+error: --bonjour-host 192.168.121.155 is not assigned to this Mac; current IPv4 addresses: 172.20.10.5, 198.18.0.1.
+{
+  "bridge": "Kaka Mobile Bridge",
+  "runtime": "hermes",
+  "bind_url": "http://0.0.0.0:8765",
+  "lan_exposed": true,
+  "bonjour": true,
+  "pairing_page": "http://192.168.121.155:8765/mobile/v1/pairing/dev.html",
+  "pairing_mode": "development",
+  "provider": "hermes",
+  "provider_environment": {
+    "provider": "hermes",
+    "required_env_vars": [
+      "KAKA_HERMES_API_KEY"
+    ],
+    "api_key_env_var": "KAKA_HERMES_API_KEY",
+    "api_key_state": "set",
+    "base_url_env_var": "KAKA_HERMES_BASE_URL",
+    "base_url_state": "set",
+    "base_url": "http://127.0.0.1:8642/v1",
+    "default_base_url": "http://127.0.0.1:8642/v1",
+    "model_env_var": "KAKA_HERMES_MODEL",
+    "model_state": "set",
+    "default_model": "",
+    "setup_doc": "docs/hermes-local-integration-notes.md"
+  },
+  "photo_provider": "recipe_local",
+  "vision_provider": "fixture",
+  "recall_search_provider": "local",
+  "semantic_recall_mode": "local_deterministic",
+  "runtime_store_path": "/Users/kartz/.kaka/kaka-runtime.sqlite3",
+  "recall_store_enabled": true,
+  "recall_store_owner": "runtime",
+  "retention": {
+    "input_assets_days": 7,
+    "output_assets_days": 30,
+    "task_history_days": 30
+  },
+  "phone_safe_summary": {
+    "recall_store_enabled": true,
+    "recall_store_owner": "runtime",
+    "semantic_recall_mode": "local_deterministic"
+  },
+  "warnings": [],
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "-m",
+    "agent_pocket_mock_bridge.server",
+    "--host",
+    "0.0.0.0",
+    "--port",
+    "8765",
+    "--runtime",
+    "hermes",
+    "--provider",
+    "hermes",
+    "--photo-provider",
+    "recipe_local",
+    "--photo-pack-root",
+    "photo-pack",
+    "--vision-provider",
+    "fixture",
+    "--bonjour",
+    "--bonjour-name",
+    "Kaka Mobile Bridge",
+    "--pairing-code",
+    "pair_dev",
+    "--bonjour-host",
+    "192.168.121.155",
+    "--hermes-profile",
+    "jiqimao",
+    "--runtime-store-path",
+    "/Users/kartz/.kaka/kaka-runtime.sqlite3"
+  ]
+}
+Bonjour advertising Kaka Mobile Bridge at http://192.168.121.155:8765
+Agent Pocket mock bridge listening on http://0.0.0.0:8765

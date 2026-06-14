@@ -555,17 +555,17 @@ private enum ResultShareFile {
         let normalizedLabel = variantLabel.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         switch (normalizedLabel, language) {
         case ("master", .chinese):
-            return "Kaka-大师成片"
+            return "Pocket-Agent-大师成片"
         case ("social", .chinese):
-            return "Kaka-社交成片"
+            return "Pocket-Agent-社交成片"
         case (_, .chinese):
-            return "Kaka-成片"
+            return "Pocket-Agent-成片"
         case ("master", .english):
-            return "Kaka-Master-Result"
+            return "Pocket-Agent-Master-Result"
         case ("social", .english):
-            return "Kaka-Social-Result"
+            return "Pocket-Agent-Social-Result"
         case (_, .english):
-            return "Kaka-Result"
+            return "Pocket-Agent-Result"
         }
     }
 

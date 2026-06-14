@@ -62,15 +62,15 @@ public enum RuntimeTaskActivityPhase: String, Codable, Equatable, Hashable, Send
     public var activityTitle: String {
         switch self {
         case .needsApproval:
-            return "Review task in Kaka"
+            return "Review task in Pocket Agent"
         case .completed:
-            return "Kaka task completed"
+            return "Pocket Agent task completed"
         case .failed:
-            return "Kaka task failed"
+            return "Pocket Agent task failed"
         case .cancelled:
-            return "Kaka task cancelled"
+            return "Pocket Agent task cancelled"
         case .queued, .running:
-            return "Kaka task"
+            return "Pocket Agent task"
         }
     }
 }

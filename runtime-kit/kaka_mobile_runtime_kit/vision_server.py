@@ -632,13 +632,13 @@ def _asset_item(size_kb: int, is_chinese: bool) -> Mapping[str, Any]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run a local Kaka /kaka/vision endpoint.")
+    parser = argparse.ArgumentParser(description="Run a local Pocket Agent /kaka/vision endpoint.")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8787)
     args = parser.parse_args(argv)
 
     server = create_vision_endpoint_server(args.host, args.port)
-    print(f"Kaka vision endpoint listening on http://{args.host}:{args.port}/kaka/vision", flush=True)
+    print(f"Pocket Agent vision endpoint listening on http://{args.host}:{args.port}/kaka/vision", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

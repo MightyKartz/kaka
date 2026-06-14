@@ -2,9 +2,14 @@ import SwiftUI
 
 public struct AgentScannerView: View {
     public let onResult: (AgentScanResult) -> Void
+    public let onCancel: () -> Void
 
-    public init(onResult: @escaping (AgentScanResult) -> Void) {
+    public init(
+        onResult: @escaping (AgentScanResult) -> Void,
+        onCancel: @escaping () -> Void = {}
+    ) {
         self.onResult = onResult
+        self.onCancel = onCancel
     }
 
     public var body: some View {
@@ -29,13 +34,31 @@ public struct AgentScannerView: View {
             .padding(.horizontal, 18)
             .padding(.bottom, 18)
         }
+        .overlay(alignment: .topLeading) {
+            Button(action: onCancel) {
+                Label("Close", systemImage: "xmark")
+                    .font(.callout.weight(.semibold))
+                    .labelStyle(.titleAndIcon)
+                    .padding(.horizontal, 12)
+                    .frame(minHeight: 38)
+            }
+            .buttonStyle(AgentPocketDarkSecondaryButtonStyle())
+            .accessibilityLabel("Close scanner")
+            .padding(.leading, 18)
+            .padding(.top, 18)
+        }
         .background(.black)
         #else
         ContentUnavailableView(
             "Scanner Unavailable",
             systemImage: "qrcode.viewfinder",
-            description: Text("Open Kaka on iPhone to scan codes and text.")
+            description: Text("Open Pocket Agent on iPhone to scan codes and text.")
         )
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Close", action: onCancel)
+            }
+        }
         #endif
     }
 }

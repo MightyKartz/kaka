@@ -9,7 +9,7 @@ from kaka_mobile_runtime_kit.local_tls_readiness import build_local_tls_readines
 
 
 READY_INPUTS = {
-    "tls_certificate_label": "Kaka Local Runtime",
+    "tls_certificate_label": "Pocket Agent Local Runtime",
     "tls_certificate_ref": "keychain://login/kaka-local-runtime",
     "tls_public_key_sha256": "a" * 64,
     "tls_expires_at": "2036-12-31T23:59:59Z",
@@ -51,7 +51,7 @@ def test_local_tls_readiness_accepts_configured_openclaw_tls_materials() -> None
     assert report["status"] == "ready_for_production_pairing"
     assert report["ready_for_production_pairing"] is True
     assert report["missing_inputs"] == []
-    assert report["certificate"]["label"] == "Kaka Local Runtime"
+    assert report["certificate"]["label"] == "Pocket Agent Local Runtime"
     assert report["certificate"]["public_key_sha256"] == "a" * 64
     assert report["certificate"]["expires_at"] == "2036-12-31T23:59:59Z"
     assert report["trust"]["tls_trust_state"] == "configured"
@@ -121,7 +121,7 @@ def test_local_tls_readiness_blocks_secret_like_refs_and_invalid_metadata() -> N
     secret_ref = build_local_tls_readiness(
         runtime="hermes",
         tls_trust_state="configured",
-        tls_certificate_label="Kaka Local Runtime",
+        tls_certificate_label="Pocket Agent Local Runtime",
         tls_certificate_ref="/Users/kartz/.kaka/private/key.pem",
         tls_public_key_sha256="a" * 64,
         tls_expires_at="2036-12-31T23:59:59Z",
@@ -165,7 +165,7 @@ def test_local_tls_readiness_cli_outputs_ready_report_without_private_key(capsys
             "--tls-trust-state",
             "configured",
             "--tls-certificate-label",
-            "Kaka Local Runtime",
+            "Pocket Agent Local Runtime",
             "--tls-certificate-ref",
             "keychain://login/kaka-local-runtime",
             "--tls-public-key-sha256",

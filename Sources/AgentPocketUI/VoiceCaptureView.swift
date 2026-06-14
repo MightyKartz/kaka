@@ -28,9 +28,11 @@ public struct VoiceCaptureView: View {
                         .foregroundStyle(Color(red: 0.55, green: 0.96, blue: 0.89))
                         .accessibilityHidden(true)
 
-                    Text(viewModel.state.statusText)
+                    Text(localizedStatusText)
                         .font(.headline)
                         .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.82)
 
                     Spacer()
                 }
@@ -55,9 +57,12 @@ public struct VoiceCaptureView: View {
                             onCancel()
                         }
                     } label: {
-                        Label("Cancel", systemImage: "xmark")
+                        Label(cancelTitle, systemImage: "xmark")
+                            .font(.callout.weight(.semibold))
+                            .frame(minHeight: 40)
+                            .padding(.horizontal, 10)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(AgentPocketDarkSecondaryButtonStyle())
 
                     Spacer()
 
@@ -67,16 +72,24 @@ public struct VoiceCaptureView: View {
                         }
                     } label: {
                         Label(recordButtonTitle, systemImage: recordButtonIconName)
+                            .font(.callout.weight(.semibold))
+                            .frame(minHeight: 40)
+                            .padding(.horizontal, 10)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(AgentPocketDarkSecondaryButtonStyle())
                     .disabled(viewModel.state == .transcribing)
 
                     Button {
                         onSend(viewModel.transcript)
                     } label: {
                         Label(presentation.submitTitle, systemImage: presentation.submitSystemImage)
+                            .font(.callout.weight(.semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
+                            .frame(minHeight: 40)
+                            .padding(.horizontal, 10)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(AgentPocketDarkPrimaryButtonStyle())
                     .disabled(viewModel.canSubmit == false)
                 }
             }
@@ -86,7 +99,7 @@ public struct VoiceCaptureView: View {
             .navigationTitle(presentation.navigationTitle)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(cancelTitle) {
                         Task {
                             await viewModel.cancelRecording()
                             onCancel()
@@ -113,11 +126,43 @@ public struct VoiceCaptureView: View {
     }
 
     private var recordButtonTitle: String {
-        viewModel.state == .recording ? "Stop" : "Record"
+        switch (presentation.language, viewModel.state == .recording) {
+        case (.chinese, true):
+            return "停止"
+        case (.chinese, false):
+            return "录音"
+        case (.english, true):
+            return "Stop"
+        case (.english, false):
+            return "Record"
+        }
     }
 
     private var recordButtonIconName: String {
         viewModel.state == .recording ? "stop.fill" : "mic.fill"
+    }
+
+    private var cancelTitle: String {
+        presentation.language == .chinese ? "取消" : "Cancel"
+    }
+
+    private var localizedStatusText: String {
+        guard presentation.language == .chinese else {
+            return viewModel.state.statusText
+        }
+
+        switch viewModel.state {
+        case .idle:
+            return "准备录音"
+        case .recording:
+            return "正在录音"
+        case .transcribing:
+            return "正在转写"
+        case .ready:
+            return "请审核转写"
+        case .failed(let message):
+            return message
+        }
     }
 
     private func toggleRecording() async {

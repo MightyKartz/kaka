@@ -238,7 +238,7 @@ final class UniversalIntakeSubmitterTests: XCTestCase {
     func testVoiceInboxItemSubmitsVoiceSourceSurface() async throws {
         UniversalIntakeMockURLProtocol.state.update { state in
             state.expectedSourceSurface = "voice"
-            state.expectedSourceApp = "Kaka Voice"
+            state.expectedSourceApp = "Pocket Agent Voice"
         }
         let submitter = MobileBridgeUniversalIntakeSubmitter(
             session: mockSession(),
@@ -252,7 +252,7 @@ final class UniversalIntakeSubmitterTests: XCTestCase {
         let status = try await submitter.submit(
             item: KakaInboxItem(
                 kind: .text,
-                sourceApp: "Kaka Voice",
+                sourceApp: "Pocket Agent Voice",
                 sourceSurface: "voice",
                 text: "Remind me to follow up after the call."
             ),
@@ -445,19 +445,19 @@ private enum UniversalIntakeHTTPRecording {
             """)
         case ("GET", "/mobile/v1/tasks/task_intake_pdf"):
             return ok(request, """
-            {"task_id":"task_intake_pdf","status":"completed","progress":1.0,"result_type":"intake","intake":{"kind":"pdf","title":"PDF ready","summary":"Kaka received a PDF.","suggestions":[]}}
+            {"task_id":"task_intake_pdf","status":"completed","progress":1.0,"result_type":"intake","intake":{"kind":"pdf","title":"PDF ready","summary":"Pocket Agent received a PDF.","suggestions":[]}}
             """)
         case ("GET", "/mobile/v1/tasks/task_intake_text"):
             return ok(request, """
-            {"task_id":"task_intake_text","status":"completed","progress":1.0,"result_type":"intake","intake":{"kind":"text","title":"Text ready","summary":"Kaka received text.","suggestions":[]}}
+            {"task_id":"task_intake_text","status":"completed","progress":1.0,"result_type":"intake","intake":{"kind":"text","title":"Text ready","summary":"Pocket Agent received text.","suggestions":[]}}
             """)
         case ("GET", "/mobile/v1/tasks/task_intake_url"):
             return ok(request, """
-            {"task_id":"task_intake_url","status":"completed","progress":1.0,"result_type":"intake","intake":{"kind":"url","title":"URL ready","summary":"Kaka received a URL.","suggestions":[]}}
+            {"task_id":"task_intake_url","status":"completed","progress":1.0,"result_type":"intake","intake":{"kind":"url","title":"URL ready","summary":"Pocket Agent received a URL.","suggestions":[]}}
             """)
         case ("GET", "/mobile/v1/tasks/task_intake_video"):
             return ok(request, """
-            {"task_id":"task_intake_video","status":"completed","progress":1.0,"result_type":"intake","intake":{"kind":"video","title":"Video ready","summary":"Kaka received a short video.","suggestions":[]}}
+            {"task_id":"task_intake_video","status":"completed","progress":1.0,"result_type":"intake","intake":{"kind":"video","title":"Video ready","summary":"Pocket Agent received a short video.","suggestions":[]}}
             """)
         default:
             throw URLError(.badServerResponse)

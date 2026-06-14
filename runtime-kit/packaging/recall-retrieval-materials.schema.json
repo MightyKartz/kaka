@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/recall-retrieval-materials.schema.json",
-  "title": "Kaka Recall Retrieval Materials Manifest",
+  "title": "Pocket Agent Recall Retrieval Materials Manifest",
   "type": "object",
   "additionalProperties": false,
   "required": [

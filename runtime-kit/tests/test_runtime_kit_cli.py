@@ -43,7 +43,7 @@ def test_server_cli_accepts_runtime_store_path():
 
 def test_bonjour_advertisement_can_publish_runtime_identifier():
     command = BonjourAdvertisement(
-        name="Kaka Mobile Bridge",
+        name="Pocket Agent Mobile Bridge",
         host="192.168.1.10",
         port=8765,
         pairing_code="pair_dev",
@@ -319,7 +319,7 @@ def test_runtime_server_command_passes_tls_certificate_chain_path():
         BridgeConfig(
             trusted_local_tls=True,
             tls_trust_state="configured",
-            tls_certificate_label="Kaka Local Runtime",
+            tls_certificate_label="Pocket Agent Local Runtime",
             tls_public_key_sha256="d" * 64,
             tls_certificate_chain_path="/Users/kartz/.kaka/certs/kaka-local-runtime.crt",
             tls_private_key_path="/Users/kartz/.kaka/private/kaka-local-runtime.key",
@@ -473,7 +473,7 @@ def test_runtime_settings_preview_command_allows_tls_metadata_without_serving_fi
             "--tls-trust-state",
             "configured",
             "--tls-certificate-label",
-            "Kaka Local Runtime",
+            "Pocket Agent Local Runtime",
         ]
     )
 
@@ -489,7 +489,7 @@ def test_runtime_settings_preview_keeps_tls_serving_paths_runtime_side_only():
         BridgeConfig(
             trusted_local_tls=True,
             tls_trust_state="configured",
-            tls_certificate_label="Kaka Local Runtime",
+            tls_certificate_label="Pocket Agent Local Runtime",
             tls_certificate_chain_path="/Users/kartz/.kaka/certs/kaka-local-runtime.crt",
             tls_private_key_path="/Users/kartz/.kaka/private/kaka-local-runtime.key",
         )
@@ -514,7 +514,7 @@ def test_runtime_package_manifest_keeps_tls_serving_paths_runtime_side_only():
         BridgeConfig(
             trusted_local_tls=True,
             tls_trust_state="configured",
-            tls_certificate_label="Kaka Local Runtime",
+            tls_certificate_label="Pocket Agent Local Runtime",
             tls_certificate_chain_path="/Users/kartz/.kaka/certs/kaka-local-runtime.crt",
             tls_private_key_path="/Users/kartz/.kaka/private/kaka-local-runtime.key",
         )
@@ -1110,7 +1110,7 @@ def test_runtime_settings_preview_exposes_production_pairing_controls_without_ph
             token_ttl_seconds=3600,
             trusted_local_tls=True,
             tls_trust_state="configured",
-            tls_certificate_label="Kaka Local Runtime",
+            tls_certificate_label="Pocket Agent Local Runtime",
             tls_private_key_path="/Users/kartz/.kaka/private/key.pem",
         ),
         bridge_enabled=True,
@@ -1139,7 +1139,7 @@ def test_runtime_settings_preview_exposes_production_pairing_controls_without_ph
         "mobile_token_revocation_supported": True,
         "trusted_local_tls_required": True,
         "tls_trust_state": "configured",
-        "tls_certificate_label": "Kaka Local Runtime",
+        "tls_certificate_label": "Pocket Agent Local Runtime",
     }
     assert "mobile_token" not in preview["phone_safe_summary"]
     assert "key.pem" not in rendered_phone_safe
@@ -1157,7 +1157,7 @@ def test_runtime_settings_preview_exposes_consumer_ui_sections_and_primary_actio
             token_ttl_seconds=3600,
             trusted_local_tls=True,
             tls_trust_state="configured",
-            tls_certificate_label="Kaka Local Runtime",
+            tls_certificate_label="Pocket Agent Local Runtime",
             runtime_store_path=str(store_path),
             recall_search_provider="runtime_http",
             recall_search_endpoint="http://127.0.0.1:8788/kaka/recall/search",
@@ -1169,7 +1169,7 @@ def test_runtime_settings_preview_exposes_consumer_ui_sections_and_primary_actio
 
     assert consumer["schema_version"] == "kaka.runtime_consumer_ui.v1"
     assert consumer["surface"] == "hermes_openclaw_consumer_runtime_ui"
-    assert consumer["title"] == "Kaka Mobile Bridge"
+    assert consumer["title"] == "Pocket Agent Mobile Bridge"
     assert consumer["status_badges"] == [
         {"id": "bridge", "label": "Running", "tone": "success"},
         {"id": "network", "label": "LAN + Bonjour", "tone": "warning"},
@@ -1244,7 +1244,7 @@ def test_runtime_settings_preview_consumer_ui_stopped_empty_state_is_loopback_fi
     assert consumer["empty_state"] == {
         "id": "bridge_stopped",
         "title": "Bridge is stopped",
-        "message": "Start Kaka Mobile Bridge from this runtime before pairing an iPhone.",
+        "message": "Start Pocket Agent Mobile Bridge from this runtime before pairing an iPhone.",
         "primary_action": "start_bridge",
     }
     assert consumer["primary_actions"] == [
@@ -1359,7 +1359,7 @@ def test_runtime_package_manifest_marks_security_followups_ready_in_production_m
             pairing_mode="production",
             trusted_local_tls=True,
             tls_trust_state="configured",
-            tls_certificate_label="Kaka Local Runtime",
+            tls_certificate_label="Pocket Agent Local Runtime",
         ),
         bridge_enabled=True,
     )
@@ -1379,7 +1379,7 @@ def test_runtime_package_manifest_exposes_consumer_ui_without_duplicate_source_o
             pairing_mode="production",
             trusted_local_tls=True,
             tls_trust_state="configured",
-            tls_certificate_label="Kaka Local Runtime",
+            tls_certificate_label="Pocket Agent Local Runtime",
         ),
         bridge_enabled=True,
     )
@@ -1585,7 +1585,7 @@ def test_host_extension_material_intake_command_outputs_review_report(tmp_path, 
             "install_command": "hermes plugins install example/kaka-mobile --no-enable",
             "update_channel": "Hermes stable plugin channel ref 2026-06-11",
             "adapter_command_location": "extension-internal:kaka-mobile-bridge/hermes-kaka-host-api",
-            "host_ui_entrypoint": "Settings > Plugins > Kaka Mobile Bridge",
+            "host_ui_entrypoint": "Settings > Plugins > Pocket Agent Mobile Bridge",
             "signed_package_ref": "artifact://hermes/kaka-mobile-bridge/1.0.0/package",
             "signature_ref": "artifact://hermes/kaka-mobile-bridge/1.0.0/signature",
             "conformance_report_ref": "artifact://hermes/kaka/p3.2/conformance.json",
@@ -1817,7 +1817,7 @@ def test_runtime_start_requires_certificate_files_for_trusted_local_tls():
         BridgeConfig(
             trusted_local_tls=True,
             tls_trust_state="configured",
-            tls_certificate_label="Kaka Local Runtime",
+            tls_certificate_label="Pocket Agent Local Runtime",
         )
     )
 

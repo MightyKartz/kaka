@@ -3,7 +3,7 @@
 Updated: 2026-06-11
 
 This document records the product decision for the next Host Extension work:
-Kaka should feel installable through the host runtime, not assembled by a user
+Pocket Agent should feel installable through the host runtime, not assembled by a user
 from adapter commands.
 
 Implementation status: P3.19 is implemented in Runtime Kit by strengthening the
@@ -23,11 +23,11 @@ Follow-up productization roadmap:
 
 The ordinary-user integration must be host-native:
 
-1. Hermes ships Kaka Mobile Bridge as a Hermes Plugin.
-2. OpenClaw ships Kaka Mobile Bridge as an OpenClaw Skill or sidecar package.
+1. Hermes ships Pocket Agent Mobile Bridge as a Hermes Plugin.
+2. OpenClaw ships Pocket Agent Mobile Bridge as an OpenClaw Skill or sidecar package.
 3. The user installs that package from a host-owned channel.
-4. The user opens the host Kaka Mobile Bridge panel, explicitly enables the
-   bridge, shows a short-lived QR or opts into Bonjour, then pairs Kaka iPhone.
+4. The user opens the host Pocket Agent Mobile Bridge panel, explicitly enables the
+   bridge, shows a short-lived QR or opts into Bonjour, then pairs Pocket Agent iPhone.
 
 Runtime Kit can generate contracts, package handoff materials, readiness
 reports, conformance evidence, and developer automation source for host teams.
@@ -45,7 +45,7 @@ not introduce a second public installer. The desired product shape is:
 
 1. Hermes/OpenClaw owns the Plugin/Skill package and native update channel.
 2. The package installs disabled-by-default.
-3. The host UI shows a Kaka Mobile Bridge panel with explicit Enable, Start,
+3. The host UI shows a Pocket Agent Mobile Bridge panel with explicit Enable, Start,
    Show QR, Bonjour, Health, Revoke iPhone, Update, Logs, Repair, and Uninstall
    controls.
 4. Runtime Kit generators provide host-team contracts, acceptance artifacts, and
@@ -94,7 +94,7 @@ P3.35 stays inside the repository-owned handoff layer:
 
 Do not add a new command. Do not install, sign, publish, start, bind LAN,
 advertise Bonjour, mint tokens, run private adapters, write Codex user-home
-plugin/skill roots, or expose anything beyond `/mobile/v1` to Kaka iPhone.
+plugin/skill roots, or expose anything beyond `/mobile/v1` to Pocket Agent iPhone.
 
 ## Current Implementation Truth
 
@@ -141,16 +141,16 @@ and not a Codex ordinary-user plugin/skill.
 
 The install experience should have one normal-user path:
 
-1. Install Kaka Mobile Bridge from the Hermes Plugin or OpenClaw Skill channel.
+1. Install Pocket Agent Mobile Bridge from the Hermes Plugin or OpenClaw Skill channel.
 2. Open the host UI entry point, such as
-   `Settings > Plugins > Kaka Mobile Bridge` or
-   `Settings > Skills > Kaka Mobile Bridge`.
+   `Settings > Plugins > Pocket Agent Mobile Bridge` or
+   `Settings > Skills > Pocket Agent Mobile Bridge`.
 3. See a disabled-by-default bridge state after install.
 4. Enable the bridge with an explicit user action.
 5. Keep loopback-only as the default bind state.
 6. Opt into trusted LAN and Bonjour only through visible controls.
 7. Show a production QR with a short TTL and single-use pairing semantics.
-8. Pair Kaka iPhone through `/mobile/v1`.
+8. Pair Pocket Agent iPhone through `/mobile/v1`.
 9. Run health, revoke iPhone, re-pair, update, open logs, repair port conflict,
    and uninstall from the host UI.
 10. Keep provider keys, private adapter command paths, runtime store paths,
@@ -226,7 +226,7 @@ P3.19 was accepted because it produced concrete repository-owned handoff
 improvements without turning Runtime Kit or Codex automation into the ordinary
 user installer:
 
-- a stricter generated host UI acceptance file for the Kaka Mobile Bridge panel;
+- a stricter generated host UI acceptance file for the Pocket Agent Mobile Bridge panel;
 - an install-drill runbook that covers install, explicit enable, QR, Bonjour,
   TLS readiness, health, revoke/re-pair, update, failure recovery, logs, and
   uninstall;
@@ -240,7 +240,7 @@ user installer:
 
 Do not:
 
-- expose Hermes/OpenClaw private host APIs to Kaka iPhone;
+- expose Hermes/OpenClaw private host APIs to Pocket Agent iPhone;
 - make `--private-adapter-command`, `HERMES_KAKA_HOST_API`, or
   `OPENCLAW_KAKA_HOST_API` the normal onboarding path;
 - install Codex plugins or skills for ordinary users;

@@ -74,8 +74,8 @@ final class ConnectionStateTests: XCTestCase {
         let model = ConnectionState.connected(runtime).presentation
 
         XCTAssertEqual(model.title, "Connected")
-        XCTAssertEqual(model.message, "Kartz MacBook Hermes is ready for photo edits.")
-        XCTAssertEqual(model.primaryActionTitle, "Start Photo Edit")
+        XCTAssertEqual(model.message, "Kartz MacBook Hermes is ready for phone actions.")
+        XCTAssertEqual(model.primaryActionTitle, "Open Lens")
         XCTAssertFalse(model.showsManualEntry)
     }
 
@@ -123,7 +123,7 @@ final class ConnectionStateTests: XCTestCase {
         let model = ConnectionState.localNetworkPermissionRequired.presentation
 
         XCTAssertEqual(model.title, "Local Network Access Needed")
-        XCTAssertEqual(model.message, "Allow Agent Pocket to find your local agent on the local network.")
+        XCTAssertEqual(model.message, "Allow Pocket Agent to find your local agent on the local network.")
         XCTAssertEqual(model.primaryActionTitle, "Open Settings")
         XCTAssertEqual(model.primaryRecoveryDestination, .appSettings)
         XCTAssertEqual(model.secondaryActionTitle, "Enter Endpoint")

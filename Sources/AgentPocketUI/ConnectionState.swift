@@ -32,7 +32,7 @@ public enum ConnectionState: Equatable, Sendable {
         case .idle:
             return ConnectionPresentation(
                 title: "Connect Your Local Runtime",
-                message: "Scan the pairing QR on your Mac once. Kaka will reconnect automatically after that.",
+                message: "Scan the pairing QR on your Mac once. Pocket Agent will reconnect automatically after that.",
                 primaryActionTitle: "Scan Pairing QR",
                 secondaryActionTitle: "Find Nearby Runtime",
                 isBusy: false,
@@ -59,7 +59,7 @@ public enum ConnectionState: Equatable, Sendable {
         case .testing:
             return ConnectionPresentation(
                 title: "Testing Connection",
-                message: "Checking health and photo editing capabilities.",
+                message: "Checking health and mobile capabilities.",
                 primaryActionTitle: "Testing...",
                 secondaryActionTitle: nil,
                 isBusy: true,
@@ -77,8 +77,8 @@ public enum ConnectionState: Equatable, Sendable {
         case .connected(let runtime):
             return ConnectionPresentation(
                 title: "Connected",
-                message: "\(runtime.displayName) is ready for photo edits.",
-                primaryActionTitle: "Start Photo Edit",
+                message: "\(runtime.displayName) is ready for phone actions.",
+                primaryActionTitle: "Open Lens",
                 secondaryActionTitle: "Change Runtime",
                 isBusy: false,
                 showsManualEntry: false,
@@ -115,7 +115,7 @@ public enum ConnectionState: Equatable, Sendable {
         case .invalidCertificate:
             return ConnectionPresentation(
                 title: "Certificate Problem",
-                message: "Use a trusted HTTPS certificate, Tailscale HTTPS, or local developer mode.",
+                message: "Use a trusted HTTPS certificate or local developer mode.",
                 primaryActionTitle: "Retry",
                 secondaryActionTitle: "Change Endpoint",
                 isBusy: false,
@@ -133,7 +133,7 @@ public enum ConnectionState: Equatable, Sendable {
         case .localNetworkPermissionRequired:
             return ConnectionPresentation(
                 title: "Local Network Access Needed",
-                message: "Allow Agent Pocket to find your local agent on the local network.",
+                message: "Allow Pocket Agent to find your local agent on the local network.",
                 primaryActionTitle: "Open Settings",
                 secondaryActionTitle: "Enter Endpoint",
                 isBusy: false,

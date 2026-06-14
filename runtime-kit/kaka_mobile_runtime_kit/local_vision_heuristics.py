@@ -56,7 +56,7 @@ _TEXT_SUBJECT_RULES = [
     (re.compile(r"\bair\s*pods?\b|无线耳机|耳机", re.IGNORECASE), "AirPods"),
     (re.compile(r"\bapple\s+watch\b|\bsmart\s*watch\b|\bwatch\b|智能手表|手表", re.IGNORECASE), "Apple Watch"),
     (re.compile(r"\bmacbook\b|\blaptop\b|笔记本电脑|笔记本", re.IGNORECASE), "笔记本电脑"),
-    (re.compile(r"\bkaka\b|大师级优化|提取文字|识别主体", re.IGNORECASE), "Kaka 图像处理界面"),
+    (re.compile(r"\bkaka\b|大师级优化|提取文字|识别主体", re.IGNORECASE), "Pocket Agent 图像处理界面"),
 ]
 
 _LABEL_SUBJECT_RULES = [

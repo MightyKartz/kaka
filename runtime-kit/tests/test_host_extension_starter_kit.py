@@ -17,7 +17,7 @@ def test_host_extension_starter_kit_preview_is_ordinary_user_package_shape() -> 
     assert kit["surface"] == "hermes_openclaw_host_extension_starter_kit"
     assert kit["runtime"] == "hermes"
     assert kit["package"]["install_shape"] == "hermes_plugin"
-    assert kit["package"]["ordinary_user_entrypoint"] == "Hermes Plugin: Kaka Mobile Bridge"
+    assert kit["package"]["ordinary_user_entrypoint"] == "Hermes Plugin: Pocket Agent Mobile Bridge"
     assert kit["adapter_command"]["default_command_name"] == "hermes-kaka-host-api"
     assert kit["adapter_command"]["visibility"] == "extension_internal"
     assert kit["adapter_command"]["developer_fallback_only"] is True
@@ -34,7 +34,7 @@ def test_host_extension_starter_kit_openclaw_uses_skill_shape() -> None:
     kit = build_host_extension_starter_kit(runtime="openclaw")
 
     assert kit["package"]["install_shape"] == "openclaw_skill"
-    assert kit["package"]["ordinary_user_entrypoint"] == "OpenClaw Skill: Kaka Mobile Bridge"
+    assert kit["package"]["ordinary_user_entrypoint"] == "OpenClaw Skill: Pocket Agent Mobile Bridge"
     assert kit["adapter_command"]["default_command_name"] == "openclaw-kaka-host-api"
     assert kit["adapter_command"]["environment_variable"] == "OPENCLAW_KAKA_HOST_API"
 
@@ -83,7 +83,7 @@ def test_write_host_extension_starter_kit_materializes_safe_files(tmp_path: Path
     root = tmp_path / "kaka-mobile-bridge-openclaw"
     assert result["written"] is True
     assert result["output_root"] == str(root)
-    assert (root / "README.md").read_text().startswith("# Kaka Mobile Bridge For OpenClaw")
+    assert (root / "README.md").read_text().startswith("# Pocket Agent Mobile Bridge For OpenClaw")
     assert (root / "manifest.json").exists()
     assert (root / "bin" / "openclaw-kaka-host-api.README.md").exists()
     assert (root / "runtime-contracts" / "start-bridge.command.json").exists()

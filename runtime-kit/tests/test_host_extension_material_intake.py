@@ -39,7 +39,7 @@ def _complete_manifest(runtime: str = "hermes") -> dict[str, object]:
                 "extension-internal:kaka-mobile-bridge/"
                 f"{runtime}-kaka-host-api"
             ),
-            "host_ui_entrypoint": "Settings > Plugins > Kaka Mobile Bridge",
+            "host_ui_entrypoint": "Settings > Plugins > Pocket Agent Mobile Bridge",
             "signed_package_ref": (
                 f"artifact://{runtime}/kaka-mobile-bridge/1.0.0/package"
             ),

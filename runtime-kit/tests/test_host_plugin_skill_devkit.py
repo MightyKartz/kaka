@@ -16,7 +16,7 @@ FORBIDDEN_USER_COPY = (
     "write adapter code",
     "paste Runtime Kit command",
     "install Codex plugin",
-    "Codex skill to connect Kaka",
+    "Codex skill to connect Pocket Agent",
 )
 
 
@@ -29,7 +29,7 @@ def test_devkit_hermes_indexes_existing_host_extension_contracts() -> None:
     assert devkit["developer_kit_only"] is True
     assert devkit["ordinary_user_install"] is False
     assert devkit["package"]["install_shape"] == "hermes_plugin"
-    assert devkit["package"]["ordinary_user_entrypoint"] == "Hermes Plugin: Kaka Mobile Bridge"
+    assert devkit["package"]["ordinary_user_entrypoint"] == "Hermes Plugin: Pocket Agent Mobile Bridge"
     assert devkit["package"]["final_distribution_requires_host_signature"] is True
     assert devkit["adapter_template"]["default_command_name"] == "hermes-kaka-host-api"
     assert devkit["adapter_template"]["visibility"] == "extension_internal"
@@ -58,7 +58,7 @@ def test_devkit_openclaw_uses_skill_shape_without_generating_host_skill() -> Non
     devkit = build_host_plugin_skill_devkit(runtime="openclaw")
 
     assert devkit["package"]["install_shape"] == "openclaw_skill"
-    assert devkit["package"]["ordinary_user_entrypoint"] == "OpenClaw Skill: Kaka Mobile Bridge"
+    assert devkit["package"]["ordinary_user_entrypoint"] == "OpenClaw Skill: Pocket Agent Mobile Bridge"
     assert devkit["adapter_template"]["default_command_name"] == "openclaw-kaka-host-api"
     assert devkit["adapter_template"]["environment_variable"] == "OPENCLAW_KAKA_HOST_API"
     generated_paths = {entry["path"] for entry in devkit["generated_files"]}

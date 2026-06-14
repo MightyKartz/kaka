@@ -1,6 +1,6 @@
 # Hermes Plugin Adapter Scaffold
 
-This folder documents the intended Hermes packaging target for Kaka Mobile Bridge.
+This folder documents the intended Hermes packaging target for Pocket Agent Mobile Bridge.
 
 The static shell manifest lives at `kaka-mobile-bridge.package.json`. It is
 machine-readable scaffolding for Hermes packaging, but it does not assume a
@@ -8,14 +8,14 @@ private Hermes plugin API and it does not install or start anything by itself.
 
 P3.5 turns this scaffold into the product install shape: ordinary users install
 a Hermes Plugin, not adapter source code. The plugin should bundle or internally
-discover `hermes-kaka-host-api`, render the Kaka Mobile Bridge setup UI, and keep
+discover `hermes-kaka-host-api`, render the Pocket Agent Mobile Bridge setup UI, and keep
 explicit command paths, `HERMES_KAKA_HOST_API`, and Runtime Kit command chains as
 developer/pilot fallback tools only.
 
 ## Recommended Hermes UX
 
 Hermes should render Runtime Kit's `settings_preview.runtime_side_ui.consumer_ui`
-as the visible **Kaka Mobile Bridge** settings surface and
+as the visible **Pocket Agent Mobile Bridge** settings surface and
 `settings_preview.runtime_side_ui.process_ownership` as the lifecycle surface in
 its plugin or settings UI. The consumer UI model provides ordinary-user copy,
 status badges, warning states, an empty state for a stopped bridge, and five
@@ -60,7 +60,7 @@ The production distribution target is a Host Extension package with:
 
 - the Hermes plugin manifest
 - Runtime Kit launcher integration
-- Kaka Mobile Bridge settings and pairing UI
+- Pocket Agent Mobile Bridge settings and pairing UI
 - an extension-internal `hermes-kaka-host-api` command or host-owned discovery
   hook
 - P3.2 conformance evidence
@@ -69,7 +69,7 @@ The production distribution target is a Host Extension package with:
   ref, signature/notarization ref, extension-internal command location, and host
   UI entry point
 
-Users should see Install, Enable Kaka Mobile Bridge, Show QR, optional Bonjour,
+Users should see Install, Enable Pocket Agent Mobile Bridge, Show QR, optional Bonjour,
 Health Check, Revoke iPhone, Update, Uninstall, and Open Logs. They should not
 see instructions to write adapter code or export `HERMES_KAKA_HOST_API`.
 
@@ -83,7 +83,7 @@ advertise Bonjour, mint tokens, create login items, or invoke private Hermes
 commands.
 
 P3.13 turns that starter output into a package-shaped handoff for the Hermes
-host team: Hermes Plugin manifest files, Kaka Mobile Bridge host UI contract,
+host team: Hermes Plugin manifest files, Pocket Agent Mobile Bridge host UI contract,
 install-drill runbook, release-gate commands, and the extension-internal
 `hermes-kaka-host-api` README. It still leaves signing, update channels,
 proprietary Hermes implementation, conformance evidence, and public distribution
@@ -99,7 +99,7 @@ P3.35 now adds the host-native Plugin/Skill installation blueprint while
 external P3.7 package facts remain blocked:
 `../../docs/superpowers/plans/2026-06-11-kaka-pocket-agents-host-native-installation-blueprint.md`.
 For Hermes, that blueprint clarifies
-the plugin manifest, Kaka Mobile Bridge panel entry point, disabled install
+the plugin manifest, Pocket Agent Mobile Bridge panel entry point, disabled install
 defaults, explicit Enable/Start, QR/Bonjour, local TLS status, Revoke iPhone,
 health, logs, update, repair, uninstall, and evidence refs. It must stay
 read-only or generative until Hermes supplies real package materials; it should
@@ -240,8 +240,8 @@ PYTHONPATH=runtime-kit python3 -m kaka_mobile_runtime_kit host-adapter-run \
 
 Hermes should render `host-package-preview`, then execute host actions through
 `host-adapter-run` when the user approves. Host adapter results are runtime-side
-only and must not be copied into Kaka iPhone settings. The phone continues to
-connect to Hermes only through Kaka Mobile Bridge `/mobile/v1`. Runtime Kit
+only and must not be copied into Pocket Agent iPhone settings. The phone continues to
+connect to Hermes only through Pocket Agent Mobile Bridge `/mobile/v1`. Runtime Kit
 invokes the private command with `shell=False`, sends JSON on stdin, reads JSON
 from stdout, and converts missing, failed, invalid, or timed-out command results
 into structured safe adapter failures. Mutating private actions still require
@@ -327,9 +327,9 @@ binaries remain owned by Hermes, not by Kaka or Runtime Kit.
 
 ## P3.4a Pilot Receipt Checklist
 
-Before Kaka can mark P3.4 complete, the Hermes host shell must provide:
+Before Pocket Agent can mark P3.4 complete, the Hermes host shell must provide:
 
-- host-owned private adapter command outside the Kaka repository, preferably
+- host-owned private adapter command outside the Pocket Agent repository, preferably
   bundled or internally discovered by the Hermes Plugin rather than manually
   configured by the user
 - native distribution channel evidence
@@ -445,7 +445,7 @@ PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
   --hermes-profile <profile>
 ```
 
-If Hermes exposes a local vision endpoint for Kaka image-conversation vision skills, the plugin should pass it explicitly:
+If Hermes exposes a local vision endpoint for Pocket Agent image-conversation vision skills, the plugin should pass it explicitly:
 
 ```bash
 PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
@@ -465,15 +465,15 @@ The command is included for development transparency only. It is not the desired
 ## Safety Checklist
 
 - No auto-start during install.
-- No provider API keys copied into Kaka iPhone.
+- No provider API keys copied into Pocket Agent iPhone.
 - Local-only default; LAN/Bonjour require explicit enable.
 - Pairing code is short-lived in production.
 - Bridge token can be revoked from Hermes.
 - Development pairing may use `/mobile/v1/pairing/dev.html`; production mode uses short-lived single-use QR payloads, runtime-side revocation metadata, and trusted local TLS status.
 - `host-package-preview`, `process_ownership`, and `host-adapter-run` actions are runtime-side contracts; Hermes must require explicit approval for mutating actions.
 - `mock` adapter results are for conformance/local QA; `private` adapter results come only from the configured Hermes host-private command, or structured unavailable when no command is configured.
-- `host-private-adapter-conformance` is runtime-side evidence for a host-owned command and must not be exposed as a Kaka iPhone setting or imply Kaka bundles Hermes proprietary binaries.
+- `host-private-adapter-conformance` is runtime-side evidence for a host-owned command and must not be exposed as a Pocket Agent iPhone setting or imply Kaka bundles Hermes proprietary binaries.
 - Install must not auto-start the bridge or create a login item.
 - Photo assets remain under the user's local runtime retention policy.
-- Store paths and Recall provider endpoints stay in the Hermes runtime UI and must not be copied into Kaka iPhone settings.
+- Store paths and Recall provider endpoints stay in the Hermes runtime UI and must not be copied into Pocket Agent iPhone settings.
 - Provider API keys, bearer tokens, auth files, hidden prompts, raw embeddings, and raw provider responses must not be printed.

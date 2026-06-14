@@ -13,15 +13,15 @@ public struct LocalAgentLensView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             connectionPill
 
             LazyVGrid(
                 columns: [
-                    GridItem(.flexible(minimum: 132), spacing: 10),
-                    GridItem(.flexible(minimum: 132), spacing: 10)
+                    GridItem(.flexible(minimum: 132), spacing: 8),
+                    GridItem(.flexible(minimum: 132), spacing: 8)
                 ],
-                spacing: 10
+                spacing: 8
             ) {
                 ForEach(presentation.actions) { action in
                     Button {
@@ -35,7 +35,7 @@ public struct LocalAgentLensView: View {
                 }
             }
         }
-        .padding(12)
+        .padding(10)
         .background(AgentPocketDesignTokens.darkPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: AgentPocketDesignTokens.panelRadius, style: .continuous)
@@ -47,7 +47,7 @@ public struct LocalAgentLensView: View {
         HStack(spacing: 10) {
             Circle()
                 .fill(AgentPocketDesignTokens.statusSuccess)
-                .frame(width: 9, height: 9)
+                .frame(width: 8, height: 8)
                 .shadow(color: AgentPocketDesignTokens.statusSuccess.opacity(0.45), radius: 8)
                 .accessibilityHidden(true)
 
@@ -68,13 +68,13 @@ public struct LocalAgentLensView: View {
             Spacer(minLength: 6)
 
             Image(systemName: "wifi")
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(AgentPocketDesignTokens.accent)
-                .frame(width: 32, height: 32)
+                .frame(width: 30, height: 30)
                 .background(AgentPocketDesignTokens.darkSecondaryFill, in: Circle())
                 .accessibilityHidden(true)
         }
-        .padding(12)
+        .padding(10)
         .background(AgentPocketDesignTokens.darkSecondaryFill, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
     }
 }
@@ -83,21 +83,21 @@ private struct LocalAgentLensActionTile: View {
     let action: LocalAgentLensAction
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 5) {
             Image(systemName: action.systemImageName)
-                .font(.system(size: 24, weight: .semibold))
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(AgentPocketDesignTokens.accent)
-                .frame(width: 32, height: 32)
+                .frame(width: 24, height: 24)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(action.title)
-                    .font(.callout.weight(.semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white.opacity(0.94))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
 
                 Text(action.subtitle)
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(.white.opacity(0.58))
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -105,8 +105,8 @@ private struct LocalAgentLensActionTile: View {
 
             Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, minHeight: 106, alignment: .leading)
-        .padding(12)
+        .frame(maxWidth: .infinity, minHeight: 78, alignment: .leading)
+        .padding(8)
         .background(
             LinearGradient(
                 colors: [

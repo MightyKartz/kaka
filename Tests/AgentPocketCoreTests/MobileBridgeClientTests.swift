@@ -116,7 +116,7 @@ final class MobileBridgeClientTests: XCTestCase {
             "social_difference_score": 0.31
           },
           "recipe_summary": "Balanced exposure while preserving the original frame.",
-          "share_caption": "Shot polished locally with Kaka."
+          "share_caption": "Shot polished locally with Pocket Agent."
         }
         """.data(using: .utf8)!
 
@@ -130,7 +130,7 @@ final class MobileBridgeClientTests: XCTestCase {
         XCTAssertEqual(response.qa?.masterDifferenceScore, 0.18)
         XCTAssertEqual(response.qa?.socialDifferenceScore, 0.31)
         XCTAssertEqual(response.recipeSummary, "Balanced exposure while preserving the original frame.")
-        XCTAssertEqual(response.shareCaption, "Shot polished locally with Kaka.")
+        XCTAssertEqual(response.shareCaption, "Shot polished locally with Pocket Agent.")
     }
 
     func testBuildsVisionTaskRequest() throws {

@@ -1,14 +1,14 @@
-# Kaka Pocket Agents Direction
+# Pocket Agent Direction
 
-Updated: 2026-06-13
+Updated: 2026-06-14
 
 ## Purpose
 
-This document captures the product discussion and current recommendation for evolving Kaka from a single-capture visual agent client into a voice-first Pocket Agents front end.
+This document captures the product discussion and current recommendation for evolving the project from a single-capture visual agent client into Pocket Agent: a voice-first, local-first iPhone front end for user-owned agent runtimes.
 
-The near-term implementation truth is now Phase A plus the original camera loop: Kaka focuses on iPhone capture or library selection, `image_intake`, suggested image skills, local vision tasks, local recipe photo editing, Local Agent Lens entry points for Scan/Document/Video/Record/Inbox/Activity, Share Extension inbox capture, real push-to-talk voice follow-up, P3.30 Voice-to-Inbox Draft, P3.32 Inbox Voice Instruction, P3.33 Inbox Instruction Polish, P3.34 Inbox Instruction Templates, P3.36b Explicit Paste-to-Inbox Courier, an opt-in Context Snapshot preview, Recall explicit actions plus result-review provenance, browse/search/export/delete controls, runtime-owned semantic Recall search with provider-backed adapter support, production retrieval packaging readiness, and retrieval materials intake/review, Runtime Kit SQLite persistence for Recall/tasks behind `--runtime-store-path`, runtime settings/status, native runtime packaging scaffolds, Runtime Kit `consumer_ui` and `process_ownership` contracts for Hermes/OpenClaw runtime controls, P2.9 `host-adapter-run` for Mac/runtime-side host action execution, production-capable short-lived QR pairing and mobile token revocation scaffolding, an in-app Runtime Task Inbox foundation, safe foreground App Intent and Action Button review handoff, a Live Activity-safe task-state projection with WidgetKit Lock Screen and Dynamic Island presentation through a user-owned runtime, runtime-side local renderer readiness, phone-facing `photo_edit` capability truth for the current two-variant `recipe_local` renderer, and P3.29 one-shot motion/calendar Context Snapshot sampling.
+The near-term implementation truth is now Phase A plus the original camera loop: Pocket Agent focuses on iPhone capture or library selection, `image_intake`, suggested image skills, local vision tasks, local recipe photo editing, Local Agent Lens entry points for Scan/Document/Video/Record/Inbox/Activity, Share Extension inbox capture, real push-to-talk voice follow-up, P3.30 Voice-to-Inbox Draft, P3.32 Inbox Voice Instruction, P3.33 Inbox Instruction Polish, P3.34 Inbox Instruction Templates, P3.36b Explicit Paste-to-Inbox Courier, an opt-in Context Snapshot preview, Recall explicit actions plus result-review provenance, browse/search/export/delete controls, runtime-owned semantic Recall search with provider-backed adapter support, production retrieval packaging readiness, and retrieval materials intake/review, Runtime Kit SQLite persistence for Recall/tasks behind `--runtime-store-path`, runtime settings/status, native runtime packaging scaffolds, Runtime Kit `consumer_ui` and `process_ownership` contracts for Hermes/OpenClaw runtime controls, P2.9 `host-adapter-run` for Mac/runtime-side host action execution, production-capable short-lived QR pairing and mobile token revocation scaffolding, an in-app Runtime Task Inbox foundation, safe foreground App Intent and Action Button review handoff, a Live Activity-safe task-state projection with WidgetKit Lock Screen and Dynamic Island presentation through a user-owned runtime, runtime-side local renderer readiness, phone-facing `photo_edit` capability truth for the current two-variant `recipe_local` renderer, and P3.29 one-shot motion/calendar Context Snapshot sampling.
 
-Pocket Agents remains the next product direction; real host-native Hermes/OpenClaw private adapter APIs, passive context, and production-grade long-running task orchestration remain future phases.
+Pocket Agent is now the visible product name and product direction; real host-native Hermes/OpenClaw private adapter APIs, passive context, and production-grade long-running task orchestration remain future phases.
 
 Current UI prototype artifacts:
 
@@ -25,7 +25,7 @@ Current UI prototype artifacts:
 
 ## Product Thesis
 
-Kaka should become the phone-side front end for local agents.
+Pocket Agent should become the phone-side front end for local agents.
 
 The phone should own:
 
@@ -45,18 +45,18 @@ The local runtime should own:
 - retention policy
 - approvals that outlive the current app session
 
-This keeps Kaka aligned with the existing local-first Mobile Bridge boundary: the iPhone is the personal sensor, input, and consent surface; the Mac/runtime is the thinking and execution surface.
+This keeps Pocket Agent aligned with the existing local-first Mobile Bridge boundary: the iPhone is the personal sensor, input, and consent surface; the Mac/runtime is the thinking and execution surface.
 
-P2.9 keeps that boundary intact. The phone connects to Hermes/OpenClaw agents only through Kaka Mobile Bridge `/mobile/v1`, never through private host APIs. `host-adapter-run` is a Mac/runtime-side action surface for install, start-with-runtime, update, uninstall, logs, health, repair, and supervision. Its `mock` adapter is for conformance/local QA, and its `private` adapter returns unavailable until a host-owned command is supplied. Proprietary Hermes/OpenClaw private API implementations remain outside this repository and plug in behind that command. Mutating actions require explicit approval, and install must not auto-start or create a login item.
+P2.9 keeps that boundary intact. The phone connects to Hermes/OpenClaw agents only through Pocket Agent Mobile Bridge `/mobile/v1`, never through private host APIs. `host-adapter-run` is a Mac/runtime-side action surface for install, start-with-runtime, update, uninstall, logs, health, repair, and supervision. Its `mock` adapter is for conformance/local QA, and its `private` adapter returns unavailable until a host-owned command is supplied. Proprietary Hermes/OpenClaw private API implementations remain outside this repository and plug in behind that command. Mutating actions require explicit approval, and install must not auto-start or create a login item.
 
 The user-facing host integration should be a Host Extension, not a manual
-adapter exercise. Hermes should expose Kaka as an installable Plugin, and
-OpenClaw should expose Kaka as a Skill or sidecar package. The private adapter
+adapter exercise. Hermes should expose Pocket Agent as an installable Plugin, and
+OpenClaw should expose Pocket Agent as a Skill or sidecar package. The private adapter
 command remains host-owned, but in production it should be bundled or internally
 discovered by that extension; explicit command paths and
 `HERMES_KAKA_HOST_API` / `OPENCLAW_KAKA_HOST_API` are development and pilot
 fallbacks only. The ordinary-user promise is: install the plugin/skill, enable
-Kaka Mobile Bridge, scan QR or discover Bonjour, and stay on `/mobile/v1`.
+Pocket Agent Mobile Bridge, scan QR or discover Bonjour, and stay on `/mobile/v1`.
 The 2026-06-07 P3.6 readiness audit still reports both Hermes and OpenClaw as
 blocked until real host-owned install/update/signature/UI/conformance/evidence
 materials are supplied; use `docs/kaka-host-extension-external-materials.md` as
@@ -66,7 +66,7 @@ metadata; it collects non-secret certificate refs and fingerprints without
 generating certificates, modifying Keychain, reading private keys, or changing
 the phone `/mobile/v1` API.
 P3.12 Host Extension Starter Kit now generates a safe Hermes Plugin / OpenClaw
-Skill starter package contract and artifact tree so host teams can package Kaka
+Skill starter package contract and artifact tree so host teams can package Pocket Agent
 without turning ordinary users into adapter developers. The starter kit remains
 host-side only and does not install packages, start listeners, expose private
 host APIs to the phone, or bundle proprietary Hermes/OpenClaw implementation
@@ -87,7 +87,7 @@ permission-gated one-shot motion labels and next-30-minute calendar
 availability without changing `/mobile/v1`, prompting implicitly, collecting in
 the background, or sending motion history/calendar event details. P3.15 now turns the P3.12/P3.13 host-team handoff into a template-only Host Plugin/Skill
 Devkit. The durable product shape is a Hermes Plugin or OpenClaw Skill/sidecar
-with an internal adapter command and a native Kaka Mobile Bridge panel. Codex
+with an internal adapter command and a native Pocket Agent Mobile Bridge panel. Codex
 automation templates may help host teams scaffold and validate those artifacts,
 but they are not installed by Runtime Kit and must not become the ordinary-user
 install surface.
@@ -150,7 +150,7 @@ P3.39 **Inbox Pending Item Discard** is implemented as the next Inbox review
 polish slice. It adds a visible row-level Discard control for a pending Inbox
 item before `Send`, removes only the selected local `KakaInboxItem` through
 `KakaInboxStoring.remove(id:)`, and relies on the existing store removal path to
-delete any Kaka-copied `SharedPayloads` payload. It does not upload, submit,
+delete any Pocket Agent-copied `SharedPayloads` payload. It does not upload, submit,
 cancel runtime tasks, delete Recall, add a `/mobile/v1` endpoint, add an App
 Intent, scan folders, delete the user's original Files/Photos source, or change
 Host Extension packaging.
@@ -186,7 +186,7 @@ phone-native surface. Capture now opens with a local connection-aware Lens Hub
 and six first-mile actions: scanner, document scan, video intake, voice record,
 Inbox review, and Activity. Scanner actions remain explicit; document scan and
 short video intake create visible Inbox drafts; App Intents, Shortcuts, and
-Action Button hand off only to foreground Kaka surfaces; ActivityKit renders
+Action Button hand off only to foreground Pocket Agent surfaces; ActivityKit renders
 phone-safe phase, approval, progress, and short message fields. This slice does
 not add cloud relay, public-internet remote access, VPN/Tailscale dependency,
 hidden uploads, background recording, automatic Recall, or Host Extension
@@ -250,10 +250,10 @@ add a public installer, public Codex plugin/skill, private host API, or
 The research and open-source landscape supports this direction, but also argues for careful scope.
 
 - Smartphone GUI-agent papers such as AppAgent and Mobile-Agent show that multimodal agents can operate mobile apps by observing screens and producing bounded actions. They also show why full autonomy should be treated carefully.
-- AndroidWorld gives a reality check: mobile-agent benchmarks are still difficult, so Kaka should start with user-approved intake, guidance, and confirmations instead of unsupervised cross-app control.
+- AndroidWorld gives a reality check: mobile-agent benchmarks are still difficult, so Pocket Agent should start with user-approved intake, guidance, and confirmations instead of unsupervised cross-app control.
 - UI-understanding work such as Ferret-UI and OmniParser supports screenshot Q&A and interface guidance as a practical intermediate step.
 - High-star tools such as scrcpy, LocalSend, Home Assistant, Termux, and mobile-agent projects show demand for device-to-device control, local automation, file/link movement, and phone-as-compute-node workflows.
-- Apple's platform direction favors explicit extension points: Share/Action Extensions, App Intents, Speech, ActivityKit, Core Location, Core Motion, EventKit, and system share sheets. Kaka should use these system surfaces rather than background scraping.
+- Apple's platform direction favors explicit extension points: Share/Action Extensions, App Intents, Speech, ActivityKit, Core Location, Core Motion, EventKit, and system share sheets. Pocket Agent should use these system surfaces rather than background scraping.
 
 Reference links:
 
@@ -268,30 +268,30 @@ Reference links:
 
 ## Candidate Capabilities
 
-### 1. Share To Kaka Inbox
+### 1. Share To Pocket Agent Inbox
 
 This is the highest-value next expansion after image intake.
 
-Users should be able to share text, links, screenshot images, PDFs, images, and small files into Kaka from any app. Kaka turns each input into an inbox item, asks the runtime to classify it, then offers actions such as summarize, translate, extract tasks, explain visible UI, enhance photo, save to Recall, or continue by voice.
+Users should be able to share text, links, screenshot images, PDFs, images, and small files into Pocket Agent from any app. Pocket Agent turns each input into an inbox item, asks the runtime to classify it, then offers actions such as summarize, translate, extract tasks, explain visible UI, enhance photo, save to Recall, or continue by voice.
 
 Why it matters:
 
-- It turns Kaka into a system-wide entry point without requiring global app control.
+- It turns Pocket Agent into a system-wide entry point without requiring global app control.
 - It fits iOS well through Share/Action Extensions.
 - It generalizes the current `image_intake` pattern into universal intake.
 
 Phase A implementation shape:
 
 - iOS Share Extension target `KakaShareExtension`.
-- App Group inbox store using `group.dev.kartz.Kaka`.
+- App Group inbox store using `group.dev.kartz.Pocket Agent`.
 - Share Extension captures text, URL, image, and PDF-visible file payloads into local JSON plus copied payload files. Screenshots shared from Photos or Files are captured as image payloads in this slice.
 - Main-app Files import is a separate explicit surface: the user taps a visible
-  Files button, picks one supported PDF or image, and Kaka saves it as a pending
+  Files button, picks one supported PDF or image, and Pocket Agent saves it as a pending
   Inbox item before any runtime submission.
 - Main app exposes an Inbox tab while connected to a runtime.
 - Text and URL inbox items submit through `POST /mobile/v1/tasks/intake`.
 - Shared image payloads, including screenshots represented as images, route through the existing `image_intake` path so image conversation behavior is preserved.
-- Shared PDFs are captured locally in the inbox; after a visible main-app Send action, Kaka uploads the PDF as a generic asset and submits it through universal intake with the returned `asset_id`.
+- Shared PDFs are captured locally in the inbox; after a visible main-app Send action, Pocket Agent uploads the PDF as a generic asset and submits it through universal intake with the returned `asset_id`.
 - The extension does not silently upload shared content.
 
 ### 2. Permissioned Context Snapshot
@@ -301,7 +301,7 @@ Context Snapshot is not just recording information. Its job is to tell the agent
 Examples:
 
 - If the user is walking or driving, replies should be shorter and voice-first.
-- If the battery is low, Kaka should prefer quick local actions and avoid long background workflows.
+- If the battery is low, Pocket Agent should prefer quick local actions and avoid long background workflows.
 - If the calendar has a short free window, the agent can suggest a small task instead of a deep workflow.
 - If a screenshot came from a share action, the agent can connect source, time, and current conversation without asking the user to re-explain.
 - If the user is near a place where a receipt was captured, Recall can later label it more usefully.
@@ -320,17 +320,17 @@ Potential snapshot fields:
 - coarse location label or user-approved precise location
 - motion state, such as stationary, walking, driving, or unknown
 - network and battery state
-- current Kaka conversation and source surface
+- current Pocket Agent conversation and source surface
 - optional calendar availability, not full calendar contents by default
 - optional user note spoken during capture
 
 ### 3. Clipboard And Link Courier
 
-Kaka should not compete with Apple's Universal Clipboard. The value is not moving text between devices; the value is transforming, acting on, and remembering what the user intentionally sends.
+Pocket Agent should not compete with Apple's Universal Clipboard. The value is not moving text between devices; the value is transforming, acting on, and remembering what the user intentionally sends.
 
 Examples:
 
-- Paste copied text into Kaka and ask for rewrite, translation, tone adjustment, or extraction.
+- Paste copied text into Pocket Agent and ask for rewrite, translation, tone adjustment, or extraction.
 - Share a link and ask the runtime to summarize, compare, archive, or add it to Recall.
 - Paste an error message from the phone and ask a Mac-side coding agent to investigate.
 - Send a copied address, event text, or tracking number to the local runtime for structured handling.
@@ -355,11 +355,11 @@ Recall, a new `/mobile/v1` endpoint, or host installation work.
 
 ### 4. Voice Walkie-talkie
 
-Voice should be the main interaction style for Pocket Agents.
+Voice should be the main interaction style for Pocket Agent.
 
 Recommended MVP:
 
-- push-to-talk inside Kaka
+- push-to-talk inside Pocket Agent
 - live transcription or recorded transcription
 - short voice replies through system speech synthesis
 - transcript always visible and editable before high-impact actions
@@ -391,13 +391,13 @@ Screenshot Q&A is safer and more useful than full cross-app automation on iOS.
 
 Flow:
 
-1. User shares a screenshot to Kaka.
-2. Kaka runs screenshot intake.
+1. User shares a screenshot to Pocket Agent.
+2. Pocket Agent runs screenshot intake.
 3. The runtime identifies visible UI, text, controls, and likely task intent.
-4. Kaka replies with guidance such as "tap Settings, then Subscriptions" or explains an error message.
+4. Pocket Agent replies with guidance such as "tap Settings, then Subscriptions" or explains an error message.
 5. The user decides whether to follow the guidance.
 
-This pairs well with existing `image_intake` and `vision` work. It can use OCR and UI parsing without requiring Kaka to control other apps.
+This pairs well with existing `image_intake` and `vision` work. It can use OCR and UI parsing without requiring Pocket Agent to control other apps.
 
 ### 6. Personal Recall
 
@@ -435,7 +435,7 @@ Export should be explicit and JSON-first: it returns the Recall metadata, summar
 
 ```mermaid
 flowchart LR
-  Inputs["Camera / Share / Paste / Voice / Screenshot"] --> Phone["Kaka iPhone app"]
+  Inputs["Camera / Share / Paste / Voice / Screenshot"] --> Phone["Pocket Agent iPhone app"]
   Phone --> Consent["Preview and Consent"]
   Consent --> Bridge["Mobile Bridge /mobile/v1"]
   Bridge --> Runtime["Hermes, OpenClaw, or sidecar"]
@@ -452,9 +452,9 @@ The current `image_intake` task can become the first specialization of a broader
 
 ## Recommended Roadmap
 
-### Phase A: Universal Intake And Share To Kaka
+### Phase A: Universal Intake And Share To Pocket Agent
 
-Goal: let Kaka receive content from outside the camera flow.
+Goal: let Pocket Agent receive content from outside the camera flow.
 
 Status as of 2026-06-05: implemented as the first share inbox slice.
 
@@ -472,13 +472,13 @@ Exit criteria:
 - A URL shared from Safari can become an inbox item and submit to `/mobile/v1/tasks/intake`.
 - Shared text can submit to `/mobile/v1/tasks/intake` and return summary/action suggestions.
 - A screenshot shared as an image keeps the existing `image_intake` route.
-- A PDF shared to Kaka is captured into the App Group inbox, then uploads from a visible main-app Send action and submits to `/mobile/v1/tasks/intake` with an `asset_id`.
+- A PDF shared to Pocket Agent is captured into the App Group inbox, then uploads from a visible main-app Send action and submits to `/mobile/v1/tasks/intake` with an `asset_id`.
 
 ### Phase B: Voice-first Conversation
 
-Goal: make Kaka feel like a pocket agent rather than a form-based tool.
+Goal: make Pocket Agent feel like a pocket agent rather than a form-based tool.
 
-Status as of 2026-06-11: B.1 real push-to-talk voice is implemented in the image conversation flow, P3.30 Voice-to-Inbox Draft is implemented in the Inbox flow, P3.32 Inbox Voice Instruction is implemented for existing universal-intake Inbox rows, P3.33 Inbox Instruction Polish makes those instructions labeled, editable, clearable, and previewed before send, and P3.34 Inbox Instruction Templates adds deterministic local chips for common note instructions. Kaka records only after an explicit press, transcribes with iOS Speech on device, shows an editable transcript, and uses text-only submission paths. Raw microphone audio stays local and temporary; always-on listening and hidden transcription remain out of scope. Voice-to-Inbox creates a pending text Inbox item from the reviewed transcript; Inbox Voice Instruction and template chips save text into `KakaInboxItem.note`; all still require visible Inbox `Send` before the runtime receives anything.
+Status as of 2026-06-11: B.1 real push-to-talk voice is implemented in the image conversation flow, P3.30 Voice-to-Inbox Draft is implemented in the Inbox flow, P3.32 Inbox Voice Instruction is implemented for existing universal-intake Inbox rows, P3.33 Inbox Instruction Polish makes those instructions labeled, editable, clearable, and previewed before send, and P3.34 Inbox Instruction Templates adds deterministic local chips for common note instructions. Pocket Agent records only after an explicit press, transcribes with iOS Speech on device, shows an editable transcript, and uses text-only submission paths. Raw microphone audio stays local and temporary; always-on listening and hidden transcription remain out of scope. Voice-to-Inbox creates a pending text Inbox item from the reviewed transcript; Inbox Voice Instruction and template chips save text into `KakaInboxItem.note`; all still require visible Inbox `Send` before the runtime receives anything.
 
 Deliverables:
 
@@ -510,7 +510,7 @@ Deliverables:
 Exit criteria:
 
 - User can include a one-time context snapshot with a task.
-- Kaka can explain exactly what context was sent.
+- Pocket Agent can explain exactly what context was sent.
 - No snapshot is written to Recall unless the user confirms.
 
 ### Phase D: Recall v0
@@ -523,7 +523,7 @@ Deliverables:
 
 - runtime-side local memory store: D.0 mock bridge in-memory store implemented; Runtime Kit SQLite store implemented behind `--runtime-store-path`
 - inbox/result `Remember`, `Use Once`, and `Forget` actions: D.0 implemented for Inbox results; P3.37 now preserves both task and source Inbox item provenance from the completed result banner
-- pending Inbox discard before `Send`: P3.39 implemented as a local-only row action that removes one pending item and any Kaka-copied payload without touching Recall or runtime tasks; P3.40 adds visible confirmation before that local removal executes
+- pending Inbox discard before `Send`: P3.39 implemented as a local-only row action that removes one pending item and any Pocket Agent-copied payload without touching Recall or runtime tasks; P3.40 adds visible confirmation before that local removal executes
 - Inbox action feedback: P3.41 renders failed Inbox actions and in-flight submission progress locally without retry, automatic submission, runtime cancel, Recall writes/deletes, or Mobile Bridge changes
 - pending item Review Details: P3.42 renders existing local pending item metadata in a row-level details expansion before `Send` without URL fetch, file reads, PDF/OCR parsing, automatic submission, Recall writes/deletes, Mobile Bridge changes, or Host Extension packaging changes
 - mobile bridge actions: D.0 implements `POST /mobile/v1/recall/actions`, `GET /mobile/v1/recall/items`, `DELETE /mobile/v1/recall/items/{item_id}`
@@ -537,7 +537,7 @@ Exit criteria:
 
 - D.0: User can confirm `Remember`, `Use Once`, or `Forget` from an Inbox result, including results produced from shared links and screenshots.
 - P3.37: Completed Inbox result review shows source/context copy, and explicit Recall actions include both task and source Inbox provenance when available.
-- P3.39/P3.40: User can discard a pending Inbox item before `Send` only after visible confirmation; this removes Kaka's local copy only and does not cancel submitted work or delete Recall.
+- P3.39/P3.40: User can discard a pending Inbox item before `Send` only after visible confirmation; this removes Pocket Agent's local copy only and does not cancel submitted work or delete Recall.
 - P3.41: User can see local failure/progress feedback for Inbox actions, and can dismiss failure feedback without changing the pending queue or runtime state.
 - D.1: Text search retrieves remembered items with provenance through the Recall tab.
 - D.1: Delete responses identify both content and retrieval index entries removed by the runtime.
@@ -546,7 +546,7 @@ Exit criteria:
 
 Goal: make local runtime jobs visible and controllable from the phone.
 
-Status as of 2026-06-05: E.0 Runtime Task Inbox foundation, the E.1 system-surface foundation, E.1b WidgetKit Live Activity presentation, and E.1c Action Button review handoff are implemented. Kaka has Swift task summary models, a connected Tasks tab, mock Mobile Bridge endpoints for listing, cancelling, and approving runtime tasks, foreground App Intents and Action Button-reachable shortcuts that open Kaka to Inbox or Tasks review surfaces, and an ActivityKit-safe runtime-task projection. Durable task state and task events are runtime-owned through the Runtime Kit persistence slice.
+Status as of 2026-06-05: E.0 Runtime Task Inbox foundation, the E.1 system-surface foundation, E.1b WidgetKit Live Activity presentation, and E.1c Action Button review handoff are implemented. Pocket Agent has Swift task summary models, a connected Tasks tab, mock Mobile Bridge endpoints for listing, cancelling, and approving runtime tasks, foreground App Intents and Action Button-reachable shortcuts that open Pocket Agent to Inbox or Tasks review surfaces, and an ActivityKit-safe runtime-task projection. Durable task state and task events are runtime-owned through the Runtime Kit persistence slice.
 
 Deliverables:
 
@@ -559,7 +559,7 @@ Deliverables:
 Exit criteria:
 
 - E.0: Runtime tasks can be viewed from iPhone.
-- E.0: User can approve or cancel a task from Kaka.
+- E.0: User can approve or cancel a task from Pocket Agent.
 - E.1: Shortcuts/App Intents can open safe Inbox/Tasks review surfaces without hidden listeners.
 
 ### Phase F: Runtime Host Extension Readiness
@@ -610,7 +610,7 @@ Deliverables:
   recovery states based on existing phone-safe contracts
 - Host Extension package handoff: completed P3.13 host-team package materials for
   Hermes Plugin / OpenClaw Skill distribution, without moving proprietary host
-  APIs or package distribution into Kaka
+  APIs or package distribution into Pocket Agent
 - Host Plugin/Skill Devkit: completed P3.15 host-team development materials
   index with contract index, command files, acceptance gates, ordinary-user
   boundary metadata, adapter templates, and template-only Codex automation
@@ -661,13 +661,13 @@ Deliverables:
 
 Exit criteria:
 
-- Ordinary users install a Hermes Plugin or OpenClaw Skill, enable Kaka Mobile
+- Ordinary users install a Hermes Plugin or OpenClaw Skill, enable Pocket Agent Mobile
   Bridge in the host UI, and pair by QR or Bonjour without writing adapter code
   or setting environment variables.
 - Retention windows are visible and configurable in the runtime host shell, while
   the phone only reads them as status.
 - Retention cleanup happens only through explicit runtime-owned actions with
-  purge receipts; Kaka iPhone does not trigger purge or edit runtime retention
+  purge receipts; Pocket Agent iPhone does not trigger purge or edit runtime retention
   settings.
 - Private adapter commands, package lifecycle actions, and runtime settings stay
   host-owned.
@@ -677,7 +677,7 @@ Exit criteria:
 - P3.19 improved the host-native Plugin/Skill package acceptance artifacts
   without making Codex automation a user setup path.
 - A user can describe the setup as "install the Hermes Plugin or OpenClaw Skill,
-  enable Kaka Mobile Bridge, scan QR" rather than "write an adapter command."
+  enable Pocket Agent Mobile Bridge, scan QR" rather than "write an adapter command."
 
 ## Product Boundaries
 
@@ -700,21 +700,21 @@ Avoid in MVP:
 
 ## First Implementation Slice
 
-The first Pocket Agents slice has expanded from proof-of-concept into a working foundation:
+The first Pocket Agent slice has expanded from proof-of-concept into a working foundation:
 
-1. Share a URL, text, screenshot image, or image to Kaka.
-2. Kaka creates an inbox item.
+1. Share a URL, text, screenshot image, or image to Pocket Agent.
+2. Pocket Agent creates an inbox item.
 3. The runtime returns summary plus suggested actions.
 4. Image payloads, including screenshots represented as images, continue through the existing image conversation path.
 5. Voice follow-up is real push-to-talk with editable on-device transcripts and short spoken replies.
 6. `Remember`, `Use Once`, and `Forget` confirmation UI exists, and the Recall tab can browse/search/export/delete D.1 Recall items.
 7. Runtime Kit SQLite persistence can keep Recall records, retrieval-index deletion receipts, runtime tasks, and task events when launched with `--runtime-store-path`.
 
-This slice is big enough to prove Pocket Agents, but small enough to stay aligned with the current Mobile Bridge and privacy boundary.
+This slice is big enough to prove Pocket Agent, but small enough to stay aligned with the current Mobile Bridge and privacy boundary.
 
 The consumer-visible Hermes/OpenClaw persistence and lifecycle layer now has Runtime Kit plugin-shell contracts through `settings-preview`, `package-preview`, `host-package-preview`, `runtime_side_ui.consumer_ui`, and `runtime_side_ui.process_ownership`, plus disabled-by-default Hermes/OpenClaw shell manifests. That layer keeps search indexes, settings, install/start-at-login/update/uninstall/log/health/repair/supervision actions, and process state runtime-owned, with the iPhone acting only as the visible query, review, and control surface.
 
-The C.1 Context Snapshot collector slice, native Hermes/OpenClaw packaging scaffold, E.1 App Intent/Live Activity-safe task-state foundation, E.1b WidgetKit Live Activity presentation, E.1c Action Button review handoff, production runtime pairing hardening, Hermes/OpenClaw consumer runtime UI contract, P2.7 runtime process ownership contract, P2.8 host packaging handoff contract, P2.9 host adapter binding, P3.1-P3.3 host-private command/package contracts, P3.4a-P3.4j external-pilot support artifacts, P3.5 Host Extension productization contract, and P3.6 Host Extension distribution readiness contract are implemented. P3.6 verifies readiness from host-owned facts: install command, update channel, extension-internal adapter command location, host UI entry point, signed package ref, signature/notarization ref, P3.2 conformance report, and P3.4 evidence manifest. The next development handoff is `docs/kaka-host-extension-external-materials.md`; it turns the current blocked readiness state into a materials checklist and external install drill entry condition. P3.6 does not bind proprietary private APIs into Kaka.
+The C.1 Context Snapshot collector slice, native Hermes/OpenClaw packaging scaffold, E.1 App Intent/Live Activity-safe task-state foundation, E.1b WidgetKit Live Activity presentation, E.1c Action Button review handoff, production runtime pairing hardening, Hermes/OpenClaw consumer runtime UI contract, P2.7 runtime process ownership contract, P2.8 host packaging handoff contract, P2.9 host adapter binding, P3.1-P3.3 host-private command/package contracts, P3.4a-P3.4j external-pilot support artifacts, P3.5 Host Extension productization contract, and P3.6 Host Extension distribution readiness contract are implemented. P3.6 verifies readiness from host-owned facts: install command, update channel, extension-internal adapter command location, host UI entry point, signed package ref, signature/notarization ref, P3.2 conformance report, and P3.4 evidence manifest. The next development handoff is `docs/kaka-host-extension-external-materials.md`; it turns the current blocked readiness state into a materials checklist and external install drill entry condition. P3.6 does not bind proprietary private APIs into Pocket Agent.
 
 The completed in-repository phone polish slice is P3.11 native connection recovery UI
 (`docs/superpowers/plans/2026-06-07-kaka-pocket-agents-native-connection-recovery-ui.md`).
@@ -738,7 +738,7 @@ API.
 
 Future development should keep that division: the host extension owns
 installation, update, logs, health, runtime settings, private adapter discovery,
-and release evidence; Kaka iPhone owns connection status, pairing, visible
+and release evidence; Pocket Agent iPhone owns connection status, pairing, visible
 recovery guidance, and user consent through `/mobile/v1`.
 
 Follow-up decision for installation work as of 2026-06-11: P3.35 now provides
@@ -774,13 +774,13 @@ For the next development plan, use this split:
 
 ## Open Decisions
 
-- Should the external brand remain Kaka while the category becomes Pocket Agents, or should Pocket Agents become a visible product name?
 - Should the first production provider-backed Recall retrieval package use Hermes/OpenClaw-native embeddings, a sidecar adapter, or a capability-negotiated hybrid? P3.21 now supports all three as readiness strategies, but the real production choice remains host/runtime-owned.
 - Should the PDF upload size limit remain the Phase A.1 default of 25 MB, or move to runtime capability negotiation?
-- Should context snapshots default to off per task, or should Kaka ask once and remember a scoped preference?
+- Should context snapshots default to off per task, or should Pocket Agent ask once and remember a scoped preference?
 
 Resolved as of 2026-06-05:
 
+- As of 2026-06-14, the project and user-visible product name is **Pocket Agent**. Legacy internal names such as `AgentPocket`, `KakaInboxItem`, and historical `kaka-*` paths remain compatibility names until a separate migration is planned.
 - Runtime Kit provides the default local Recall/task store behind `--runtime-store-path`; Hermes/OpenClaw packaging should expose that as a runtime-side setting.
 - Voice transcription starts on-device first through iOS Speech; runtime-side transcription can be added later as a separate capability.
 - P3.32 keeps Inbox voice instructions phone-owned and text-only: the reviewed
@@ -796,7 +796,7 @@ Resolved as of 2026-06-05:
 - Semantic Recall starts with deterministic runtime-owned local scoring behind `POST /mobile/v1/recall/search`; provider-backed retrieval now plugs into the same boundary through an explicit runtime-owned adapter, P3.21 provides a read-only readiness contract for production packaging refs, and P3.26 adds local materials manifest intake/review without fetching refs or invoking providers.
 - Runtime Kit `settings-preview` and `package-preview` are the plugin-shell contracts for runtime-side store path, Recall retrieval provider, LAN/Bonjour, QR, start/stop controls, and process lifecycle controls; `/mobile/v1/runtime/settings` remains phone-safe status only.
 - Runtime Kit `consumer_ui` is the renderer contract for Hermes/OpenClaw ordinary-user settings controls, `process_ownership` is the runtime-side lifecycle contract for install/start-at-login/update/uninstall/logs/health/port-conflict repair, `host-package-preview` is the P2.8 host packaging handoff contract, and P2.9 `host-adapter-run` is the Mac/runtime-side host action surface. These are derived from the same settings/package preview source of truth and do not move runtime settings onto the iPhone.
-- The API surfaces are distinct: Kaka iPhone connects through the local Mobile Bridge `/mobile/v1` API; Hermes/OpenClaw shells render Runtime Kit preview JSON/CLI contracts; host actions execute through Mac/runtime-side `host-adapter-run`; `mock` is conformance/local QA and `private` returns unavailable until a host-owned command is supplied. Real Hermes/OpenClaw private APIs stay behind that command and outside the Kaka repository.
+- The API surfaces are distinct: Pocket Agent iPhone connects through the local Mobile Bridge `/mobile/v1` API; Hermes/OpenClaw shells render Runtime Kit preview JSON/CLI contracts; host actions execute through Mac/runtime-side `host-adapter-run`; `mock` is conformance/local QA and `private` returns unavailable until a host-owned command is supplied. Real Hermes/OpenClaw private APIs stay behind that command and outside the Pocket Agent repository.
 - Context Snapshot collectors are permission-aware, task-scoped, and previewed. C.1b resolves richer network status as a one-shot coarse path probe, and P3.29 resolves current motion plus next-30-minute calendar busy-window labels as one-shot gated probes. Denied permissions do not block intake, no motion history/calendar event detail is sent, and snapshots are not written to Recall without explicit `Remember`.
 - Recall export is now policy-labeled as `kaka.recall_export.v1`. The export remains a JSON-first user artifact and not a runtime database dump; future Recall work must keep embeddings, retrieval-index rows, provider secrets, tokens, SQLite paths, hidden prompts, raw provider responses, unrelated task logs, and unconfirmed Context Snapshot content out of exported item data.
 - Recall retrieval production packaging is now readiness-gated by `kaka.recall_retrieval_readiness.v1` and material-intake-gated by `kaka.recall_retrieval_material_intake.v1`. The intake command consumes a local `kaka.recall_retrieval_materials.v1` manifest, blocks missing or secret-like materials, and still does not invoke providers, fetch refs, expose provider endpoints/keys to iPhone, or change `/mobile/v1/recall/search`.

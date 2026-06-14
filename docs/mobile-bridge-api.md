@@ -1,10 +1,10 @@
-# Agent Pocket Mobile Bridge API
+# Pocket Agent Mobile Bridge API
 
 ## Overview
 
-The Mobile Bridge is the stable HTTPS boundary between Agent Pocket and a user-owned compatible agent runtime, such as Hermes, OpenClaw, or a sidecar that exposes the same contract. The iPhone app is a thin visual client: it pairs with a runtime, uploads photos and visible shared PDF payloads, starts `image_intake`, shows suggested skills in an image conversation, accepts visible Share Extension inbox items, starts universal `intake` tasks for text, links, and PDFs, starts photo-edit or vision tasks for the user's instruction, watches progress, and downloads edited images when needed. The runtime owns model credentials, workflow selection, vision analysis, crop planning, local image rendering, memory, approvals, and tool execution.
+The Mobile Bridge is the stable HTTPS boundary between Pocket Agent and a user-owned compatible agent runtime, such as Hermes, OpenClaw, or a sidecar that exposes the same contract. The iPhone app is a thin visual client: it pairs with a runtime, uploads photos and visible shared PDF payloads, starts `image_intake`, shows suggested skills in an image conversation, accepts visible Share Extension inbox items, starts universal `intake` tasks for text, links, and PDFs, starts photo-edit or vision tasks for the user's instruction, watches progress, and downloads edited images when needed. The runtime owns model credentials, workflow selection, vision analysis, crop planning, local image rendering, memory, approvals, and tool execution.
 
-The broader Pocket Agents direction keeps the same boundary for future input types: share-sheet items, screenshots, pasted text, links, visible voice-transcribed notes, and permissioned context snapshots flow through Mobile Bridge as explicit user-initiated intake tasks. Phase A implements the additive `/mobile/v1/tasks/intake` contract beside the existing `image_intake`, `vision`, and `photo_edit` paths. Existing image clients should continue using `image_intake`.
+The broader Pocket Agent direction keeps the same boundary for future input types: share-sheet items, screenshots, pasted text, links, visible voice-transcribed notes, and permissioned context snapshots flow through Mobile Bridge as explicit user-initiated intake tasks. Phase A implements the additive `/mobile/v1/tasks/intake` contract beside the existing `image_intake`, `vision`, and `photo_edit` paths. Existing image clients should continue using `image_intake`.
 
 Base path: `/mobile/v1`
 
@@ -12,8 +12,8 @@ Clients must tolerate unknown response fields. Servers must preserve backward co
 
 ## Ordinary User Boundary
 
-Ordinary users should install Kaka through a host-native Hermes Plugin or
-OpenClaw Skill/sidecar. The phone pairs with the runtime-hosted **Kaka Mobile
+Ordinary users should install Pocket Agent through a host-native Hermes Plugin or
+OpenClaw Skill/sidecar. The phone pairs with the runtime-hosted **Pocket Agent Mobile
 Bridge** endpoint and then uses only `/mobile/v1`.
 
 Hermes/OpenClaw private APIs, private adapter commands, provider configuration,
@@ -125,7 +125,7 @@ APIs, receive private adapter command paths, or manage Codex plugin/skill roots.
 
 Recommended runtime-side controls:
 
-- **Start Kaka Mobile Bridge**: starts the local listener for the current session.
+- **Start Pocket Agent Mobile Bridge**: starts the local listener for the current session.
 - **Show QR**: shows a short-lived pairing QR.
 - **Advertise on Local Network**: enables Bonjour only after user approval.
 - **Stop Bridge**: shuts down the listener and advertisement.
@@ -150,7 +150,7 @@ Response:
   "recall_store": {
     "enabled": true,
     "owner": "runtime",
-    "label": "Local Kaka Recall and task store",
+    "label": "Local Pocket Agent Recall and task store",
     "phone_can_change": false
   },
   "semantic_recall": {
@@ -170,7 +170,7 @@ Response:
     "mobile_token_revocation_supported": true,
     "trusted_local_tls_required": true,
     "tls_trust_state": "configured",
-    "tls_certificate_label": "Kaka Local Runtime",
+    "tls_certificate_label": "Pocket Agent Local Runtime",
     "tls_public_key_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   }
 }
@@ -303,9 +303,9 @@ This additive endpoint handles visible user-shared non-camera items. The iOS Pha
 
 P3.36b Explicit Paste-to-Inbox Courier uses the same boundary: the phone reads clipboard text only after the user taps the visible Inbox Paste button, creates a pending `.text` or http/https `.url` item with `source.surface = "paste"`, and still waits for visible Inbox `Send` before this endpoint is called.
 
-B.1 voice follow-up, P3.30 Voice-to-Inbox Draft, and P3.32 Inbox Voice Instruction use the same text boundary: Kaka records only while the user explicitly presses the push-to-talk control, transcribes on device with iOS Speech, shows an editable transcript, and sends the reviewed transcript as text. P3.32 saves the reviewed transcript into the selected `KakaInboxItem.note`; P3.33 adds local edit, clear, and send-preview UI for that note; P3.34 adds deterministic local template chips that write selected template text into the same note; the existing submitter sends the note as `note` and `user_instruction` only after the user taps visible Inbox `Send`. For `pdf` and first-release short `video`, the main app uploads the shared/copied file payload from the visible Inbox action, then starts `/mobile/v1/tasks/intake` with the returned `asset_id`. Shared image payloads, including screenshots represented as images, keep routing through `image_intake` so the existing image conversation stays intact.
+B.1 voice follow-up, P3.30 Voice-to-Inbox Draft, and P3.32 Inbox Voice Instruction use the same text boundary: Pocket Agent records only while the user explicitly presses the push-to-talk control, transcribes on device with iOS Speech, shows an editable transcript, and sends the reviewed transcript as text. P3.32 saves the reviewed transcript into the selected `KakaInboxItem.note`; P3.33 adds local edit, clear, and send-preview UI for that note; P3.34 adds deterministic local template chips that write selected template text into the same note; the existing submitter sends the note as `note` and `user_instruction` only after the user taps visible Inbox `Send`. For `pdf` and first-release short `video`, the main app uploads the shared/copied file payload from the visible Inbox action, then starts `/mobile/v1/tasks/intake` with the returned `asset_id`. Shared image payloads, including screenshots represented as images, keep routing through `image_intake` so the existing image conversation stays intact.
 
-M1 Local Agent Lens adds phone-native source surfaces while keeping the same visible-review boundary: `agent_scanner`, `document_scanner`, `video_capture`, `action_button`, and `shortcut`. Scanner results are never opened or submitted automatically; Kaka first shows explicit actions such as ask local agent, open URL, copy, save, or connect local runtime. Document scan and video capture/create only local Inbox drafts until the user reviews and taps visible Inbox `Send`. Action Button and Shortcuts only foreground Kaka to the relevant Lens surface.
+M1 Local Agent Lens adds phone-native source surfaces while keeping the same visible-review boundary: `agent_scanner`, `document_scanner`, `video_capture`, `action_button`, and `shortcut`. Scanner results are never opened or submitted automatically; Pocket Agent first shows explicit actions such as ask local agent, open URL, copy, save, or connect local runtime. Document scan and video capture/create only local Inbox drafts until the user reviews and taps visible Inbox `Send`. Action Button and Shortcuts only foreground Pocket Agent to the relevant Lens surface.
 
 `supports_voice_followup: true` means the runtime can accept text follow-up submitted from the visible voice UI and may return a short `summary` that the phone can read aloud. It does not mean B.1, P3.30, or P3.32 uploads raw microphone audio. Raw audio stays local and temporary; always-on listening, hidden background transcription, automatic Inbox submission, and automatic Recall writes are out of scope.
 
@@ -391,10 +391,10 @@ Request for Voice-to-Inbox text:
   "kind": "text",
   "text": "Summarize this receipt before I send it.",
   "locale": "en-US",
-  "source_app": "Kaka Voice",
+  "source_app": "Pocket Agent Voice",
   "source": {
     "surface": "voice",
-    "host_app": "Kaka Voice"
+    "host_app": "Pocket Agent Voice"
   }
 }
 ```
@@ -407,7 +407,7 @@ Request for image, PDF, or video-capable runtimes:
   "asset_id": "asset_video_123",
   "source": {
     "surface": "video_capture",
-    "host_app": "Kaka"
+    "host_app": "Pocket Agent"
   }
 }
 ```
@@ -438,7 +438,7 @@ Completed status:
     "kind": "url",
     "type": "url",
     "title": "Shared link ready",
-    "summary": "Kaka received a link from Safari: https://example.com/article",
+    "summary": "Pocket Agent received a link from Safari: https://example.com/article",
     "metadata": {
       "source_app": "Safari",
       "url": "https://example.com/article"
@@ -468,7 +468,7 @@ The earlier image-only implementation specializes intake around images:
 - receive summary plus suggested image skills
 - route the user's next action to photo-edit or vision tasks
 
-Pocket Agents should continue generalizing this intake family without breaking Phase 1 clients.
+Pocket Agent should continue generalizing this intake family without breaking Phase 1 clients.
 
 Forward-compatible capability shape:
 
@@ -603,7 +603,7 @@ Design rules for this API:
   deterministic text into `KakaInboxItem.note` and do not add request fields or
   trigger runtime work.
 - P3.37 Inbox Result Review Provenance is also client-side: after a visible
-  Inbox `Send` completes, Kaka may show source/context review copy and pass the
+  Inbox `Send` completes, Pocket Agent may show source/context review copy and pass the
   existing `source_task_id` plus `source_inbox_item_id` to explicit Recall
   actions. It adds no result-review endpoint, automatic Recall write, runtime
   schema change, Files picker, provider call, or host package behavior.
@@ -635,7 +635,7 @@ Design rules for this API:
   developer plugin/skill automation are host-team/runtime-side concerns. They
   must not add Mobile Bridge endpoints, request fields, response fields,
   private host API fields, adapter command paths, marketplace metadata, or
-  user-home Codex paths to `/mobile/v1`; Kaka iPhone still pairs and talks only
+  user-home Codex paths to `/mobile/v1`; Pocket Agent iPhone still pairs and talks only
   through the Mobile Bridge contract.
 - Context snapshots are optional and task-scoped unless the user chooses a Recall action.
 - Recall actions must be explicit and reversible where the runtime controls storage.
@@ -828,7 +828,7 @@ Repeated delete calls should be deterministic and return empty `deleted_item_ids
 
 ## Runtime Task Inbox
 
-Task Inbox E.0 makes runtime work visible and controllable inside Kaka before App Intents or Live Activity are enabled.
+Task Inbox E.0 makes runtime work visible and controllable inside Pocket Agent before App Intents or Live Activity are enabled.
 
 Task records and task events are also runtime-owned. After the Runtime Kit SQLite store is connected, task status, approvals, cancellation, completion state, and event history should survive bridge/server recreation when the bridge is launched with `--runtime-store-path`. The iPhone displays and acts on the Mobile Bridge responses; it does not become the production task-state store.
 
@@ -906,7 +906,7 @@ Response:
 }
 ```
 
-Task Inbox E.1 adds iOS system surfaces without changing the Mobile Bridge task API. App Intents open Kaka to visible Inbox, Tasks, or Local Agent Lens surfaces through an app handoff; they do not submit inbox items, approve tasks, cancel tasks, collect Context Snapshot data, or change runtime/provider settings in the background. Approval and cancellation still go through the existing Mobile Bridge endpoints after the app shows the current task state.
+Task Inbox E.1 adds iOS system surfaces without changing the Mobile Bridge task API. App Intents open Pocket Agent to visible Inbox, Tasks, or Local Agent Lens surfaces through an app handoff; they do not submit inbox items, approve tasks, cancel tasks, collect Context Snapshot data, or change runtime/provider settings in the background. Approval and cancellation still go through the existing Mobile Bridge endpoints after the app shows the current task state.
 
 Action Button support reuses the same foreground App Intent handoff and may open visible Inbox, Tasks, Scanner, Document Scan, Video Intake, or Voice surfaces. It does not add Mobile Bridge fields, endpoints, or hidden task actions.
 
@@ -919,9 +919,9 @@ Live Activity state is a phone-safe projection of runtime task state. The `title
 - `progress`
 - `message`
 
-`progress` is clamped to `0...1`. `message` is the same short, phone-visible task message Kaka can already show in Task Inbox; it must be sanitized by the runtime and is trimmed by the phone projection. The projection must not include `updated_at`, bearer tokens, provider endpoints or keys, hidden prompts, task logs, asset bytes, Context Snapshot fields, Recall content, embeddings, retrieval-index rows, or runtime SQLite paths.
+`progress` is clamped to `0...1`. `message` is the same short, phone-visible task message Pocket Agent can already show in Task Inbox; it must be sanitized by the runtime and is trimmed by the phone projection. The projection must not include `updated_at`, bearer tokens, provider endpoints or keys, hidden prompts, task logs, asset bytes, Context Snapshot fields, Recall content, embeddings, retrieval-index rows, or runtime SQLite paths.
 
-The WidgetKit Live Activity extension renders only this projection on the Lock Screen and Dynamic Island. It does not add task approval or cancellation endpoints; those actions still require opening Kaka and using the visible Task Inbox state.
+The WidgetKit Live Activity extension renders only this projection on the Lock Screen and Dynamic Island. It does not add task approval or cancellation endpoints; those actions still require opening Pocket Agent and using the visible Task Inbox state.
 
 ## Pairing QR Payload
 
@@ -937,7 +937,7 @@ The WidgetKit Live Activity extension renders only this projection on the Lock S
   "expires_at": "2026-05-30T16:30:00Z",
   "trusted_local_tls_required": true,
   "tls_public_key_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "tls_certificate_label": "Kaka Local Runtime"
+  "tls_certificate_label": "Pocket Agent Local Runtime"
 }
 ```
 
@@ -1047,7 +1047,7 @@ Response:
 
 `POST /mobile/v1/tasks/image-intake`
 
-This is the first task Kaka starts after capture or gallery selection. It classifies the uploaded image enough to open an image conversation and suggest useful skills. It must not fabricate final OCR, object, nutrition, or edit results; it only recommends what Kaka can do next.
+This is the first task Pocket Agent starts after capture or gallery selection. It classifies the uploaded image enough to open an image conversation and suggest useful skills. It must not fabricate final OCR, object, nutrition, or edit results; it only recommends what Pocket Agent can do next.
 
 Request:
 
@@ -1280,7 +1280,7 @@ The runtime must validate and clamp recipe values before rendering. The model ma
 
 Compatible runtimes should expose the local recipe path through `GET /mobile/v1/capabilities`, not through client-side provider configuration. In Phase 1, the iPhone treats `provider`, `renderer`, `variant_labels`, `variant_ids`, `crop_aspects`, `supports_crop_candidates`, and `supports_upscale_policy` as runtime capabilities. The mock bridge advertises these fields for `recipe_local`; Hermes, OpenClaw, or another sidecar should serve the same shape when they implement the contract.
 
-Inside the runtime, `recipe_local` can run in `fixture` mode for deterministic QA or `runtime_vision` mode for model-assisted recipes. In `runtime_vision` mode the adapter posts the source image as base64 plus style, scene, variant, instruction, supported crop aspects, Kaka `scene_profile` defaults, and safety requirements to a local runtime recipe endpoint. Phase 1 advertises only the `original` aspect so the rendered result keeps the source dimensions and framing by default. That endpoint may call whichever multimodal model the runtime is configured to use, then must return strict `PhotoEditRecipe` JSON. The adapter validates the JSON before rendering. This endpoint is runtime-side only; it is not called by the iPhone and it must not require provider keys from the iPhone client.
+Inside the runtime, `recipe_local` can run in `fixture` mode for deterministic QA or `runtime_vision` mode for model-assisted recipes. In `runtime_vision` mode the adapter posts the source image as base64 plus style, scene, variant, instruction, supported crop aspects, Pocket Agent `scene_profile` defaults, and safety requirements to a local runtime recipe endpoint. Phase 1 advertises only the `original` aspect so the rendered result keeps the source dimensions and framing by default. That endpoint may call whichever multimodal model the runtime is configured to use, then must return strict `PhotoEditRecipe` JSON. The adapter validates the JSON before rendering. This endpoint is runtime-side only; it is not called by the iPhone and it must not require provider keys from the iPhone client.
 
 Example:
 

@@ -112,7 +112,7 @@ public enum ConnectionReadinessPresenter {
                 issue: issue,
                 title: copy.title,
                 message: copy.message,
-                primaryActionTitle: "Start Kaka Mobile Bridge",
+                primaryActionTitle: "Start Pocket Agent Mobile Bridge",
                 secondaryActionTitle: "Discover Local Runtime",
                 recoveryOwner: .hostRuntime,
                 recoveryAction: .startMobileBridge,
@@ -175,7 +175,7 @@ public enum ConnectionReadinessPresenter {
             return ConnectionReadinessPresentation(
                 issue: issue,
                 title: "Host Extension Not Ready",
-                message: "Open Kaka Mobile Bridge on the Mac and finish host setup, then retry from this iPhone.",
+                message: "Open Pocket Agent Mobile Bridge on the Mac and finish host setup, then retry from this iPhone.",
                 primaryActionTitle: "Check on Mac",
                 secondaryActionTitle: "Try Again",
                 recoveryOwner: .hostRuntime,

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/settings-preview.schema.json",
-  "title": "Kaka Runtime Settings Preview",
+  "title": "Pocket Agent Runtime Settings Preview",
   "type": "object",
   "required": [
     "bridge",
@@ -17,7 +17,7 @@
   ],
   "properties": {
     "bridge": {
-      "const": "Kaka Mobile Bridge"
+      "const": "Pocket Agent Mobile Bridge"
     },
     "surface": {
       "const": "runtime_side_settings_preview"

@@ -29,7 +29,7 @@ final class RecallModelsTests: XCTestCase {
         let data = """
         {
           "item_id": "recall_0001",
-          "summary": "Kaka should answer launch notes in Chinese.",
+          "summary": "Pocket Agent should answer launch notes in Chinese.",
           "created_at": "2026-06-05T09:30:00Z",
           "provenance": {
             "source_task_id": "task_123",
@@ -41,7 +41,7 @@ final class RecallModelsTests: XCTestCase {
         let item = try JSONDecoder.mobileBridge.decode(RecallItem.self, from: data)
 
         XCTAssertEqual(item.itemID, "recall_0001")
-        XCTAssertEqual(item.summary, "Kaka should answer launch notes in Chinese.")
+        XCTAssertEqual(item.summary, "Pocket Agent should answer launch notes in Chinese.")
         XCTAssertEqual(item.createdAt, "2026-06-05T09:30:00Z")
         XCTAssertEqual(item.provenance.sourceTaskID, "task_123")
         XCTAssertEqual(item.provenance.sourceInboxItemID?.uuidString, "12345678-1234-1234-1234-1234567890AB")

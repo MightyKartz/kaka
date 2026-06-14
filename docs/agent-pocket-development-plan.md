@@ -1,8 +1,8 @@
-# Kaka / Agent Pocket Development Plan
+# Kaka / Pocket Agent Development Plan
 
 Updated: 2026-06-04
 
-This is the execution-level development plan for Kaka / Agent Pocket. It reconciles the current codebase, the current product direction, and the tools that should be used to implement the next milestones.
+This is the execution-level development plan for Kaka / Pocket Agent. It reconciles the current codebase, the current product direction, and the tools that should be used to implement the next milestones.
 
 ## Goal
 
@@ -18,11 +18,11 @@ Ship the first credible Kaka product loop:
 
 The Phase 1 path is local recipe editing, not cloud image generation. The iPhone must not hold model-provider keys. The runtime can be Hermes, OpenClaw, or another compatible Mobile Bridge implementation.
 
-The broader product direction is Pocket Agents: Kaka becomes the voice-first phone front end for local agents. That direction should build on the proven image loop rather than replace it. See `docs/pocket-agents-direction.md`.
+The broader product direction is Pocket Agent: Kaka becomes the voice-first phone front end for local agents. That direction should build on the proven image loop rather than replace it. See `docs/pocket-agents-direction.md`.
 
 ## Current Truth
 
-The codebase is already a working Agent Pocket MVP foundation, but the current shippable product loop is not complete.
+The codebase is already a working Pocket Agent MVP foundation, but the current shippable product loop is not complete.
 
 | Area | Current state | Evidence |
 | --- | --- | --- |
@@ -33,12 +33,12 @@ The codebase is already a working Agent Pocket MVP foundation, but the current s
 | Photo Pack | `script` and `openai_image` adapters exist | `photo-pack/adapters` |
 | Local recipe adapter | Implemented for fixture/local renderer mode | `photo-pack/adapters/recipe_local.py`, `photo-pack/tests/test_recipe_local_adapter.py` |
 | Provider registry | `recipe_local` registered for mock bridge use | `mock_bridge/agent_pocket_mock_bridge/photo_providers.py`, `mock_bridge/agent_pocket_mock_bridge/qa.py` |
-| Runtime Kit | Development scaffold for explicit-start Kaka Mobile Bridge packaging exists; Hermes/OpenClaw plugin packaging is planned, not production-ready | `runtime-kit`, `docs/kaka-runtime-kit-plan.md` |
+| Runtime Kit | Development scaffold for explicit-start Pocket Agent Mobile Bridge packaging exists; Hermes/OpenClaw plugin packaging is planned, not production-ready | `runtime-kit`, `docs/kaka-runtime-kit-plan.md` |
 | QA CLI | `provider-preflight --photo-provider recipe_local`, `simulator-local-recipe-smoke`, and `simulator-share-sheet-smoke` exist | `PYTHONPATH=mock_bridge python3 -m agent_pocket_mock_bridge.qa --help` |
 | Test receipts | Python targeted suites and Swift `176 tests, 0 failures` passed locally; QA CLI full suite has one environmental port-in-use failure when a bridge is already running | `docs/qa-receipts/python-tests-latest.json`, `docs/qa-receipts/swift-test-latest.json` |
 | Readiness | Gates A-E passed; Gate F redirected and still open | `docs/agent-pocket-readiness.md` |
 | UI prototype | Master Shot HTML prototype exists with zh/en language switching; second polish pass generated zh/en screenshots, prioritizes the three main flow screens, and keeps settings as an auxiliary configuration screen; SwiftUI now has connect local/trusted badges, runtime-neutral local-agent copy, capture scene packs, no 4:5 badge, simplified result actions, and system-share handoff | `docs/ui/kaka-master-shot-ui-prototype.html`, `docs/ui/kaka-master-shot-ui-prototype-zh.png`, `docs/ui/kaka-master-shot-ui-prototype-en.png` |
-| Pocket Agents direction | Product direction and HTML UI prototype documented; Share to Kaka, voice, Context Snapshot, screenshot Q&A, and Recall are planned, not implemented | `docs/pocket-agents-direction.md`, `docs/ui/kaka-pocket-agents-prototype.html`, `docs/agent-pocket-privacy.md`, `docs/mobile-bridge-api.md` |
+| Pocket Agent direction | Product direction and HTML UI prototype documented; Share to Pocket Agent, voice, Context Snapshot, screenshot Q&A, and Recall are planned, not implemented | `docs/pocket-agents-direction.md`, `docs/ui/kaka-pocket-agents-prototype.html`, `docs/agent-pocket-privacy.md`, `docs/mobile-bridge-api.md` |
 
 ## Direction Decisions
 
@@ -47,12 +47,12 @@ The codebase is already a working Agent Pocket MVP foundation, but the current s
 - Do not hardcode GPT-5.5 or any single model name in Kaka. The runtime decides which multimodal model to use.
 - Do not make Hermes the only target. Treat Hermes and OpenClaw as first compatible runtimes behind the Mobile Bridge API.
 - Make `recipe_local` the Phase 1 proof path.
-- Treat Pocket Agents as the post-image-loop product expansion: share-sheet intake, voice-first follow-up, permissioned context, screenshot Q&A, and explicit Recall.
+- Treat Pocket Agent as the post-image-loop product expansion: share-sheet intake, voice-first follow-up, permissioned context, screenshot Q&A, and explicit Recall.
 - Do not implement always-on microphone, passive clipboard reading, passive location tracking, automatic notification reading, or autonomous cross-app control in the MVP.
 - Prefer user-guided interface help and confirmation cards over unsupervised phone automation.
 - Keep OpenAI Images, ComfyUI, object removal, background replacement, and direct social SDK posting as later optional adapters.
 - Phase 1 must produce a visibly better photo using parameterized edits: crop, tone, local contrast, denoise, sharpen, subject separation, optional conservative upscale.
-- Do not make normal users paste long terminal commands to connect. The consumer path should be a Hermes/OpenClaw plugin or skill UI with a visible **Kaka Mobile Bridge** enable/start control. Install must not auto-start a LAN bridge.
+- Do not make normal users paste long terminal commands to connect. The consumer path should be a Hermes/OpenClaw plugin or skill UI with a visible **Pocket Agent Mobile Bridge** enable/start control. Install must not auto-start a LAN bridge.
 
 ## Tooling Plan
 
@@ -83,7 +83,7 @@ Use these plugins, skills, and MCP tools deliberately. They are part of the impl
 | Photo Pack adapters | `photo-pack/adapters` | Runtime-side image provider implementations | `recipe_local` fixture renderer exists; runtime-vision recipe mode is implemented at adapter level and now sends Kaka scene-profile defaults; real Hermes/OpenClaw runtime receipt remains missing |
 | Runtime Kit | `runtime-kit/kaka_mobile_runtime_kit`, `runtime-kit/hermes-plugin`, `runtime-kit/openclaw-skill` | Explicit-start local bridge launcher plus packaging notes for runtime integrations | Public Hermes/OpenClaw packaging, token revocation UI, login item, and production pairing codes are still planned |
 | Product docs | `docs/agent-pocket-master-shot-direction.md`, `docs/mobile-bridge-api.md`, `docs/agent-pocket-readiness.md` | Direction, API contract, readiness evidence | Must keep implemented commands distinct from missing receipt evidence |
-| Pocket Agents docs | `docs/pocket-agents-direction.md`, `docs/agent-pocket-privacy.md` | Post-image-loop product direction, privacy boundaries, future universal intake | Must remain clearly marked as planned until endpoints and iOS surfaces exist |
+| Pocket Agent docs | `docs/pocket-agents-direction.md`, `docs/agent-pocket-privacy.md` | Post-image-loop product direction, privacy boundaries, future universal intake | Must remain clearly marked as planned until endpoints and iOS surfaces exist |
 | UI docs | `docs/ui` | Visual prototype and product screen direction | HTML second polish pass is done; connect local/trusted badges, capture scene packs, original-frame capture, and simplified system-share result UI are partially ported to SwiftUI; broader SwiftUI port remains pending |
 
 ## Phase Plan
@@ -114,7 +114,7 @@ Expected:
 
 Status: implemented for fixture/local renderer mode on 2026-06-01. The `simulator-local-recipe-smoke` command exists, but the real receipt is not proven because no iOS Simulator was booted during the latest run. The adapter-level `runtime_vision` client is implemented: it posts photo context and Kaka scene-profile defaults to a compatible local recipe endpoint, validates strict `PhotoEditRecipe` JSON, and renders locally. The local renderer now proves distinct scene defaults, original-frame composition, no default upscale, and bounded metadata. A real Hermes/OpenClaw runtime receipt remains future work.
 
-Purpose: prove Kaka can make a photo visibly better without any cloud image generation.
+Purpose: prove Pocket Agent can make a photo visibly better without any cloud image generation.
 
 Primary files:
 
@@ -248,7 +248,7 @@ Exit criteria:
 
 ### Phase 4: Runtime Compatibility Path For Hermes And OpenClaw
 
-Status: mock bridge and iPhone model support landed on 2026-06-02, with a vision protocol expansion on 2026-06-04 and a single-capture image-conversation migration later that day. `/mobile/v1/capabilities` now advertises `provider`, `renderer`, variant labels/IDs, crop aspects, crop-candidate support, upscale-policy support, optional `vision` task modes, and `image_intake`. Swift decodes those fields while remaining compatible with older capability responses. SwiftUI connection/capture/result recovery copy now uses runtime-neutral local-agent wording instead of presenting Hermes as the only target, and capture-ready QA smoke uses `Send to Kaka` / `sendToKakaButton` while continuing to accept older `Send to Local Agent` and `Send to Hermes` receipts for compatibility. A new `runtime-kit/` scaffold now provides `doctor`, `start`, and `pairing-url` commands for explicit-start bridge packaging, plus `--vision-provider runtime_http --vision-endpoint <local-url>` for routing OCR, translate, identify, and food skills to a runtime-owned agent endpoint after image intake. Real Hermes/OpenClaw runtime adapters still need to implement and serve the same contract through a plugin, skill, native command, or sidecar.
+Status: mock bridge and iPhone model support landed on 2026-06-02, with a vision protocol expansion on 2026-06-04 and a single-capture image-conversation migration later that day. `/mobile/v1/capabilities` now advertises `provider`, `renderer`, variant labels/IDs, crop aspects, crop-candidate support, upscale-policy support, optional `vision` task modes, and `image_intake`. Swift decodes those fields while remaining compatible with older capability responses. SwiftUI connection/capture/result recovery copy now uses runtime-neutral local-agent wording instead of presenting Hermes as the only target, and capture-ready QA smoke uses `Send to Pocket Agent` / `sendToKakaButton` while continuing to accept older `Send to Local Agent` and `Send to Hermes` receipts for compatibility. A new `runtime-kit/` scaffold now provides `doctor`, `start`, and `pairing-url` commands for explicit-start bridge packaging, plus `--vision-provider runtime_http --vision-endpoint <local-url>` for routing OCR, translate, identify, and food skills to a runtime-owned agent endpoint after image intake. Real Hermes/OpenClaw runtime adapters still need to implement and serve the same contract through a plugin, skill, native command, or sidecar.
 
 Purpose: keep Kaka compatible with user-owned agents instead of becoming tied to one runtime or one model.
 
@@ -265,7 +265,7 @@ Implementation requirements:
 - Recipe JSON is validated before rendering.
 - Smart-camera vision tasks use `/mobile/v1/tasks/vision`; `fixture_vision` is a protocol/UI placeholder only, while `runtime_http` forwards image bytes and mode context to the local runtime.
 - The same Mobile Bridge contract works for Hermes, OpenClaw, or a sidecar.
-- Runtime plugin/skill install does not start a listener; users explicitly enable **Kaka Mobile Bridge**.
+- Runtime plugin/skill install does not start a listener; users explicitly enable **Pocket Agent Mobile Bridge**.
 
 Validation:
 
@@ -368,7 +368,7 @@ Exit criteria:
 - Share handoff is proven.
 - `docs/agent-pocket-readiness.md` reports Local Recipe Photo Flow passed.
 
-### Phase 7: Pocket Agents Expansion
+### Phase 7: Pocket Agent Expansion
 
 Status: planned. The direction, presentation visual, storyboard HTML prototype, and single-screen app handoff HTML prototype are documented, but no Share Extension, universal intake endpoint, native voice UI, Context Snapshot, or Recall store has landed yet.
 
@@ -385,7 +385,7 @@ Primary references:
 
 Recommended order:
 
-1. **Share to Kaka Inbox**: receive text, URLs, screenshots, images, PDFs, and small files from the system share sheet.
+1. **Share to Pocket Agent Inbox**: receive text, URLs, screenshots, images, PDFs, and small files from the system share sheet.
 2. **Universal Intake draft**: generalize the `image_intake` pattern into a future `intake` task family while preserving current clients.
 3. **Voice Walkie-talkie**: add push-to-talk, transcript, short spoken replies, and confirmation cards.
 4. **Permissioned Context Snapshot**: send task-scoped time, source, coarse location, motion, network, battery, and optional calendar availability only after user approval.
@@ -419,7 +419,7 @@ Exit criteria:
 
 - A URL, screenshot, and image can be shared to Kaka and become inbox items.
 - The user can continue by voice and see the transcript.
-- Kaka can show what context was sent with a task.
+- Pocket Agent can show what context was sent with a task.
 - The user can remember and forget one item with runtime-side provenance.
 - The privacy doc and API doc are refreshed after implementation evidence exists.
 
@@ -435,7 +435,7 @@ Use subagent-driven execution only after the plan is accepted or when implementa
 | D. Runtime Compatibility | Hermes/OpenClaw neutral contract and docs | `docs/mobile-bridge-api.md`, `photo-pack/skills/photo-edit/SKILL.md` | `project-codebase-onboarding-and-roadmap`, `openai-docs` only if provider-specific APIs are added |
 | F. Runtime Kit Packaging | Explicit bridge launcher and Hermes/OpenClaw install path | `runtime-kit`, `docs/kaka-runtime-kit-plan.md` | pytest, Hermes/OpenClaw docs checks |
 | E. Visual Product Polish | HTML prototype and SwiftUI visual direction | `docs/ui`, later `Sources/AgentPocketUI` | `app-ui-implementer`, Browser, Playwright if needed |
-| G. Pocket Agents | Share to Kaka, voice, context snapshot, screenshot Q&A, Recall | `docs/pocket-agents-direction.md`, future iOS extension/runtime intake files | Share Extension/App Intents/Speech docs, Swift tests, bridge contract tests |
+| G. Pocket Agent | Share to Pocket Agent, voice, context snapshot, screenshot Q&A, Recall | `docs/pocket-agents-direction.md`, future iOS extension/runtime intake files | Share Extension/App Intents/Speech docs, Swift tests, bridge contract tests |
 
 Merge order:
 
@@ -457,13 +457,13 @@ Merge order:
 | P1 | Docs mention local-recipe commands before QA implements them | Update QA CLI and docs together; label planned commands until they exist. |
 | P1 | First-run connection still feels like a developer tool | Package Runtime Kit as a visible Hermes/OpenClaw bridge toggle; keep long commands as internal diagnostics only. |
 | P1 | UI promises social-platform posting that Phase 1 cannot deliver | Use system share sheet first; direct SDK posting is later. |
-| P1 | Pocket Agents scope expands into hidden surveillance or unsafe automation | Keep all inputs user-initiated; require confirmation for memory, posting, deletion, payment, messaging, and tool execution. |
+| P1 | Pocket Agent scope expands into hidden surveillance or unsafe automation | Keep all inputs user-initiated; require confirmation for memory, posting, deletion, payment, messaging, and tool execution. |
 | P1 | Context Snapshot becomes permanent memory by accident | Default snapshots to task-scoped use; require explicit `Remember`; add delete/export controls before broad use. |
 | P1 | Voice UI triggers actions from ambiguous speech | Keep transcript visible and require confirmation for high-impact actions. |
 | P1 | Clipboard feature duplicates Universal Clipboard instead of adding agent value | Use paste/share as explicit intake for transform, action, and Recall; never background-read pasteboard. |
 | P2 | UI prototype remains too poster-like for SwiftUI implementation | Iterate HTML with `app-ui-implementer`, then port only stable patterns. |
 | P2 | Renderer dependency becomes hard to install | Start with Pillow; keep adapter interface neutral for ImageMagick/OpenCV/libvips/Core Image. |
-| P3 | Naming drift between Kaka, Agent Pocket, Hermes, runtime | Brand externally as Kaka; keep Agent Pocket as module/app identifier until renamed intentionally. |
+| P3 | Naming drift between Kaka, Pocket Agent, Hermes, runtime | Brand externally as Kaka; keep Pocket Agent as module/app identifier until renamed intentionally. |
 
 ## Phase 1 Completion Gates
 
@@ -480,7 +480,7 @@ Phase 1 is complete only when every item below is proven by current artifacts.
 
 ## Next Executable Sprint
 
-Continue with Phase 2/3 evidence closure, then return to Phase 5 visual polish. Pocket Agents planning can continue in docs, but implementation should start after the image loop has enough evidence to stay stable.
+Continue with Phase 2/3 evidence closure, then return to Phase 5 visual polish. Pocket Agent planning can continue in docs, but implementation should start after the image loop has enough evidence to stay stable.
 
 1. Boot an iOS Simulator manually or through the normal Xcode workflow, then run `simulator-local-recipe-smoke`.
 2. Run `simulator-share-sheet-smoke` and save `docs/qa-receipts/share-sheet-flow-latest.json`.
@@ -489,7 +489,7 @@ Continue with Phase 2/3 evidence closure, then return to Phase 5 visual polish. 
 5. Continue using `app-ui-implementer` for targeted HTML checks, then port only stable patterns into SwiftUI.
 6. When the iPhone is available, run `run-lan --photo-provider recipe_local` and verify `docs/qa-receipts/local-recipe-photo-flow.json`.
 7. Refresh `docs/agent-pocket-readiness.md` after the receipts exist.
-8. After Gate F evidence is healthy, write a focused implementation plan for Share to Kaka Inbox and voice follow-up as the first Pocket Agents slice.
+8. After Gate F evidence is healthy, write a focused implementation plan for Share to Pocket Agent Inbox and voice follow-up as the first Pocket Agent slice.
 
 Suggested next commands:
 
@@ -520,13 +520,13 @@ Stop and investigate rather than papering over evidence when:
 
 These do not block Phase 1, but they should be decided before broader launch:
 
-- Whether Kaka keeps Agent Pocket as the internal module name or renames modules later.
+- Whether Pocket Agent keeps Pocket Agent as the internal module name or renames modules later.
 - Whether the first native renderer after Pillow should be Core Image, ImageMagick, OpenCV, or libvips.
 - Whether future platform exports should add optional 4:5/1:1 crops after the Phase 1 original-frame result is generated.
 - Whether OpenClaw compatibility should be a sidecar first or native OpenClaw plugin first.
 - Whether direct WeChat/Xiaohongshu/X sharing should be SDK-based or remain system-share based for privacy and simplicity.
-- Whether Pocket Agents becomes a visible product/category name or remains an internal roadmap label under Kaka.
+- Whether Pocket Agent becomes a visible product/category name or remains an internal roadmap label under Kaka.
 - Whether Recall lives entirely inside Hermes/OpenClaw first or Runtime Kit ships a default local memory store.
 - Whether voice transcription should default to on-device iOS speech, runtime-side transcription, or a capability-negotiated choice.
-- Which Share to Kaka content types ship first: text/URL/image only, or PDF/audio as well.
+- Which Share to Pocket Agent content types ship first: text/URL/image only, or PDF/audio as well.
 - Whether Context Snapshot defaults to off per task or uses a remembered scoped preference after the first approval.

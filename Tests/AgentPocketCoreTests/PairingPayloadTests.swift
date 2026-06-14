@@ -22,7 +22,7 @@ final class PairingPayloadTests: XCTestCase {
 
     func testDecodesOptionalTLSPublicKeyFingerprint() throws {
         let json = """
-        {"version":1,"endpoint":"https://macbook-pro.local:8765","runtime":"hermes","display_name":"Kartz MacBook Hermes","pairing_code":"pair_123","expires_at":"2026-05-30T16:30:00Z","tls_public_key_sha256":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","trusted_local_tls_required":true,"tls_certificate_label":"Kaka Local Runtime"}
+        {"version":1,"endpoint":"https://macbook-pro.local:8765","runtime":"hermes","display_name":"Kartz MacBook Hermes","pairing_code":"pair_123","expires_at":"2026-05-30T16:30:00Z","tls_public_key_sha256":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","trusted_local_tls_required":true,"tls_certificate_label":"Pocket Agent Local Runtime"}
         """
 
         let payload = try PairingPayload(
@@ -32,7 +32,7 @@ final class PairingPayloadTests: XCTestCase {
 
         XCTAssertEqual(payload.tlsPublicKeySHA256, String(repeating: "a", count: 64))
         XCTAssertTrue(payload.trustedLocalTLSRequired)
-        XCTAssertEqual(payload.tlsCertificateLabel, "Kaka Local Runtime")
+        XCTAssertEqual(payload.tlsCertificateLabel, "Pocket Agent Local Runtime")
     }
 
     func testRejectsRequiredLocalTLSWithoutFingerprint() {

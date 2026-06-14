@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/host-shell-pilot-preflight.schema.json",
-  "title": "Kaka Host Shell Pilot Preflight",
+  "title": "Pocket Agent Host Shell Pilot Preflight",
   "type": "object",
   "additionalProperties": false,
   "required": [

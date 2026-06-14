@@ -75,7 +75,7 @@ public struct ImageConversationView: View {
             )
             .presentationDetents([.medium, .large])
         }
-        .navigationTitle("Kaka")
+        .navigationTitle("Pocket Agent")
     }
 
     private var sourceImage: some View {
@@ -213,7 +213,7 @@ public struct ImageConversationView: View {
     }
 
     private var promptPlaceholder: String {
-        language == .chinese ? "告诉 Kaka 你想怎么处理这张图片" : "Tell Kaka what to do with this image"
+        language == .chinese ? "告诉 Pocket Agent 你想怎么处理这张图片" : "Tell Pocket Agent what to do with this image"
     }
 
 }
