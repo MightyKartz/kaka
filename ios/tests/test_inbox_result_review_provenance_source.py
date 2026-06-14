@@ -6,12 +6,19 @@ def test_inbox_result_recall_uses_source_inbox_item_id():
     inbox_view = (
         root / "Sources" / "AgentPocketUI" / "InboxView.swift"
     ).read_text(encoding="utf-8")
+    inbox_result_presentation = (
+        root / "Sources" / "AgentPocketUI" / "InboxResultPresentation.swift"
+    ).read_text(encoding="utf-8")
     app_intents = "\n".join(
         path.read_text(encoding="utf-8")
         for path in (root / "Sources" / "AgentPocketUI" / "AppIntents").rglob("*.swift")
     )
 
+    assert "InboxResultPresentation(status: status, context: context, language: language)" in inbox_view
     assert "sourceInboxItemID: context?.sourceInboxItemID" in inbox_view
-    assert "Context Snapshot selected; supported runtimes receive it with this task." in inbox_view
+    assert (
+        "Context Snapshot selected; supported runtimes receive it with this task."
+        in inbox_result_presentation
+    )
     assert "submitRecallAction" not in app_intents
     assert "RecallActionRequest" not in app_intents

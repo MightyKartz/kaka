@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-06-14 · Local Agent Lens · Inbox result source guard fix
+
+- 修复 PR #19 验证阻塞:更新 `ios/tests/test_inbox_result_review_provenance_source.py`,不再把 Context Snapshot 结果横幅文案硬绑在 `InboxView.swift`。
+- Source guard 现在确认 `InboxView` 使用 `InboxResultPresentation`,Recall 仍传 `sourceInboxItemID`,Context Snapshot 文案归属 presentation 文件。
+- QA receipt:`docs/qa-receipts/inbox-result-source-copy-20260614/`,新增 focused source guard、完整 Python 套件与刷新后的 Swift 测试日志。
+- 验证:`ios/tests/test_inbox_result_review_provenance_source.py` 1 passed; full pytest 653 passed; `swift test --filter InboxResultPresentationTests` 2 passed; `swift test` 462 passed。
+- 遗留:本轮为 CI/source-guard 修复,未跑模拟器截图或真机硬件路径。
+
+---
+
 ## 2026-06-14 · Local Agent Lens · Inbox result source copy
 
 - 优化 Inbox 提交完成结果横幅来源展示:Local Agent Lens 的 `agent_scanner`、`document_scanner`、`video_capture` 不再显示 raw source surface。

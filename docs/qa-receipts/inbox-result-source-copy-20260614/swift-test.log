@@ -1,9 +1,9 @@
 Building for debugging...
 [0/4] Write swift-version--58304C5D6DBC2206.txt
 Build complete! (0.08s)
-Test Suite 'All tests' started at 2026-06-14 13:43:36.094.
-Test Suite 'AgentPocketPackageTests.xctest' started at 2026-06-14 13:43:36.095.
-Test Suite 'AgentEndpointTests' started at 2026-06-14 13:43:36.095.
+Test Suite 'All tests' started at 2026-06-14 14:00:50.395.
+Test Suite 'AgentPocketPackageTests.xctest' started at 2026-06-14 14:00:50.395.
+Test Suite 'AgentEndpointTests' started at 2026-06-14 14:00:50.395.
 Test Case '-[AgentPocketCoreTests.AgentEndpointTests testAcceptsBonjourLocalHTTPForDevelopment]' started.
 Test Case '-[AgentPocketCoreTests.AgentEndpointTests testAcceptsBonjourLocalHTTPForDevelopment]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.AgentEndpointTests testAcceptsHttpsRemoteEndpoint]' started.
@@ -20,14 +20,14 @@ Test Case '-[AgentPocketCoreTests.AgentEndpointTests testRejectsMissingHost]' st
 Test Case '-[AgentPocketCoreTests.AgentEndpointTests testRejectsMissingHost]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.AgentEndpointTests testRejectsPublicHttpEndpoint]' started.
 Test Case '-[AgentPocketCoreTests.AgentEndpointTests testRejectsPublicHttpEndpoint]' passed (0.000 seconds).
-Test Suite 'AgentEndpointTests' passed at 2026-06-14 13:43:36.097.
-	 Executed 8 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
-Test Suite 'AgentLensSourceSurfaceTests' started at 2026-06-14 13:43:36.097.
+Test Suite 'AgentEndpointTests' passed at 2026-06-14 14:00:50.397.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'AgentLensSourceSurfaceTests' started at 2026-06-14 14:00:50.397.
 Test Case '-[AgentPocketCoreTests.AgentLensSourceSurfaceTests testAgentLensSourceSurfacesUseStableBridgeValues]' started.
 Test Case '-[AgentPocketCoreTests.AgentLensSourceSurfaceTests testAgentLensSourceSurfacesUseStableBridgeValues]' passed (0.000 seconds).
-Test Suite 'AgentLensSourceSurfaceTests' passed at 2026-06-14 13:43:36.097.
+Test Suite 'AgentLensSourceSurfaceTests' passed at 2026-06-14 14:00:50.397.
 	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'AgentScanActionPolicyTests' started at 2026-06-14 13:43:36.097.
+Test Suite 'AgentScanActionPolicyTests' started at 2026-06-14 14:00:50.397.
 Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testHTTPURLOffersSafeNextActionsWithoutAutoOpening]' started.
 Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testHTTPURLOffersSafeNextActionsWithoutAutoOpening]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testKakaPairingQRPrefersConnectAction]' started.
@@ -42,16 +42,16 @@ Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testUnknownCodeCanBeC
 Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testUnknownCodeCanBeCopiedAndSentAsText]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testURLScanBuildsInboxDraftWithScannerSourceSurface]' started.
 Test Case '-[AgentPocketUITests.AgentScanActionPolicyTests testURLScanBuildsInboxDraftWithScannerSourceSurface]' passed (0.000 seconds).
-Test Suite 'AgentScanActionPolicyTests' passed at 2026-06-14 13:43:36.098.
+Test Suite 'AgentScanActionPolicyTests' passed at 2026-06-14 14:00:50.398.
 	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'AgentScannerPresentationTests' started at 2026-06-14 13:43:36.098.
+Test Suite 'AgentScannerPresentationTests' started at 2026-06-14 14:00:50.398.
 Test Case '-[AgentPocketUITests.AgentScannerPresentationTests testScannerCopyIsLocalizedForChinese]' started.
 Test Case '-[AgentPocketUITests.AgentScannerPresentationTests testScannerCopyIsLocalizedForChinese]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.AgentScannerPresentationTests testScannerUnavailableCopyExplainsSimulatorFallback]' started.
 Test Case '-[AgentPocketUITests.AgentScannerPresentationTests testScannerUnavailableCopyExplainsSimulatorFallback]' passed (0.000 seconds).
-Test Suite 'AgentScannerPresentationTests' passed at 2026-06-14 13:43:36.098.
+Test Suite 'AgentScannerPresentationTests' passed at 2026-06-14 14:00:50.398.
 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'AppIntentPresentationTests' started at 2026-06-14 13:43:36.098.
+Test Suite 'AppIntentPresentationTests' started at 2026-06-14 14:00:50.398.
 Test Case '-[AgentPocketUITests.AppIntentPresentationTests testActionButtonRecommendedShortcutsStayForegroundReviewOnly]' started.
 Test Case '-[AgentPocketUITests.AppIntentPresentationTests testActionButtonRecommendedShortcutsStayForegroundReviewOnly]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.AppIntentPresentationTests testActionButtonShortcutMetadataMatchesVisibleReviewSurfaces]' started.
@@ -66,18 +66,18 @@ Test Case '-[AgentPocketUITests.AppIntentPresentationTests testSystemSurfaceInte
 Test Case '-[AgentPocketUITests.AppIntentPresentationTests testSystemSurfaceIntentCatalogContainsOnlySafeForegroundActions]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.AppIntentPresentationTests testSystemSurfaceIntentMetadataUsesUserVisibleLabels]' started.
 Test Case '-[AgentPocketUITests.AppIntentPresentationTests testSystemSurfaceIntentMetadataUsesUserVisibleLabels]' passed (0.000 seconds).
-Test Suite 'AppIntentPresentationTests' passed at 2026-06-14 13:43:36.099.
+Test Suite 'AppIntentPresentationTests' passed at 2026-06-14 14:00:50.399.
 	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'AssetDownloadTests' started at 2026-06-14 13:43:36.099.
+Test Suite 'AssetDownloadTests' started at 2026-06-14 14:00:50.399.
 Test Case '-[AgentPocketCoreTests.AssetDownloadTests testAssetDownloadRequestAcceptsRelativeDownloadURL]' started.
 Test Case '-[AgentPocketCoreTests.AssetDownloadTests testAssetDownloadRequestAcceptsRelativeDownloadURL]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.AssetDownloadTests testHTTPClientDownloadsAssetBytesAndMimeType]' started.
-Test Case '-[AgentPocketCoreTests.AssetDownloadTests testHTTPClientDownloadsAssetBytesAndMimeType]' passed (0.005 seconds).
-Test Suite 'AssetDownloadTests' passed at 2026-06-14 13:43:36.104.
-	 Executed 2 tests, with 0 failures (0 unexpected) in 0.005 (0.005) seconds
-Test Suite 'AssetUploadTests' started at 2026-06-14 13:43:36.104.
+Test Case '-[AgentPocketCoreTests.AssetDownloadTests testHTTPClientDownloadsAssetBytesAndMimeType]' passed (0.004 seconds).
+Test Suite 'AssetDownloadTests' passed at 2026-06-14 14:00:50.404.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'AssetUploadTests' started at 2026-06-14 14:00:50.404.
 Test Case '-[AgentPocketCoreTests.AssetUploadTests testAssetUploadRequestBuildsMultipartBody]' started.
-Test Case '-[AgentPocketCoreTests.AssetUploadTests testAssetUploadRequestBuildsMultipartBody]' passed (0.001 seconds).
+Test Case '-[AgentPocketCoreTests.AssetUploadTests testAssetUploadRequestBuildsMultipartBody]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.AssetUploadTests testGenericAssetUploadRequestBuildsMultipartBodyWithoutImageMetadata]' started.
 Test Case '-[AgentPocketCoreTests.AssetUploadTests testGenericAssetUploadRequestBuildsMultipartBodyWithoutImageMetadata]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.AssetUploadTests testImageUploadPreparationMarksSensitiveExifAsStripped]' started.
@@ -86,9 +86,9 @@ Test Case '-[AgentPocketCoreTests.AssetUploadTests testImageUploadPreparationRej
 Test Case '-[AgentPocketCoreTests.AssetUploadTests testImageUploadPreparationRejectsOversizedData]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.AssetUploadTests testImageUploadPreparationRejectsUnsupportedMimeType]' started.
 Test Case '-[AgentPocketCoreTests.AssetUploadTests testImageUploadPreparationRejectsUnsupportedMimeType]' passed (0.000 seconds).
-Test Suite 'AssetUploadTests' passed at 2026-06-14 13:43:36.106.
+Test Suite 'AssetUploadTests' passed at 2026-06-14 14:00:50.405.
 	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'CameraModeSelectionPolicyTests' started at 2026-06-14 13:43:36.106.
+Test Suite 'CameraModeSelectionPolicyTests' started at 2026-06-14 14:00:50.405.
 Test Case '-[AgentPocketUITests.CameraModeSelectionPolicyTests testDragOffsetIsClampedForRubberBandFeel]' started.
 Test Case '-[AgentPocketUITests.CameraModeSelectionPolicyTests testDragOffsetIsClampedForRubberBandFeel]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CameraModeSelectionPolicyTests testInteractiveDragOffsetOnlyRubberBandsPastEdges]' started.
@@ -111,9 +111,9 @@ Test Case '-[AgentPocketUITests.CameraModeSelectionPolicyTests testVisibleTriple
 Test Case '-[AgentPocketUITests.CameraModeSelectionPolicyTests testVisibleTripletUsesEmptySlotAtEnd]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CameraModeSelectionPolicyTests testVisibleTripletUsesEmptySlotAtStart]' started.
 Test Case '-[AgentPocketUITests.CameraModeSelectionPolicyTests testVisibleTripletUsesEmptySlotAtStart]' passed (0.000 seconds).
-Test Suite 'CameraModeSelectionPolicyTests' passed at 2026-06-14 13:43:36.107.
+Test Suite 'CameraModeSelectionPolicyTests' passed at 2026-06-14 14:00:50.406.
 	 Executed 11 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'CaptureAutosubmitPolicyTests' started at 2026-06-14 13:43:36.107.
+Test Suite 'CaptureAutosubmitPolicyTests' started at 2026-06-14 14:00:50.406.
 Test Case '-[AgentPocketUITests.CaptureAutosubmitPolicyTests testAutoSubmitsPreparedCameraPhotoWhenConnectionIsAvailable]' started.
 Test Case '-[AgentPocketUITests.CaptureAutosubmitPolicyTests testAutoSubmitsPreparedCameraPhotoWhenConnectionIsAvailable]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureAutosubmitPolicyTests testDoesNotAutoSubmitLibrarySelection]' started.
@@ -124,9 +124,9 @@ Test Case '-[AgentPocketUITests.CaptureAutosubmitPolicyTests testDoesNotAutoSubm
 Test Case '-[AgentPocketUITests.CaptureAutosubmitPolicyTests testDoesNotAutoSubmitWithoutConnection]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureAutosubmitPolicyTests testDoesNotAutoSubmitWithoutPreparedUpload]' started.
 Test Case '-[AgentPocketUITests.CaptureAutosubmitPolicyTests testDoesNotAutoSubmitWithoutPreparedUpload]' passed (0.000 seconds).
-Test Suite 'CaptureAutosubmitPolicyTests' passed at 2026-06-14 13:43:36.107.
+Test Suite 'CaptureAutosubmitPolicyTests' passed at 2026-06-14 14:00:50.406.
 	 Executed 5 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
-Test Suite 'CaptureCameraAutostartPolicyTests' started at 2026-06-14 13:43:36.107.
+Test Suite 'CaptureCameraAutostartPolicyTests' started at 2026-06-14 14:00:50.406.
 Test Case '-[AgentPocketUITests.CaptureCameraAutostartPolicyTests testDoesNotOpenCameraForConnectedEmptyCaptureOnAppLaunch]' started.
 Test Case '-[AgentPocketUITests.CaptureCameraAutostartPolicyTests testDoesNotOpenCameraForConnectedEmptyCaptureOnAppLaunch]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureCameraAutostartPolicyTests testDoesNotOpenCameraWhenDeviceHasNoCamera]' started.
@@ -137,26 +137,26 @@ Test Case '-[AgentPocketUITests.CaptureCameraAutostartPolicyTests testDoesNotOpe
 Test Case '-[AgentPocketUITests.CaptureCameraAutostartPolicyTests testDoesNotOpenCameraWithoutConnectedRuntime]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureCameraAutostartPolicyTests testDoesNotReopenCameraAfterFirstAutomaticPresentation]' started.
 Test Case '-[AgentPocketUITests.CaptureCameraAutostartPolicyTests testDoesNotReopenCameraAfterFirstAutomaticPresentation]' passed (0.000 seconds).
-Test Suite 'CaptureCameraAutostartPolicyTests' passed at 2026-06-14 13:43:36.108.
+Test Suite 'CaptureCameraAutostartPolicyTests' passed at 2026-06-14 14:00:50.407.
 	 Executed 5 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
-Test Suite 'CaptureConversationAutoreviewPolicyTests' started at 2026-06-14 13:43:36.108.
+Test Suite 'CaptureConversationAutoreviewPolicyTests' started at 2026-06-14 14:00:50.407.
 Test Case '-[AgentPocketUITests.CaptureConversationAutoreviewPolicyTests testDoesNotOpenConversationForNonIntakeResult]' started.
 Test Case '-[AgentPocketUITests.CaptureConversationAutoreviewPolicyTests testDoesNotOpenConversationForNonIntakeResult]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureConversationAutoreviewPolicyTests testDoesNotReopenAlreadyOpenedConversation]' started.
 Test Case '-[AgentPocketUITests.CaptureConversationAutoreviewPolicyTests testDoesNotReopenAlreadyOpenedConversation]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureConversationAutoreviewPolicyTests testOpensConversationForNewImageIntakeTask]' started.
 Test Case '-[AgentPocketUITests.CaptureConversationAutoreviewPolicyTests testOpensConversationForNewImageIntakeTask]' passed (0.000 seconds).
-Test Suite 'CaptureConversationAutoreviewPolicyTests' passed at 2026-06-14 13:43:36.108.
+Test Suite 'CaptureConversationAutoreviewPolicyTests' passed at 2026-06-14 14:00:50.407.
 	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'CaptureFlowViewModelTests' started at 2026-06-14 13:43:36.108.
+Test Suite 'CaptureFlowViewModelTests' started at 2026-06-14 14:00:50.407.
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testBuildTaskRequestUsesSelectedIntentAndUploadedAssetID]' started.
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testBuildTaskRequestUsesSelectedIntentAndUploadedAssetID]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testInvalidSelectedImageShowsReadableFailure]' started.
-Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testInvalidSelectedImageShowsReadableFailure]' passed (0.011 seconds).
+Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testInvalidSelectedImageShowsReadableFailure]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testMarkCompletedStoresStatusForImmediateReview]' started.
-Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testMarkCompletedStoresStatusForImmediateReview]' passed (0.001 seconds).
+Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testMarkCompletedStoresStatusForImmediateReview]' passed (0.002 seconds).
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testMarkLoadingSelectedPhotoShowsImmediateFeedbackAndClearsPreviousUpload]' started.
-Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testMarkLoadingSelectedPhotoShowsImmediateFeedbackAndClearsPreviousUpload]' passed (0.006 seconds).
+Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testMarkLoadingSelectedPhotoShowsImmediateFeedbackAndClearsPreviousUpload]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testOversizedSelectedImageShowsReadableFailure]' started.
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testOversizedSelectedImageShowsReadableFailure]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testPrepareCapturedPhotoPreprocessesCameraJPEGForUpload]' started.
@@ -164,7 +164,7 @@ Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testPrepareCapturedPho
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testPrepareImageMovesFlowToReadyState]' started.
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testPrepareImageMovesFlowToReadyState]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testPrepareSelectedHEICImageMovesFlowToSendableReadyState]' started.
-Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testPrepareSelectedHEICImageMovesFlowToSendableReadyState]' passed (0.167 seconds).
+Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testPrepareSelectedHEICImageMovesFlowToSendableReadyState]' passed (0.128 seconds).
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testPrepareSelectedImagePreprocessesRealImageDataForUpload]' started.
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testPrepareSelectedImagePreprocessesRealImageDataForUpload]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testProviderFailedTerminalStatusShowsRecoveryMessage]' started.
@@ -182,7 +182,7 @@ Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitMissingPhoto
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitMissingVisionShowsRecoveryMessage]' started.
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitMissingVisionShowsRecoveryMessage]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitOfflineShowsRecoveryMessage]' started.
-Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitOfflineShowsRecoveryMessage]' passed (0.001 seconds).
+Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitOfflineShowsRecoveryMessage]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitPreparedImageIntakeUploadsStartsTaskAndStoresIntakeStatus]' started.
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitPreparedImageIntakeUploadsStartsTaskAndStoresIntakeStatus]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitPreparedImageKeepsOriginalPreviewForResultReview]' started.
@@ -195,16 +195,16 @@ Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitWithoutConne
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitWithoutConnectionAsksToPairAgain]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitWithoutPreparedImageFailsClearly]' started.
 Test Case '-[AgentPocketUITests.CaptureFlowViewModelTests testSubmitWithoutPreparedImageFailsClearly]' passed (0.000 seconds).
-Test Suite 'CaptureFlowViewModelTests' passed at 2026-06-14 13:43:36.301.
-	 Executed 23 tests, with 0 failures (0 unexpected) in 0.191 (0.192) seconds
-Test Suite 'CaptureLayoutPolicyTests' started at 2026-06-14 13:43:36.301.
+Test Suite 'CaptureFlowViewModelTests' passed at 2026-06-14 14:00:50.545.
+	 Executed 23 tests, with 0 failures (0 unexpected) in 0.137 (0.138) seconds
+Test Suite 'CaptureLayoutPolicyTests' started at 2026-06-14 14:00:50.545.
 Test Case '-[AgentPocketUITests.CaptureLayoutPolicyTests testInitialEmptyCaptureDefersControlsBelowTallFirstViewport]' started.
 Test Case '-[AgentPocketUITests.CaptureLayoutPolicyTests testInitialEmptyCaptureDefersControlsBelowTallFirstViewport]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureLayoutPolicyTests testPreparedCaptureKeepsControlsImmediatelyReachable]' started.
 Test Case '-[AgentPocketUITests.CaptureLayoutPolicyTests testPreparedCaptureKeepsControlsImmediatelyReachable]' passed (0.000 seconds).
-Test Suite 'CaptureLayoutPolicyTests' passed at 2026-06-14 13:43:36.301.
+Test Suite 'CaptureLayoutPolicyTests' passed at 2026-06-14 14:00:50.545.
 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'CapturePrimaryActionPolicyTests' started at 2026-06-14 13:43:36.301.
+Test Suite 'CapturePrimaryActionPolicyTests' started at 2026-06-14 14:00:50.545.
 Test Case '-[AgentPocketUITests.CapturePrimaryActionPolicyTests testCompletedStatePrimaryActionReviewsResult]' started.
 Test Case '-[AgentPocketUITests.CapturePrimaryActionPolicyTests testCompletedStatePrimaryActionReviewsResult]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CapturePrimaryActionPolicyTests testEmptyStatePrimaryActionOpensCamera]' started.
@@ -213,9 +213,9 @@ Test Case '-[AgentPocketUITests.CapturePrimaryActionPolicyTests testProcessingSt
 Test Case '-[AgentPocketUITests.CapturePrimaryActionPolicyTests testProcessingStatePrimaryActionIsDisabled]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CapturePrimaryActionPolicyTests testReadyStatePrimaryActionSubmitsPreparedPhoto]' started.
 Test Case '-[AgentPocketUITests.CapturePrimaryActionPolicyTests testReadyStatePrimaryActionSubmitsPreparedPhoto]' passed (0.000 seconds).
-Test Suite 'CapturePrimaryActionPolicyTests' passed at 2026-06-14 13:43:36.302.
+Test Suite 'CapturePrimaryActionPolicyTests' passed at 2026-06-14 14:00:50.546.
 	 Executed 4 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'CaptureResultAutoreviewPolicyTests' started at 2026-06-14 13:43:36.302.
+Test Suite 'CaptureResultAutoreviewPolicyTests' started at 2026-06-14 14:00:50.546.
 Test Case '-[AgentPocketUITests.CaptureResultAutoreviewPolicyTests testDoesNotOpenWithoutCompletedStatus]' started.
 Test Case '-[AgentPocketUITests.CaptureResultAutoreviewPolicyTests testDoesNotOpenWithoutCompletedStatus]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureResultAutoreviewPolicyTests testDoesNotOpenWithoutTaskID]' started.
@@ -226,15 +226,15 @@ Test Case '-[AgentPocketUITests.CaptureResultAutoreviewPolicyTests testOpensResu
 Test Case '-[AgentPocketUITests.CaptureResultAutoreviewPolicyTests testOpensResultForANewCompletedTask]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureResultAutoreviewPolicyTests testOpensResultWhenCompletedTaskHasNotBeenReviewed]' started.
 Test Case '-[AgentPocketUITests.CaptureResultAutoreviewPolicyTests testOpensResultWhenCompletedTaskHasNotBeenReviewed]' passed (0.000 seconds).
-Test Suite 'CaptureResultAutoreviewPolicyTests' passed at 2026-06-14 13:43:36.302.
-	 Executed 5 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'CaptureScreenPresentationTests' started at 2026-06-14 13:43:36.302.
+Test Suite 'CaptureResultAutoreviewPolicyTests' passed at 2026-06-14 14:00:50.546.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'CaptureScreenPresentationTests' started at 2026-06-14 14:00:50.546.
 Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testChineseCameraFailureMessageIsLocalized]' started.
 Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testChineseCameraFailureMessageIsLocalized]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testChineseConnectedBadgeHidesRawIPAddressOnCaptureScreen]' started.
 Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testChineseConnectedBadgeHidesRawIPAddressOnCaptureScreen]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testChineseEmptyPresentationIsCameraFirstAndRuntimeNeutral]' started.
-Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testChineseEmptyPresentationIsCameraFirstAndRuntimeNeutral]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testChineseEmptyPresentationIsCameraFirstAndRuntimeNeutral]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testChineseUnavailableSmartCameraModeMessageIsLocalized]' started.
 Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testChineseUnavailableSmartCameraModeMessageIsLocalized]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testCompletedPresentationIsModeNeutral]' started.
@@ -251,9 +251,9 @@ Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testReadyPresenta
 Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testReadyPresentationIgnoresLegacyCameraMode]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testReadyPresentationPromptsSendToPocketAgent]' started.
 Test Case '-[AgentPocketUITests.CaptureScreenPresentationTests testReadyPresentationPromptsSendToPocketAgent]' passed (0.000 seconds).
-Test Suite 'CaptureScreenPresentationTests' passed at 2026-06-14 13:43:36.304.
+Test Suite 'CaptureScreenPresentationTests' passed at 2026-06-14 14:00:50.548.
 	 Executed 11 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
-Test Suite 'ConnectScreenCopyTests' started at 2026-06-14 13:43:36.304.
+Test Suite 'ConnectScreenCopyTests' started at 2026-06-14 14:00:50.548.
 Test Case '-[AgentPocketUITests.ConnectScreenCopyTests testChineseCopyLocalizesConnectHomeAndSettings]' started.
 Test Case '-[AgentPocketUITests.ConnectScreenCopyTests testChineseCopyLocalizesConnectHomeAndSettings]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectScreenCopyTests testChineseFailureCopyCoversKnownPairingAndRestoreFailures]' started.
@@ -272,9 +272,9 @@ Test Case '-[AgentPocketUITests.ConnectScreenCopyTests testSavedOfflineCopyExpla
 Test Case '-[AgentPocketUITests.ConnectScreenCopyTests testSavedOfflineCopyExplainsMacActionBeforeReconnect]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectScreenCopyTests testStoredLanguageNoLongerOverridesSystemPreference]' started.
 Test Case '-[AgentPocketUITests.ConnectScreenCopyTests testStoredLanguageNoLongerOverridesSystemPreference]' passed (0.000 seconds).
-Test Suite 'ConnectScreenCopyTests' passed at 2026-06-14 13:43:36.305.
+Test Suite 'ConnectScreenCopyTests' passed at 2026-06-14 14:00:50.549.
 	 Executed 9 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'ConnectionReadinessPresentationTests' started at 2026-06-14 13:43:36.305.
+Test Suite 'ConnectionReadinessPresentationTests' started at 2026-06-14 14:00:50.549.
 Test Case '-[AgentPocketUITests.ConnectionReadinessPresentationTests testBridgeUnavailableUsesOfflineCompatibleCopyAndHostRuntimeRecovery]' started.
 Test Case '-[AgentPocketUITests.ConnectionReadinessPresentationTests testBridgeUnavailableUsesOfflineCompatibleCopyAndHostRuntimeRecovery]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionReadinessPresentationTests testDisabledHostActionWaitsForRuntimeStateChange]' started.
@@ -303,9 +303,9 @@ Test Case '-[AgentPocketUITests.ConnectionReadinessPresentationTests testStateDe
 Test Case '-[AgentPocketUITests.ConnectionReadinessPresentationTests testStateDerivedRecoveryMapsPhoneObservableStates]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionReadinessPresentationTests testStateDerivedRecoveryOmitsBusyAndConnectedStates]' started.
 Test Case '-[AgentPocketUITests.ConnectionReadinessPresentationTests testStateDerivedRecoveryOmitsBusyAndConnectedStates]' passed (0.000 seconds).
-Test Suite 'ConnectionReadinessPresentationTests' passed at 2026-06-14 13:43:36.308.
+Test Suite 'ConnectionReadinessPresentationTests' passed at 2026-06-14 14:00:50.552.
 	 Executed 14 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
-Test Suite 'ConnectionStateTests' started at 2026-06-14 13:43:36.308.
+Test Suite 'ConnectionStateTests' started at 2026-06-14 14:00:50.552.
 Test Case '-[AgentPocketUITests.ConnectionStateTests testConnectedStateNamesRuntimeAndHidesManualEntry]' started.
 Test Case '-[AgentPocketUITests.ConnectionStateTests testConnectedStateNamesRuntimeAndHidesManualEntry]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionStateTests testConnectedStateShowsLocalTrustedBadges]' started.
@@ -328,19 +328,19 @@ Test Case '-[AgentPocketUITests.ConnectionStateTests testSecondaryActionsStayPho
 Test Case '-[AgentPocketUITests.ConnectionStateTests testSecondaryActionsStayPhoneSafeAndStateDriven]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionStateTests testTestingStateDisablesActionsAndShowsProgress]' started.
 Test Case '-[AgentPocketUITests.ConnectionStateTests testTestingStateDisablesActionsAndShowsProgress]' passed (0.000 seconds).
-Test Suite 'ConnectionStateTests' passed at 2026-06-14 13:43:36.309.
+Test Suite 'ConnectionStateTests' passed at 2026-06-14 14:00:50.553.
 	 Executed 11 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'ConnectionViewModelTests' started at 2026-06-14 13:43:36.309.
+Test Suite 'ConnectionViewModelTests' started at 2026-06-14 14:00:50.553.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testBeginScanningSwitchesToScanningState]' started.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testBeginScanningSwitchesToScanningState]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testCancelScanningReturnsToIdle]' started.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testCancelScanningReturnsToIdle]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testConnectDiscoveredRuntimeUsesPairingPayload]' started.
-Test Case '-[AgentPocketUITests.ConnectionViewModelTests testConnectDiscoveredRuntimeUsesPairingPayload]' passed (0.041 seconds).
+Test Case '-[AgentPocketUITests.ConnectionViewModelTests testConnectDiscoveredRuntimeUsesPairingPayload]' passed (0.022 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testConnectDiscoveredRuntimeWithoutPayloadFetchesDevelopmentPairingPayload]' started.
-Test Case '-[AgentPocketUITests.ConnectionViewModelTests testConnectDiscoveredRuntimeWithoutPayloadFetchesDevelopmentPairingPayload]' passed (0.010 seconds).
+Test Case '-[AgentPocketUITests.ConnectionViewModelTests testConnectDiscoveredRuntimeWithoutPayloadFetchesDevelopmentPairingPayload]' passed (0.011 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testDiscoveredRuntimeWithoutPayloadUsesGenericPairingRefresh]' started.
-Test Case '-[AgentPocketUITests.ConnectionViewModelTests testDiscoveredRuntimeWithoutPayloadUsesGenericPairingRefresh]' passed (0.008 seconds).
+Test Case '-[AgentPocketUITests.ConnectionViewModelTests testDiscoveredRuntimeWithoutPayloadUsesGenericPairingRefresh]' passed (0.009 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testExpiredPairingPayloadFailsBeforeExchange]' started.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testExpiredPairingPayloadFailsBeforeExchange]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testForgetSavedConnectionClearsStoreAndReturnsToIdle]' started.
@@ -360,13 +360,13 @@ Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLaunchProximityDisc
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLaunchProximityDiscoveryPrefersSavedConnectionOverBonjourSearch]' started.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLaunchProximityDiscoveryPrefersSavedConnectionOverBonjourSearch]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryAutoPairsSingleRuntimeWithoutPayloadUsingDevelopmentRefresh]' started.
-Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryAutoPairsSingleRuntimeWithoutPayloadUsingDevelopmentRefresh]' passed (0.009 seconds).
+Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryAutoPairsSingleRuntimeWithoutPayloadUsingDevelopmentRefresh]' passed (0.010 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryAutoPairsSingleRuntimeWithPairingPayloadWhenRequested]' started.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryAutoPairsSingleRuntimeWithPairingPayloadWhenRequested]' passed (0.009 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryPublishesFoundRuntimes]' started.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryPublishesFoundRuntimes]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryRefreshesAlreadyUsedPairingCodeFromEndpoint]' started.
-Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryRefreshesAlreadyUsedPairingCodeFromEndpoint]' passed (0.009 seconds).
+Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryRefreshesAlreadyUsedPairingCodeFromEndpoint]' passed (0.010 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoverySearchFailureAsksForLocalNetworkPermission]' started.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoverySearchFailureAsksForLocalNetworkPermission]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoverySingleRuntimeRequiresUserConfirmationByDefault]' started.
@@ -376,7 +376,7 @@ Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryWithM
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryWithoutResultsFailsRecoverably]' started.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testLocalDiscoveryWithoutResultsFailsRecoverably]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testManualConnectionChecksBridgeAndMarksConnected]' started.
-Test Case '-[AgentPocketUITests.ConnectionViewModelTests testManualConnectionChecksBridgeAndMarksConnected]' passed (0.012 seconds).
+Test Case '-[AgentPocketUITests.ConnectionViewModelTests testManualConnectionChecksBridgeAndMarksConnected]' passed (0.008 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testManualConnectionMapsCertificateFailure]' started.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testManualConnectionMapsCertificateFailure]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testManualConnectionMapsMissingPhotoEditCapability]' started.
@@ -400,7 +400,7 @@ Test Case '-[AgentPocketUITests.ConnectionViewModelTests testPairingPayloadCarri
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testPairingPayloadExchangeMapsCertificateFailure]' started.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testPairingPayloadExchangeMapsCertificateFailure]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testPairingPayloadExchangeMarksConnectedAfterCapabilityCheck]' started.
-Test Case '-[AgentPocketUITests.ConnectionViewModelTests testPairingPayloadExchangeMarksConnectedAfterCapabilityCheck]' passed (0.009 seconds).
+Test Case '-[AgentPocketUITests.ConnectionViewModelTests testPairingPayloadExchangeMarksConnectedAfterCapabilityCheck]' passed (0.008 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testPairingPayloadExchangeSavesMobileCredential]' started.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testPairingPayloadExchangeSavesMobileCredential]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testRequiredLocalTLSPayloadWithoutPinMapsInvalidCertificateBeforeExchange]' started.
@@ -417,9 +417,9 @@ Test Case '-[AgentPocketUITests.ConnectionViewModelTests testRestoreSavedConnect
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testRestoreSavedConnectionWithoutSavedConnectionDoesNotDiscoverNearby]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testStartsInIdleStateWithEmptyManualFields]' started.
 Test Case '-[AgentPocketUITests.ConnectionViewModelTests testStartsInIdleStateWithEmptyManualFields]' passed (0.000 seconds).
-Test Suite 'ConnectionViewModelTests' passed at 2026-06-14 13:43:36.423.
-	 Executed 43 tests, with 0 failures (0 unexpected) in 0.113 (0.114) seconds
-Test Suite 'ContextSnapshotTests' started at 2026-06-14 13:43:36.423.
+Test Suite 'ConnectionViewModelTests' passed at 2026-06-14 14:00:50.647.
+	 Executed 43 tests, with 0 failures (0 unexpected) in 0.092 (0.094) seconds
+Test Suite 'ContextSnapshotTests' started at 2026-06-14 14:00:50.647.
 Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testCalendarAuthorizationMapperDoesNotRequestAccessForUnreadableStates]' started.
 Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testCalendarAuthorizationMapperDoesNotRequestAccessForUnreadableStates]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testCalendarBusyWindowUsesOnlyAvailabilityLabels]' started.
@@ -437,18 +437,18 @@ Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testNetworkPathStatusMapp
 Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testPermissionedCollectorMergesFieldStatusesWithoutThrowingOnDeniedContext]' started.
 Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testPermissionedCollectorMergesFieldStatusesWithoutThrowingOnDeniedContext]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testStaticUnavailableSamplerKeepsNetworkFieldPreviewable]' started.
-Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testStaticUnavailableSamplerKeepsNetworkFieldPreviewable]' passed (0.063 seconds).
+Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testStaticUnavailableSamplerKeepsNetworkFieldPreviewable]' passed (0.041 seconds).
 Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testSystemCollectorUsesInjectedCalendarAvailabilitySampler]' started.
 Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testSystemCollectorUsesInjectedCalendarAvailabilitySampler]' passed (0.001 seconds).
 Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testSystemCollectorUsesInjectedMotionActivitySampler]' started.
 Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testSystemCollectorUsesInjectedMotionActivitySampler]' passed (0.028 seconds).
 Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testSystemCollectorUsesInjectedNetworkPathSampler]' started.
-Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testSystemCollectorUsesInjectedNetworkPathSampler]' passed (0.027 seconds).
-Test Suite 'ContextSnapshotTests' passed at 2026-06-14 13:43:36.543.
-	 Executed 12 tests, with 0 failures (0 unexpected) in 0.119 (0.120) seconds
-Test Suite 'ContextSnapshotViewModelTests' started at 2026-06-14 13:43:36.543.
+Test Case '-[AgentPocketCoreTests.ContextSnapshotTests testSystemCollectorUsesInjectedNetworkPathSampler]' passed (0.029 seconds).
+Test Suite 'ContextSnapshotTests' passed at 2026-06-14 14:00:50.747.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.099 (0.100) seconds
+Test Suite 'ContextSnapshotViewModelTests' started at 2026-06-14 14:00:50.747.
 Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testCollectExposesPreparingStateAndResetClearsIt]' started.
-Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testCollectExposesPreparingStateAndResetClearsIt]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testCollectExposesPreparingStateAndResetClearsIt]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testDeniedCollectorSetsPermissionMessageWithoutForcingIncludeContext]' started.
 Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testDeniedCollectorSetsPermissionMessageWithoutForcingIncludeContext]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testIncludeContextDefaultsFalse]' started.
@@ -479,19 +479,19 @@ Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testSelectedSnapsh
 Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testSelectedSnapshotForSubmissionIsNilWhenIncludeContextIsFalse]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testSuccessfulCollectorCanBeIncludedWhenIncludeContextIsTrue]' started.
 Test Case '-[AgentPocketUITests.ContextSnapshotViewModelTests testSuccessfulCollectorCanBeIncludedWhenIncludeContextIsTrue]' passed (0.000 seconds).
-Test Suite 'ContextSnapshotViewModelTests' passed at 2026-06-14 13:43:36.547.
+Test Suite 'ContextSnapshotViewModelTests' passed at 2026-06-14 14:00:50.751.
 	 Executed 16 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
-Test Suite 'DarkControlContrastTests' started at 2026-06-14 13:43:36.547.
+Test Suite 'DarkControlContrastTests' started at 2026-06-14 14:00:50.751.
 Test Case '-[AgentPocketUITests.DarkControlContrastTests testDisabledPrimaryControlsReadAsInactiveOnDarkSheets]' started.
 Test Case '-[AgentPocketUITests.DarkControlContrastTests testDisabledPrimaryControlsReadAsInactiveOnDarkSheets]' passed (0.000 seconds).
-Test Suite 'DarkControlContrastTests' passed at 2026-06-14 13:43:36.547.
+Test Suite 'DarkControlContrastTests' passed at 2026-06-14 14:00:50.751.
 	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'DocumentScanInboxBuilderTests' started at 2026-06-14 13:43:36.547.
+Test Suite 'DocumentScanInboxBuilderTests' started at 2026-06-14 14:00:50.751.
 Test Case '-[AgentPocketUITests.DocumentScanInboxBuilderTests testBuildsPDFInboxItemForScannedDocument]' started.
 Test Case '-[AgentPocketUITests.DocumentScanInboxBuilderTests testBuildsPDFInboxItemForScannedDocument]' passed (0.001 seconds).
-Test Suite 'DocumentScanInboxBuilderTests' passed at 2026-06-14 13:43:36.548.
+Test Suite 'DocumentScanInboxBuilderTests' passed at 2026-06-14 14:00:50.752.
 	 Executed 1 test, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'EditIntentTests' started at 2026-06-14 13:43:36.548.
+Test Suite 'EditIntentTests' started at 2026-06-14 14:00:50.752.
 Test Case '-[AgentPocketCoreTests.EditIntentTests testDefaultInstructionsPreservePhotoSafetyBoundaries]' started.
 Test Case '-[AgentPocketCoreTests.EditIntentTests testDefaultInstructionsPreservePhotoSafetyBoundaries]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.EditIntentTests testIntentDisplayTitlesAreStable]' started.
@@ -502,21 +502,21 @@ Test Case '-[AgentPocketCoreTests.EditIntentTests testPhaseOneIntentsUseStableBr
 Test Case '-[AgentPocketCoreTests.EditIntentTests testPhaseOneIntentsUseStableBridgeStyleValues]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.EditIntentTests testScenePackTitlesMatchMasterShotCaptureChips]' started.
 Test Case '-[AgentPocketCoreTests.EditIntentTests testScenePackTitlesMatchMasterShotCaptureChips]' passed (0.000 seconds).
-Test Suite 'EditIntentTests' passed at 2026-06-14 13:43:36.548.
+Test Suite 'EditIntentTests' passed at 2026-06-14 14:00:50.752.
 	 Executed 5 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
-Test Suite 'ImageConversationViewModelTests' started at 2026-06-14 13:43:36.548.
+Test Suite 'ImageConversationViewModelTests' started at 2026-06-14 14:00:50.752.
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testAvailableIdentifySuggestionExecutesInsteadOfShowingUnavailableCopy]' started.
-Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testAvailableIdentifySuggestionExecutesInsteadOfShowingUnavailableCopy]' passed (0.001 seconds).
+Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testAvailableIdentifySuggestionExecutesInsteadOfShowingUnavailableCopy]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testEmptyVoiceTranscriptDoesNotSubmit]' started.
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testEmptyVoiceTranscriptDoesNotSubmit]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testPhotoResultPresentationReturnsActionableResultCardData]' started.
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testPhotoResultPresentationReturnsActionableResultCardData]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testSkillExecutorMapsOCRToVisionScan]' started.
-Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testSkillExecutorMapsOCRToVisionScan]' passed (0.002 seconds).
+Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testSkillExecutorMapsOCRToVisionScan]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testSkillExecutorMapsPhotoEnhanceToPhotoEdit]' started.
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testSkillExecutorMapsPhotoEnhanceToPhotoEdit]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testSkillExecutorMapsVisibleVisionSkillsToModes]' started.
-Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testSkillExecutorMapsVisibleVisionSkillsToModes]' passed (0.002 seconds).
+Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testSkillExecutorMapsVisibleVisionSkillsToModes]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testStartsWithIntakeSummaryAndSuggestions]' started.
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testStartsWithIntakeSummaryAndSuggestions]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testSubmittingPromptRoutesAndExecutesSkill]' started.
@@ -529,27 +529,27 @@ Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testUnavailableS
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testUnavailableSuggestionDoesNotExecuteAndShowsRecoveryMessage]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testVisionResultPresentationIncludesReturnedTextAndItems]' started.
 Test Case '-[AgentPocketUITests.ImageConversationViewModelTests testVisionResultPresentationIncludesReturnedTextAndItems]' passed (0.000 seconds).
-Test Suite 'ImageConversationViewModelTests' passed at 2026-06-14 13:43:36.555.
-	 Executed 12 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
-Test Suite 'ImageIntakeRequestTests' started at 2026-06-14 13:43:36.555.
+Test Suite 'ImageConversationViewModelTests' passed at 2026-06-14 14:00:50.758.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.005 (0.005) seconds
+Test Suite 'ImageIntakeRequestTests' started at 2026-06-14 14:00:50.758.
 Test Case '-[AgentPocketCoreTests.ImageIntakeRequestTests testImageIntakeTaskRequestBuildsJSONBody]' started.
 Test Case '-[AgentPocketCoreTests.ImageIntakeRequestTests testImageIntakeTaskRequestBuildsJSONBody]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.ImageIntakeRequestTests testTaskStatusDecodesImageIntakeResult]' started.
 Test Case '-[AgentPocketCoreTests.ImageIntakeRequestTests testTaskStatusDecodesImageIntakeResult]' passed (0.000 seconds).
-Test Suite 'ImageIntakeRequestTests' passed at 2026-06-14 13:43:36.555.
+Test Suite 'ImageIntakeRequestTests' passed at 2026-06-14 14:00:50.758.
 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'ImagePreprocessorTests' started at 2026-06-14 13:43:36.555.
+Test Suite 'ImagePreprocessorTests' started at 2026-06-14 14:00:50.758.
 Test Case '-[AgentPocketCoreTests.ImagePreprocessorTests testPreprocessorCanPreserveOriginalPNGWhenRequested]' started.
 Test Case '-[AgentPocketCoreTests.ImagePreprocessorTests testPreprocessorCanPreserveOriginalPNGWhenRequested]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.ImagePreprocessorTests testPreprocessorEncodesHEICSelectionToJPEGForIPhoneLibraryPhotos]' started.
-Test Case '-[AgentPocketCoreTests.ImagePreprocessorTests testPreprocessorEncodesHEICSelectionToJPEGForIPhoneLibraryPhotos]' passed (0.025 seconds).
+Test Case '-[AgentPocketCoreTests.ImagePreprocessorTests testPreprocessorEncodesHEICSelectionToJPEGForIPhoneLibraryPhotos]' passed (0.024 seconds).
 Test Case '-[AgentPocketCoreTests.ImagePreprocessorTests testPreprocessorEncodesPNGToJPEGAndStripsSensitiveMetadataByDefault]' started.
-Test Case '-[AgentPocketCoreTests.ImagePreprocessorTests testPreprocessorEncodesPNGToJPEGAndStripsSensitiveMetadataByDefault]' passed (0.004 seconds).
+Test Case '-[AgentPocketCoreTests.ImagePreprocessorTests testPreprocessorEncodesPNGToJPEGAndStripsSensitiveMetadataByDefault]' passed (0.001 seconds).
 Test Case '-[AgentPocketCoreTests.ImagePreprocessorTests testPreprocessorRejectsUndecodableImageData]' started.
 Test Case '-[AgentPocketCoreTests.ImagePreprocessorTests testPreprocessorRejectsUndecodableImageData]' passed (0.000 seconds).
-Test Suite 'ImagePreprocessorTests' passed at 2026-06-14 13:43:36.584.
-	 Executed 4 tests, with 0 failures (0 unexpected) in 0.029 (0.029) seconds
-Test Suite 'InboxActionFeedbackPresentationTests' started at 2026-06-14 13:43:36.584.
+Test Suite 'ImagePreprocessorTests' passed at 2026-06-14 14:00:50.783.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.025 (0.025) seconds
+Test Suite 'InboxActionFeedbackPresentationTests' started at 2026-06-14 14:00:50.783.
 Test Case '-[AgentPocketUITests.InboxActionFeedbackPresentationTests testChineseSubmittingFallbackIsLocalized]' started.
 Test Case '-[AgentPocketUITests.InboxActionFeedbackPresentationTests testChineseSubmittingFallbackIsLocalized]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.InboxActionFeedbackPresentationTests testCompletedIdleAndLoadingDoNotCreateFeedbackBanner]' started.
@@ -558,9 +558,9 @@ Test Case '-[AgentPocketUITests.InboxActionFeedbackPresentationTests testEnglish
 Test Case '-[AgentPocketUITests.InboxActionFeedbackPresentationTests testEnglishFailureShowsDismissibleErrorBanner]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.InboxActionFeedbackPresentationTests testEnglishSubmittingShowsProgressBanner]' started.
 Test Case '-[AgentPocketUITests.InboxActionFeedbackPresentationTests testEnglishSubmittingShowsProgressBanner]' passed (0.000 seconds).
-Test Suite 'InboxActionFeedbackPresentationTests' passed at 2026-06-14 13:43:36.584.
+Test Suite 'InboxActionFeedbackPresentationTests' passed at 2026-06-14 14:00:50.784.
 	 Executed 4 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'InboxDocumentPayloadLoaderTests' started at 2026-06-14 13:43:36.584.
+Test Suite 'InboxDocumentPayloadLoaderTests' started at 2026-06-14 14:00:50.784.
 Test Case '-[AgentPocketUITests.InboxDocumentPayloadLoaderTests testLoadsPDFPayloadAsGenericAssetUpload]' started.
 Test Case '-[AgentPocketUITests.InboxDocumentPayloadLoaderTests testLoadsPDFPayloadAsGenericAssetUpload]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.InboxDocumentPayloadLoaderTests testPreparedPDFUploadUsesInboxSourceSurface]' started.
@@ -568,21 +568,21 @@ Test Case '-[AgentPocketUITests.InboxDocumentPayloadLoaderTests testPreparedPDFU
 Test Case '-[AgentPocketUITests.InboxDocumentPayloadLoaderTests testRejectsOversizedPDFPayloads]' started.
 Test Case '-[AgentPocketUITests.InboxDocumentPayloadLoaderTests testRejectsOversizedPDFPayloads]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.InboxDocumentPayloadLoaderTests testRejectsSymlinkPayloadsOutsideContainer]' started.
-Test Case '-[AgentPocketUITests.InboxDocumentPayloadLoaderTests testRejectsSymlinkPayloadsOutsideContainer]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.InboxDocumentPayloadLoaderTests testRejectsSymlinkPayloadsOutsideContainer]' passed (0.002 seconds).
 Test Case '-[AgentPocketUITests.InboxDocumentPayloadLoaderTests testRejectsUnsafeRelativePayloadPaths]' started.
 Test Case '-[AgentPocketUITests.InboxDocumentPayloadLoaderTests testRejectsUnsafeRelativePayloadPaths]' passed (0.000 seconds).
-Test Suite 'InboxDocumentPayloadLoaderTests' passed at 2026-06-14 13:43:36.587.
-	 Executed 5 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
-Test Suite 'InboxFileImporterTests' started at 2026-06-14 13:43:36.587.
+Test Suite 'InboxDocumentPayloadLoaderTests' passed at 2026-06-14 14:00:50.787.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'InboxFileImporterTests' started at 2026-06-14 14:00:50.787.
 Test Case '-[AgentPocketUITests.InboxFileImporterTests testImportsJPEGAsPendingImageIntakeItem]' started.
-Test Case '-[AgentPocketUITests.InboxFileImporterTests testImportsJPEGAsPendingImageIntakeItem]' passed (0.002 seconds).
+Test Case '-[AgentPocketUITests.InboxFileImporterTests testImportsJPEGAsPendingImageIntakeItem]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.InboxFileImporterTests testImportsPDFIntoSharedPayloadsAsPendingUniversalIntakeItem]' started.
 Test Case '-[AgentPocketUITests.InboxFileImporterTests testImportsPDFIntoSharedPayloadsAsPendingUniversalIntakeItem]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.InboxFileImporterTests testRejectsUnsupportedTextFileWithoutCopyingPayload]' started.
 Test Case '-[AgentPocketUITests.InboxFileImporterTests testRejectsUnsupportedTextFileWithoutCopyingPayload]' passed (0.000 seconds).
-Test Suite 'InboxFileImporterTests' passed at 2026-06-14 13:43:36.589.
-	 Executed 3 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
-Test Suite 'InboxInstructionPresentationTests' started at 2026-06-14 13:43:36.589.
+Test Suite 'InboxFileImporterTests' passed at 2026-06-14 14:00:50.789.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'InboxInstructionPresentationTests' started at 2026-06-14 14:00:50.789.
 Test Case '-[AgentPocketUITests.InboxInstructionPresentationTests testChineseInstructionTemplatesAreLocalizedButStable]' started.
 Test Case '-[AgentPocketUITests.InboxInstructionPresentationTests testChineseInstructionTemplatesAreLocalizedButStable]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.InboxInstructionPresentationTests testChineseUniversalItemWithNoteShowsLocalizedPreview]' started.
@@ -597,9 +597,9 @@ Test Case '-[AgentPocketUITests.InboxInstructionPresentationTests testUniversalI
 Test Case '-[AgentPocketUITests.InboxInstructionPresentationTests testUniversalItemExposesDeterministicInstructionTemplates]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.InboxInstructionPresentationTests testUniversalItemWithoutNoteShowsAddInstructionOnly]' started.
 Test Case '-[AgentPocketUITests.InboxInstructionPresentationTests testUniversalItemWithoutNoteShowsAddInstructionOnly]' passed (0.000 seconds).
-Test Suite 'InboxInstructionPresentationTests' passed at 2026-06-14 13:43:36.590.
+Test Suite 'InboxInstructionPresentationTests' passed at 2026-06-14 14:00:50.790.
 	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'InboxPendingItemReviewPresentationTests' started at 2026-06-14 13:43:36.590.
+Test Suite 'InboxPendingItemReviewPresentationTests' started at 2026-06-14 14:00:50.790.
 Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testChinesePresentationIsLocalized]' started.
 Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testChinesePresentationIsLocalized]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testFileItemShowsFileNameAndMimeTypeWithoutLeakingRelativePath]' started.
@@ -612,16 +612,16 @@ Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testLong
 Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testLongTextIsTrimmedAndBounded]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testURLItemShowsSourceTypeContentInstructionAndIncludedContext]' started.
 Test Case '-[AgentPocketUITests.InboxPendingItemReviewPresentationTests testURLItemShowsSourceTypeContentInstructionAndIncludedContext]' passed (0.000 seconds).
-Test Suite 'InboxPendingItemReviewPresentationTests' passed at 2026-06-14 13:43:36.591.
+Test Suite 'InboxPendingItemReviewPresentationTests' passed at 2026-06-14 14:00:50.791.
 	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'InboxResultPresentationTests' started at 2026-06-14 13:43:36.591.
+Test Suite 'InboxResultPresentationTests' started at 2026-06-14 14:00:50.791.
 Test Case '-[AgentPocketUITests.InboxResultPresentationTests testContextSelectionCopyStaysLocalized]' started.
 Test Case '-[AgentPocketUITests.InboxResultPresentationTests testContextSelectionCopyStaysLocalized]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.InboxResultPresentationTests testLocalAgentLensSourcesUseUserFacingNames]' started.
 Test Case '-[AgentPocketUITests.InboxResultPresentationTests testLocalAgentLensSourcesUseUserFacingNames]' passed (0.000 seconds).
-Test Suite 'InboxResultPresentationTests' passed at 2026-06-14 13:43:36.592.
+Test Suite 'InboxResultPresentationTests' passed at 2026-06-14 14:00:50.792.
 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'InboxViewModelTests' started at 2026-06-14 13:43:36.592.
+Test Suite 'InboxViewModelTests' started at 2026-06-14 14:00:50.792.
 Test Case '-[AgentPocketUITests.InboxViewModelTests testAppendVoiceTranscriptCreatesPendingTextItemWithoutSubmitting]' started.
 Test Case '-[AgentPocketUITests.InboxViewModelTests testAppendVoiceTranscriptCreatesPendingTextItemWithoutSubmitting]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.InboxViewModelTests testAppendVoiceTranscriptRejectsEmptyTranscriptWithoutSubmitting]' started.
@@ -686,9 +686,9 @@ Test Case '-[AgentPocketUITests.InboxViewModelTests testUpdateVoiceInstructionFa
 Test Case '-[AgentPocketUITests.InboxViewModelTests testUpdateVoiceInstructionFailsWhenInboxItemIsMissing]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.InboxViewModelTests testUpdateVoiceInstructionRejectsEmptyInstructionWithoutChangingItem]' started.
 Test Case '-[AgentPocketUITests.InboxViewModelTests testUpdateVoiceInstructionRejectsEmptyInstructionWithoutChangingItem]' passed (0.000 seconds).
-Test Suite 'InboxViewModelTests' passed at 2026-06-14 13:43:36.598.
+Test Suite 'InboxViewModelTests' passed at 2026-06-14 14:00:50.798.
 	 Executed 32 tests, with 0 failures (0 unexpected) in 0.006 (0.007) seconds
-Test Suite 'KakaInboxStoreTests' started at 2026-06-14 13:43:36.598.
+Test Suite 'KakaInboxStoreTests' started at 2026-06-14 14:00:50.798.
 Test Case '-[AgentPocketCoreTests.KakaInboxStoreTests testDefaultAppGroupIdentifierIsDevelopmentGroup]' started.
 Test Case '-[AgentPocketCoreTests.KakaInboxStoreTests testDefaultAppGroupIdentifierIsDevelopmentGroup]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.KakaInboxStoreTests testFileStoreAddsUpsertsRemovesAndClearsItems]' started.
@@ -703,9 +703,9 @@ Test Case '-[AgentPocketCoreTests.KakaInboxStoreTests testRemovingAndClearingIte
 Test Case '-[AgentPocketCoreTests.KakaInboxStoreTests testRemovingAndClearingItemsDeletesSharedPayloadFiles]' passed (0.002 seconds).
 Test Case '-[AgentPocketCoreTests.KakaInboxStoreTests testSharedImageItemPersistsImageIntakeRouteMetadata]' started.
 Test Case '-[AgentPocketCoreTests.KakaInboxStoreTests testSharedImageItemPersistsImageIntakeRouteMetadata]' passed (0.000 seconds).
-Test Suite 'KakaInboxStoreTests' passed at 2026-06-14 13:43:36.604.
-	 Executed 7 tests, with 0 failures (0 unexpected) in 0.005 (0.006) seconds
-Test Suite 'KakaSkillRouterTests' started at 2026-06-14 13:43:36.604.
+Test Suite 'KakaInboxStoreTests' passed at 2026-06-14 14:00:50.804.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.005 (0.005) seconds
+Test Suite 'KakaSkillRouterTests' started at 2026-06-14 14:00:50.804.
 Test Case '-[AgentPocketUITests.KakaSkillRouterTests testChineseTextRoutesToOCR]' started.
 Test Case '-[AgentPocketUITests.KakaSkillRouterTests testChineseTextRoutesToOCR]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.KakaSkillRouterTests testChineseTextRoutesToPhotoEnhance]' started.
@@ -714,23 +714,23 @@ Test Case '-[AgentPocketUITests.KakaSkillRouterTests testChineseTextRoutesToTran
 Test Case '-[AgentPocketUITests.KakaSkillRouterTests testChineseTextRoutesToTranslate]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.KakaSkillRouterTests testUnknownTextFallsBackToPhotoEnhance]' started.
 Test Case '-[AgentPocketUITests.KakaSkillRouterTests testUnknownTextFallsBackToPhotoEnhance]' passed (0.000 seconds).
-Test Suite 'KakaSkillRouterTests' passed at 2026-06-14 13:43:36.604.
+Test Suite 'KakaSkillRouterTests' passed at 2026-06-14 14:00:50.804.
 	 Executed 4 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'KakaSkillTests' started at 2026-06-14 13:43:36.604.
+Test Suite 'KakaSkillTests' started at 2026-06-14 14:00:50.804.
 Test Case '-[AgentPocketCoreTests.KakaSkillTests testSkillIDsExposeStableRawValues]' started.
 Test Case '-[AgentPocketCoreTests.KakaSkillTests testSkillIDsExposeStableRawValues]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.KakaSkillTests testVisionBackedSkillsMapToVisionTaskKind]' started.
 Test Case '-[AgentPocketCoreTests.KakaSkillTests testVisionBackedSkillsMapToVisionTaskKind]' passed (0.000 seconds).
-Test Suite 'KakaSkillTests' passed at 2026-06-14 13:43:36.605.
+Test Suite 'KakaSkillTests' passed at 2026-06-14 14:00:50.805.
 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'LocalAgentLensPresentationTests' started at 2026-06-14 13:43:36.605.
+Test Suite 'LocalAgentLensPresentationTests' started at 2026-06-14 14:00:50.805.
 Test Case '-[AgentPocketUITests.LocalAgentLensPresentationTests testConnectedLensShowsPhoneFirstActions]' started.
 Test Case '-[AgentPocketUITests.LocalAgentLensPresentationTests testConnectedLensShowsPhoneFirstActions]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.LocalAgentLensPresentationTests testDisconnectedLensKeepsActionsVisibleButExplainsLocalRuntime]' started.
 Test Case '-[AgentPocketUITests.LocalAgentLensPresentationTests testDisconnectedLensKeepsActionsVisibleButExplainsLocalRuntime]' passed (0.000 seconds).
-Test Suite 'LocalAgentLensPresentationTests' passed at 2026-06-14 13:43:36.605.
+Test Suite 'LocalAgentLensPresentationTests' passed at 2026-06-14 14:00:50.805.
 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'MobileBridgeClientTests' started at 2026-06-14 13:43:36.605.
+Test Suite 'MobileBridgeClientTests' started at 2026-06-14 14:00:50.805.
 Test Case '-[AgentPocketCoreTests.MobileBridgeClientTests testBuildsImageIntakeTaskRequest]' started.
 Test Case '-[AgentPocketCoreTests.MobileBridgeClientTests testBuildsImageIntakeTaskRequest]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.MobileBridgeClientTests testBuildsUniversalIntakeTaskRequest]' started.
@@ -753,11 +753,11 @@ Test Case '-[AgentPocketCoreTests.MobileBridgeClientTests testDecodesVisionTaskS
 Test Case '-[AgentPocketCoreTests.MobileBridgeClientTests testDecodesVisionTaskStatusResponse]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.MobileBridgeClientTests testRequestUsesBearerTokenWhenProvided]' started.
 Test Case '-[AgentPocketCoreTests.MobileBridgeClientTests testRequestUsesBearerTokenWhenProvided]' passed (0.000 seconds).
-Test Suite 'MobileBridgeClientTests' passed at 2026-06-14 13:43:36.606.
-	 Executed 11 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
-Test Suite 'MobileBridgeHTTPClientTests' started at 2026-06-14 13:43:36.606.
+Test Suite 'MobileBridgeClientTests' passed at 2026-06-14 14:00:50.806.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'MobileBridgeHTTPClientTests' started at 2026-06-14 14:00:50.806.
 Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPClientTests testExchangePairingCodeSendsDevicePayloadAndDecodesMobileToken]' started.
-Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPClientTests testExchangePairingCodeSendsDevicePayloadAndDecodesMobileToken]' passed (0.001 seconds).
+Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPClientTests testExchangePairingCodeSendsDevicePayloadAndDecodesMobileToken]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPClientTests testFetchCapabilitiesUsesBearerTokenAndDecodesPhotoEditCapability]' started.
 Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPClientTests testFetchCapabilitiesUsesBearerTokenAndDecodesPhotoEditCapability]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPClientTests testFetchDevelopmentPairingPayloadReturnsRawPayloadWithoutBearerToken]' started.
@@ -780,18 +780,18 @@ Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPClientTests testUploadAssetSen
 Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPClientTests testUploadAssetSendsMultipartRequestAndDecodesResponse]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPClientTests testUploadGenericAssetSendsMultipartRequestAndDecodesResponse]' started.
 Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPClientTests testUploadGenericAssetSendsMultipartRequestAndDecodesResponse]' passed (0.000 seconds).
-Test Suite 'MobileBridgeHTTPClientTests' passed at 2026-06-14 13:43:36.610.
-	 Executed 12 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
-Test Suite 'MobileBridgeHTTPIntegrationTests' started at 2026-06-14 13:43:36.610.
+Test Suite 'MobileBridgeHTTPClientTests' passed at 2026-06-14 14:00:50.810.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'MobileBridgeHTTPIntegrationTests' started at 2026-06-14 14:00:50.810.
 Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPIntegrationTests testURLSessionClientCompletesPhotoEditLifecycleAgainstLocalMockBridge]' started.
-Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPIntegrationTests testURLSessionClientCompletesPhotoEditLifecycleAgainstLocalMockBridge]' passed (0.300 seconds).
+Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPIntegrationTests testURLSessionClientCompletesPhotoEditLifecycleAgainstLocalMockBridge]' passed (0.191 seconds).
 Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPIntegrationTests testURLSessionClientCompletesVisionLifecycleAgainstLocalMockBridge]' started.
-Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPIntegrationTests testURLSessionClientCompletesVisionLifecycleAgainstLocalMockBridge]' passed (0.172 seconds).
+Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPIntegrationTests testURLSessionClientCompletesVisionLifecycleAgainstLocalMockBridge]' passed (0.174 seconds).
 Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPIntegrationTests testURLSessionClientExchangesPairingCodeThenFetchesCapabilities]' started.
-Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPIntegrationTests testURLSessionClientExchangesPairingCodeThenFetchesCapabilities]' passed (0.175 seconds).
-Test Suite 'MobileBridgeHTTPIntegrationTests' passed at 2026-06-14 13:43:37.258.
-	 Executed 3 tests, with 0 failures (0 unexpected) in 0.647 (0.648) seconds
-Test Suite 'MobileBridgeTrustPolicyTests' started at 2026-06-14 13:43:37.258.
+Test Case '-[AgentPocketCoreTests.MobileBridgeHTTPIntegrationTests testURLSessionClientExchangesPairingCodeThenFetchesCapabilities]' passed (0.173 seconds).
+Test Suite 'MobileBridgeHTTPIntegrationTests' passed at 2026-06-14 14:00:51.349.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.539 (0.539) seconds
+Test Suite 'MobileBridgeTrustPolicyTests' started at 2026-06-14 14:00:51.349.
 Test Case '-[AgentPocketCoreTests.MobileBridgeTrustPolicyTests testPinnedPublicKeyHashComparisonNormalizesPresentedHash]' started.
 Test Case '-[AgentPocketCoreTests.MobileBridgeTrustPolicyTests testPinnedPublicKeyHashComparisonNormalizesPresentedHash]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.MobileBridgeTrustPolicyTests testRejectsMalformedFingerprint]' started.
@@ -802,9 +802,9 @@ Test Case '-[AgentPocketCoreTests.MobileBridgeTrustPolicyTests testUsesSystemDef
 Test Case '-[AgentPocketCoreTests.MobileBridgeTrustPolicyTests testUsesSystemDefaultForHTTPSWithoutFingerprint]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.MobileBridgeTrustPolicyTests testUsesSystemDefaultForLocalHTTPEvenWithFingerprint]' started.
 Test Case '-[AgentPocketCoreTests.MobileBridgeTrustPolicyTests testUsesSystemDefaultForLocalHTTPEvenWithFingerprint]' passed (0.000 seconds).
-Test Suite 'MobileBridgeTrustPolicyTests' passed at 2026-06-14 13:43:37.259.
+Test Suite 'MobileBridgeTrustPolicyTests' passed at 2026-06-14 14:00:51.350.
 	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'PairingPayloadTests' started at 2026-06-14 13:43:37.259.
+Test Suite 'PairingPayloadTests' started at 2026-06-14 14:00:51.350.
 Test Case '-[AgentPocketCoreTests.PairingPayloadTests testDecodesOptionalTLSPublicKeyFingerprint]' started.
 Test Case '-[AgentPocketCoreTests.PairingPayloadTests testDecodesOptionalTLSPublicKeyFingerprint]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.PairingPayloadTests testDecodesValidPairingPayload]' started.
@@ -819,27 +819,27 @@ Test Case '-[AgentPocketCoreTests.PairingPayloadTests testRejectsRequiredLocalTL
 Test Case '-[AgentPocketCoreTests.PairingPayloadTests testRejectsRequiredLocalTLSWithoutFingerprint]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.PairingPayloadTests testRejectsUnsupportedVersion]' started.
 Test Case '-[AgentPocketCoreTests.PairingPayloadTests testRejectsUnsupportedVersion]' passed (0.000 seconds).
-Test Suite 'PairingPayloadTests' passed at 2026-06-14 13:43:37.261.
-	 Executed 7 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
-Test Suite 'PhotoEditSubmitterTests' started at 2026-06-14 13:43:37.261.
+Test Suite 'PairingPayloadTests' passed at 2026-06-14 14:00:51.353.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'PhotoEditSubmitterTests' started at 2026-06-14 14:00:51.353.
 Test Case '-[AgentPocketUITests.PhotoEditSubmitterTests testSubmitFallsBackToPollingWhenSSEEventsCannotBeParsed]' started.
 Test Case '-[AgentPocketUITests.PhotoEditSubmitterTests testSubmitFallsBackToPollingWhenSSEEventsCannotBeParsed]' passed (0.002 seconds).
 Test Case '-[AgentPocketUITests.PhotoEditSubmitterTests testSubmitUsesSSEWhenAdvertisedBeforeFetchingFinalStatus]' started.
-Test Case '-[AgentPocketUITests.PhotoEditSubmitterTests testSubmitUsesSSEWhenAdvertisedBeforeFetchingFinalStatus]' passed (0.002 seconds).
-Test Suite 'PhotoEditSubmitterTests' passed at 2026-06-14 13:43:37.265.
-	 Executed 2 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
-Test Suite 'PhotoEditTaskRequestTests' started at 2026-06-14 13:43:37.265.
+Test Case '-[AgentPocketUITests.PhotoEditSubmitterTests testSubmitUsesSSEWhenAdvertisedBeforeFetchingFinalStatus]' passed (0.001 seconds).
+Test Suite 'PhotoEditSubmitterTests' passed at 2026-06-14 14:00:51.356.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'PhotoEditTaskRequestTests' started at 2026-06-14 14:00:51.356.
 Test Case '-[AgentPocketCoreTests.PhotoEditTaskRequestTests testDecodesAssetUploadResponse]' started.
 Test Case '-[AgentPocketCoreTests.PhotoEditTaskRequestTests testDecodesAssetUploadResponse]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.PhotoEditTaskRequestTests testPhotoEditTaskRequestBuildsJSONBody]' started.
 Test Case '-[AgentPocketCoreTests.PhotoEditTaskRequestTests testPhotoEditTaskRequestBuildsJSONBody]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.PhotoEditTaskRequestTests testPhotoEditTaskRequestClampsReturnVariantsToSupportedRange]' started.
 Test Case '-[AgentPocketCoreTests.PhotoEditTaskRequestTests testPhotoEditTaskRequestClampsReturnVariantsToSupportedRange]' passed (0.000 seconds).
-Test Suite 'PhotoEditTaskRequestTests' passed at 2026-06-14 13:43:37.266.
+Test Suite 'PhotoEditTaskRequestTests' passed at 2026-06-14 14:00:51.357.
 	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
-Test Suite 'PhotoSaveFlowTests' started at 2026-06-14 13:43:37.266.
+Test Suite 'PhotoSaveFlowTests' started at 2026-06-14 14:00:51.357.
 Test Case '-[AgentPocketUITests.PhotoSaveFlowTests testAuthorizedPermissionMovesToSavingThenSaved]' started.
-Test Case '-[AgentPocketUITests.PhotoSaveFlowTests testAuthorizedPermissionMovesToSavingThenSaved]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.PhotoSaveFlowTests testAuthorizedPermissionMovesToSavingThenSaved]' passed (0.002 seconds).
 Test Case '-[AgentPocketUITests.PhotoSaveFlowTests testDeniedPermissionShowsRecoveryPath]' started.
 Test Case '-[AgentPocketUITests.PhotoSaveFlowTests testDeniedPermissionShowsRecoveryPath]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.PhotoSaveFlowTests testSaveFlowStartsIdleAndRequestsPermissionOnlyWhenSaving]' started.
@@ -850,9 +850,9 @@ Test Case '-[AgentPocketUITests.PhotoSaveFlowTests testSaveWithDeniedSaverShowsR
 Test Case '-[AgentPocketUITests.PhotoSaveFlowTests testSaveWithDeniedSaverShowsRecovery]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.PhotoSaveFlowTests testSaveWithFailingSaverShowsFailureMessage]' started.
 Test Case '-[AgentPocketUITests.PhotoSaveFlowTests testSaveWithFailingSaverShowsFailureMessage]' passed (0.000 seconds).
-Test Suite 'PhotoSaveFlowTests' passed at 2026-06-14 13:43:37.268.
-	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
-Test Suite 'RecallActionViewModelTests' started at 2026-06-14 13:43:37.268.
+Test Suite 'PhotoSaveFlowTests' passed at 2026-06-14 14:00:51.360.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'RecallActionViewModelTests' started at 2026-06-14 14:00:51.360.
 Test Case '-[AgentPocketUITests.RecallActionViewModelTests testBlankSummaryFailsBeforeConfirmation]' started.
 Test Case '-[AgentPocketUITests.RecallActionViewModelTests testBlankSummaryFailsBeforeConfirmation]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.RecallActionViewModelTests testCancelConfirmationDoesNotSubmitPendingRemember]' started.
@@ -867,9 +867,9 @@ Test Case '-[AgentPocketUITests.RecallActionViewModelTests testRememberRequiresV
 Test Case '-[AgentPocketUITests.RecallActionViewModelTests testRememberRequiresVisibleConfirmationBeforeSubmitting]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.RecallActionViewModelTests testUseOnceSubmitsImmediatelyWithoutConfirmationOrPersistence]' started.
 Test Case '-[AgentPocketUITests.RecallActionViewModelTests testUseOnceSubmitsImmediatelyWithoutConfirmationOrPersistence]' passed (0.000 seconds).
-Test Suite 'RecallActionViewModelTests' passed at 2026-06-14 13:43:37.269.
-	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
-Test Suite 'RecallBrowseViewModelTests' started at 2026-06-14 13:43:37.269.
+Test Suite 'RecallActionViewModelTests' passed at 2026-06-14 14:00:51.362.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'RecallBrowseViewModelTests' started at 2026-06-14 14:00:51.362.
 Test Case '-[AgentPocketUITests.RecallBrowseViewModelTests testDeleteRecordsIndexReceiptAndRemovesDeletedItems]' started.
 Test Case '-[AgentPocketUITests.RecallBrowseViewModelTests testDeleteRecordsIndexReceiptAndRemovesDeletedItems]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.RecallBrowseViewModelTests testExportStoresBridgeResponse]' started.
@@ -882,11 +882,11 @@ Test Case '-[AgentPocketUITests.RecallBrowseViewModelTests testSemanticSearchFal
 Test Case '-[AgentPocketUITests.RecallBrowseViewModelTests testSemanticSearchFallsBackToListSearchWhenUnavailable]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.RecallBrowseViewModelTests testSemanticSearchUsesSearchEndpointWhenQueryIsPresent]' started.
 Test Case '-[AgentPocketUITests.RecallBrowseViewModelTests testSemanticSearchUsesSearchEndpointWhenQueryIsPresent]' passed (0.000 seconds).
-Test Suite 'RecallBrowseViewModelTests' passed at 2026-06-14 13:43:37.272.
-	 Executed 6 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
-Test Suite 'RecallModelsTests' started at 2026-06-14 13:43:37.272.
+Test Suite 'RecallBrowseViewModelTests' passed at 2026-06-14 14:00:51.364.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'RecallModelsTests' started at 2026-06-14 14:00:51.364.
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testBuildsRecallActionRequestWithBearerTokenAndJSONBody]' started.
-Test Case '-[AgentPocketCoreTests.RecallModelsTests testBuildsRecallActionRequestWithBearerTokenAndJSONBody]' passed (0.001 seconds).
+Test Case '-[AgentPocketCoreTests.RecallModelsTests testBuildsRecallActionRequestWithBearerTokenAndJSONBody]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testBuildsSemanticRecallSearchRequestWithBearerTokenAndJSONBody]' started.
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testBuildsSemanticRecallSearchRequestWithBearerTokenAndJSONBody]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testDeleteRecallItemRequestEncodesPathSegment]' started.
@@ -894,7 +894,7 @@ Test Case '-[AgentPocketCoreTests.RecallModelsTests testDeleteRecallItemRequestE
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testHTTPClientFetchesAndDeletesRecallItems]' started.
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testHTTPClientFetchesAndDeletesRecallItems]' passed (0.001 seconds).
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testHTTPClientSearchesRecallItemsAndExportsRecallJSON]' started.
-Test Case '-[AgentPocketCoreTests.RecallModelsTests testHTTPClientSearchesRecallItemsAndExportsRecallJSON]' passed (0.001 seconds).
+Test Case '-[AgentPocketCoreTests.RecallModelsTests testHTTPClientSearchesRecallItemsAndExportsRecallJSON]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testHTTPClientSearchesSemanticRecallAndDecodesRankedResults]' started.
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testHTTPClientSearchesSemanticRecallAndDecodesRankedResults]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testHTTPClientSubmitsRecallActionAndDecodesResponse]' started.
@@ -911,11 +911,11 @@ Test Case '-[AgentPocketCoreTests.RecallModelsTests testSemanticRecallSearchRequ
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testSemanticRecallSearchRequestEncodesQueryLimitAndContext]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testSemanticRecallSearchResponseDecodesScoresAndReasons]' started.
 Test Case '-[AgentPocketCoreTests.RecallModelsTests testSemanticRecallSearchResponseDecodesScoresAndReasons]' passed (0.000 seconds).
-Test Suite 'RecallModelsTests' passed at 2026-06-14 13:43:37.276.
+Test Suite 'RecallModelsTests' passed at 2026-06-14 14:00:51.367.
 	 Executed 13 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
-Test Suite 'ResultGalleryViewModelTests' started at 2026-06-14 13:43:37.276.
+Test Suite 'ResultGalleryViewModelTests' started at 2026-06-14 14:00:51.367.
 Test Case '-[AgentPocketUITests.ResultGalleryViewModelTests testComparisonPresentationReportsRenderableOriginalAndDownloadedVariant]' started.
-Test Case '-[AgentPocketUITests.ResultGalleryViewModelTests testComparisonPresentationReportsRenderableOriginalAndDownloadedVariant]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.ResultGalleryViewModelTests testComparisonPresentationReportsRenderableOriginalAndDownloadedVariant]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.ResultGalleryViewModelTests testComparisonPresentationUsesSelectedVariantRecommendationAndDifferenceScore]' started.
 Test Case '-[AgentPocketUITests.ResultGalleryViewModelTests testComparisonPresentationUsesSelectedVariantRecommendationAndDifferenceScore]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ResultGalleryViewModelTests testDownloadedAssetForSelectedVariantReturnsCachedAsset]' started.
@@ -944,16 +944,16 @@ Test Case '-[AgentPocketUITests.ResultGalleryViewModelTests testSelectVariantAnd
 Test Case '-[AgentPocketUITests.ResultGalleryViewModelTests testSelectVariantAndDownloadIfNeededDownloadsNewlySelectedMissingVariant]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ResultGalleryViewModelTests testStartsWithFirstVariantSelected]' started.
 Test Case '-[AgentPocketUITests.ResultGalleryViewModelTests testStartsWithFirstVariantSelected]' passed (0.000 seconds).
-Test Suite 'ResultGalleryViewModelTests' passed at 2026-06-14 13:43:37.279.
+Test Suite 'ResultGalleryViewModelTests' passed at 2026-06-14 14:00:51.370.
 	 Executed 15 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
-Test Suite 'ResultScreenPresentationTests' started at 2026-06-14 13:43:37.279.
+Test Suite 'ResultScreenPresentationTests' started at 2026-06-14 14:00:51.370.
 Test Case '-[AgentPocketUITests.ResultScreenPresentationTests testChinesePresentationPromotesDownloadBeforeVariantIsReady]' started.
 Test Case '-[AgentPocketUITests.ResultScreenPresentationTests testChinesePresentationPromotesDownloadBeforeVariantIsReady]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.ResultScreenPresentationTests testEnglishDownloadedPresentationEnablesSaveAndShare]' started.
 Test Case '-[AgentPocketUITests.ResultScreenPresentationTests testEnglishDownloadedPresentationEnablesSaveAndShare]' passed (0.000 seconds).
-Test Suite 'ResultScreenPresentationTests' passed at 2026-06-14 13:43:37.279.
+Test Suite 'ResultScreenPresentationTests' passed at 2026-06-14 14:00:51.371.
 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'RuntimeTaskActivityTests' started at 2026-06-14 13:43:37.279.
+Test Suite 'RuntimeTaskActivityTests' started at 2026-06-14 14:00:51.371.
 Test Case '-[AgentPocketCoreTests.RuntimeTaskActivityTests testActivityPhaseLabelsAreShortAndPhoneSafe]' started.
 Test Case '-[AgentPocketCoreTests.RuntimeTaskActivityTests testActivityPhaseLabelsAreShortAndPhoneSafe]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.RuntimeTaskActivityTests testActivityPhaseShortLabelsFitDynamicIsland]' started.
@@ -966,27 +966,27 @@ Test Case '-[AgentPocketCoreTests.RuntimeTaskActivityTests testActivitySnapshots
 Test Case '-[AgentPocketCoreTests.RuntimeTaskActivityTests testActivitySnapshotsMarkTerminalTasks]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.RuntimeTaskActivityTests testBuildsActivitySnapshotFromVisibleRuntimeTaskFieldsOnly]' started.
 Test Case '-[AgentPocketCoreTests.RuntimeTaskActivityTests testBuildsActivitySnapshotFromVisibleRuntimeTaskFieldsOnly]' passed (0.000 seconds).
-Test Suite 'RuntimeTaskActivityTests' passed at 2026-06-14 13:43:37.280.
+Test Suite 'RuntimeTaskActivityTests' passed at 2026-06-14 14:00:51.371.
 	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'RuntimeTaskModelsTests' started at 2026-06-14 13:43:37.280.
+Test Suite 'RuntimeTaskModelsTests' started at 2026-06-14 14:00:51.371.
 Test Case '-[AgentPocketCoreTests.RuntimeTaskModelsTests testBuildsRuntimeTaskCancelAndApprovalRequests]' started.
 Test Case '-[AgentPocketCoreTests.RuntimeTaskModelsTests testBuildsRuntimeTaskCancelAndApprovalRequests]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.RuntimeTaskModelsTests testRuntimeTaskIdentifiesWaitingForApproval]' started.
 Test Case '-[AgentPocketCoreTests.RuntimeTaskModelsTests testRuntimeTaskIdentifiesWaitingForApproval]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.RuntimeTaskModelsTests testRuntimeTaskListDecodesSnakeCaseStatusAndDefaults]' started.
 Test Case '-[AgentPocketCoreTests.RuntimeTaskModelsTests testRuntimeTaskListDecodesSnakeCaseStatusAndDefaults]' passed (0.000 seconds).
-Test Suite 'RuntimeTaskModelsTests' passed at 2026-06-14 13:43:37.281.
+Test Suite 'RuntimeTaskModelsTests' passed at 2026-06-14 14:00:51.372.
 	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
-Test Suite 'StoredConnectionTests' started at 2026-06-14 13:43:37.281.
+Test Suite 'StoredConnectionTests' started at 2026-06-14 14:00:51.372.
 Test Case '-[AgentPocketCoreTests.StoredConnectionTests testKeychainStoreSavesLoadsAndClearsConnection]' started.
-Test Case '-[AgentPocketCoreTests.StoredConnectionTests testKeychainStoreSavesLoadsAndClearsConnection]' passed (0.013 seconds).
+Test Case '-[AgentPocketCoreTests.StoredConnectionTests testKeychainStoreSavesLoadsAndClearsConnection]' passed (0.015 seconds).
 Test Case '-[AgentPocketCoreTests.StoredConnectionTests testStoredConnectionDecodesLegacyPayloadWithoutTLSPin]' started.
 Test Case '-[AgentPocketCoreTests.StoredConnectionTests testStoredConnectionDecodesLegacyPayloadWithoutTLSPin]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.StoredConnectionTests testStoredConnectionRoundTripsThroughBridgeJSONCoding]' started.
 Test Case '-[AgentPocketCoreTests.StoredConnectionTests testStoredConnectionRoundTripsThroughBridgeJSONCoding]' passed (0.000 seconds).
-Test Suite 'StoredConnectionTests' passed at 2026-06-14 13:43:37.294.
-	 Executed 3 tests, with 0 failures (0 unexpected) in 0.014 (0.014) seconds
-Test Suite 'TaskEventsTests' started at 2026-06-14 13:43:37.294.
+Test Suite 'StoredConnectionTests' passed at 2026-06-14 14:00:51.388.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.015 (0.016) seconds
+Test Suite 'TaskEventsTests' started at 2026-06-14 14:00:51.388.
 Test Case '-[AgentPocketCoreTests.TaskEventsTests testHTTPClientFetchesAndParsesTaskEventsSnapshot]' started.
 Test Case '-[AgentPocketCoreTests.TaskEventsTests testHTTPClientFetchesAndParsesTaskEventsSnapshot]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.TaskEventsTests testMalformedSSEDataThrowsParseFailureForPollingFallback]' started.
@@ -999,18 +999,18 @@ Test Case '-[AgentPocketCoreTests.TaskEventsTests testProgressTransportPrefersSS
 Test Case '-[AgentPocketCoreTests.TaskEventsTests testProgressTransportPrefersSSEOnlyWhenAdvertised]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.TaskEventsTests testTaskEventsRequestUsesEventStreamAcceptHeader]' started.
 Test Case '-[AgentPocketCoreTests.TaskEventsTests testTaskEventsRequestUsesEventStreamAcceptHeader]' passed (0.000 seconds).
-Test Suite 'TaskEventsTests' passed at 2026-06-14 13:43:37.295.
+Test Suite 'TaskEventsTests' passed at 2026-06-14 14:00:51.389.
 	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'TaskInboxPresentationTests' started at 2026-06-14 13:43:37.295.
+Test Suite 'TaskInboxPresentationTests' started at 2026-06-14 14:00:51.389.
 Test Case '-[AgentPocketUITests.TaskInboxPresentationTests testActivityTitleKeepsRuntimeProvidedSpecificTitle]' started.
 Test Case '-[AgentPocketUITests.TaskInboxPresentationTests testActivityTitleKeepsRuntimeProvidedSpecificTitle]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.TaskInboxPresentationTests testChineseActivityTitleLocalizesRuntimeFallback]' started.
 Test Case '-[AgentPocketUITests.TaskInboxPresentationTests testChineseActivityTitleLocalizesRuntimeFallback]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.TaskInboxPresentationTests testChineseActivityTitleUsesLocalFallbackForBlankTitle]' started.
 Test Case '-[AgentPocketUITests.TaskInboxPresentationTests testChineseActivityTitleUsesLocalFallbackForBlankTitle]' passed (0.000 seconds).
-Test Suite 'TaskInboxPresentationTests' passed at 2026-06-14 13:43:37.296.
+Test Suite 'TaskInboxPresentationTests' passed at 2026-06-14 14:00:51.389.
 	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'TaskInboxViewModelTests' started at 2026-06-14 13:43:37.296.
+Test Suite 'TaskInboxViewModelTests' started at 2026-06-14 14:00:51.389.
 Test Case '-[AgentPocketUITests.TaskInboxViewModelTests testActivityPlannerCanSeedExistingActivityIDsAfterCoordinatorRecreation]' started.
 Test Case '-[AgentPocketUITests.TaskInboxViewModelTests testActivityPlannerCanSeedExistingActivityIDsAfterCoordinatorRecreation]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.TaskInboxViewModelTests testActivityPlannerEndsTaskThatDisappearsFromLatestRuntimeList]' started.
@@ -1029,9 +1029,9 @@ Test Case '-[AgentPocketUITests.TaskInboxViewModelTests testMissingConnectionFai
 Test Case '-[AgentPocketUITests.TaskInboxViewModelTests testMissingConnectionFailsClearly]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.TaskInboxViewModelTests testTerminalTaskUpdateEndsLiveActivitySnapshot]' started.
 Test Case '-[AgentPocketUITests.TaskInboxViewModelTests testTerminalTaskUpdateEndsLiveActivitySnapshot]' passed (0.000 seconds).
-Test Suite 'TaskInboxViewModelTests' passed at 2026-06-14 13:43:37.298.
-	 Executed 9 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
-Test Suite 'TaskPollingTests' started at 2026-06-14 13:43:37.298.
+Test Suite 'TaskInboxViewModelTests' passed at 2026-06-14 14:00:51.391.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'TaskPollingTests' started at 2026-06-14 14:00:51.391.
 Test Case '-[AgentPocketCoreTests.TaskPollingTests testHTTPClientFetchesTaskStatus]' started.
 Test Case '-[AgentPocketCoreTests.TaskPollingTests testHTTPClientFetchesTaskStatus]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.TaskPollingTests testTaskPollerFetchesUntilCompleted]' started.
@@ -1040,9 +1040,9 @@ Test Case '-[AgentPocketCoreTests.TaskPollingTests testTaskStatusRequestUsesTask
 Test Case '-[AgentPocketCoreTests.TaskPollingTests testTaskStatusRequestUsesTaskPathAndBearerToken]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.TaskPollingTests testTaskStatusResponseIdentifiesTerminalStates]' started.
 Test Case '-[AgentPocketCoreTests.TaskPollingTests testTaskStatusResponseIdentifiesTerminalStates]' passed (0.000 seconds).
-Test Suite 'TaskPollingTests' passed at 2026-06-14 13:43:37.299.
+Test Suite 'TaskPollingTests' passed at 2026-06-14 14:00:51.392.
 	 Executed 4 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'UniversalIntakeSubmitterTests' started at 2026-06-14 13:43:37.299.
+Test Suite 'UniversalIntakeSubmitterTests' started at 2026-06-14 14:00:51.392.
 Test Case '-[AgentPocketUITests.UniversalIntakeSubmitterTests testContextSnapshotIsNotEncodedWhenRuntimeDisablesContextSnapshotSupport]' started.
 Test Case '-[AgentPocketUITests.UniversalIntakeSubmitterTests testContextSnapshotIsNotEncodedWhenRuntimeDisablesContextSnapshotSupport]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.UniversalIntakeSubmitterTests testContextSnapshotIsNotEncodedWhenRuntimeOmitsContextSnapshotSupport]' started.
@@ -1058,10 +1058,10 @@ Test Case '-[AgentPocketUITests.UniversalIntakeSubmitterTests testProvidedContex
 Test Case '-[AgentPocketUITests.UniversalIntakeSubmitterTests testVideoIntakeUploadsAssetBeforeStartingTask]' started.
 Test Case '-[AgentPocketUITests.UniversalIntakeSubmitterTests testVideoIntakeUploadsAssetBeforeStartingTask]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.UniversalIntakeSubmitterTests testVoiceInboxItemSubmitsVoiceSourceSurface]' started.
-Test Case '-[AgentPocketUITests.UniversalIntakeSubmitterTests testVoiceInboxItemSubmitsVoiceSourceSurface]' passed (0.001 seconds).
-Test Suite 'UniversalIntakeSubmitterTests' passed at 2026-06-14 13:43:37.304.
+Test Case '-[AgentPocketUITests.UniversalIntakeSubmitterTests testVoiceInboxItemSubmitsVoiceSourceSurface]' passed (0.000 seconds).
+Test Suite 'UniversalIntakeSubmitterTests' passed at 2026-06-14 14:00:51.397.
 	 Executed 8 tests, with 0 failures (0 unexpected) in 0.005 (0.006) seconds
-Test Suite 'UniversalIntakeTests' started at 2026-06-14 13:43:37.304.
+Test Suite 'UniversalIntakeTests' started at 2026-06-14 14:00:51.397.
 Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testCapabilitiesDecodeImageIntakeAndUniversalIntakeAcceptedTypes]' started.
 Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testCapabilitiesDecodeImageIntakeAndUniversalIntakeAcceptedTypes]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testTaskStatusDecodesUniversalIntakeResult]' started.
@@ -1076,16 +1076,16 @@ Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testUniversalIntakeReques
 Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testUniversalIntakeRequestEncodesURLPayloadWithSnakeCaseMetadata]' passed (0.000 seconds).
 Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testVideoDefaultsToUniversalIntakeRoute]' started.
 Test Case '-[AgentPocketCoreTests.UniversalIntakeTests testVideoDefaultsToUniversalIntakeRoute]' passed (0.000 seconds).
-Test Suite 'UniversalIntakeTests' passed at 2026-06-14 13:43:37.305.
+Test Suite 'UniversalIntakeTests' passed at 2026-06-14 14:00:51.398.
 	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'VideoInboxBuilderTests' started at 2026-06-14 13:43:37.305.
+Test Suite 'VideoInboxBuilderTests' started at 2026-06-14 14:00:51.398.
 Test Case '-[AgentPocketUITests.VideoInboxBuilderTests testBuildsVideoInboxItemWithVisibleInstruction]' started.
 Test Case '-[AgentPocketUITests.VideoInboxBuilderTests testBuildsVideoInboxItemWithVisibleInstruction]' passed (0.001 seconds).
 Test Case '-[AgentPocketUITests.VideoInboxBuilderTests testRejectsVideoOverFirstReleaseLimit]' started.
 Test Case '-[AgentPocketUITests.VideoInboxBuilderTests testRejectsVideoOverFirstReleaseLimit]' passed (0.000 seconds).
-Test Suite 'VideoInboxBuilderTests' passed at 2026-06-14 13:43:37.306.
+Test Suite 'VideoInboxBuilderTests' passed at 2026-06-14 14:00:51.399.
 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
-Test Suite 'VoiceCapturePresentationTests' started at 2026-06-14 13:43:37.306.
+Test Suite 'VoiceCapturePresentationTests' started at 2026-06-14 14:00:51.399.
 Test Case '-[AgentPocketUITests.VoiceCapturePresentationTests testChineseInboxPresentationsAreLocalized]' started.
 Test Case '-[AgentPocketUITests.VoiceCapturePresentationTests testChineseInboxPresentationsAreLocalized]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.VoiceCapturePresentationTests testEnglishInboxDraftPresentationSavesDraft]' started.
@@ -1094,9 +1094,9 @@ Test Case '-[AgentPocketUITests.VoiceCapturePresentationTests testEnglishInboxIn
 Test Case '-[AgentPocketUITests.VoiceCapturePresentationTests testEnglishInboxInstructionPresentationSavesInstruction]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.VoiceCapturePresentationTests testVoiceSheetsRequestDarkNavigationChrome]' started.
 Test Case '-[AgentPocketUITests.VoiceCapturePresentationTests testVoiceSheetsRequestDarkNavigationChrome]' passed (0.000 seconds).
-Test Suite 'VoiceCapturePresentationTests' passed at 2026-06-14 13:43:37.307.
+Test Suite 'VoiceCapturePresentationTests' passed at 2026-06-14 14:00:51.400.
 	 Executed 4 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'VoiceCaptureViewModelTests' started at 2026-06-14 13:43:37.307.
+Test Suite 'VoiceCaptureViewModelTests' started at 2026-06-14 14:00:51.400.
 Test Case '-[AgentPocketUITests.VoiceCaptureViewModelTests testCancelStopsActiveRecordingAndReturnsIdle]' started.
 Test Case '-[AgentPocketUITests.VoiceCaptureViewModelTests testCancelStopsActiveRecordingAndReturnsIdle]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.VoiceCaptureViewModelTests testLegacyDraftMethodsRemainAvailable]' started.
@@ -1115,17 +1115,17 @@ Test Case '-[AgentPocketUITests.VoiceCaptureViewModelTests testTranscriptMustBeN
 Test Case '-[AgentPocketUITests.VoiceCaptureViewModelTests testTranscriptMustBeNonEmptyBeforeSubmit]' passed (0.000 seconds).
 Test Case '-[AgentPocketUITests.VoiceCaptureViewModelTests testVoiceCaptureStateDescriptionsAreUserVisible]' started.
 Test Case '-[AgentPocketUITests.VoiceCaptureViewModelTests testVoiceCaptureStateDescriptionsAreUserVisible]' passed (0.000 seconds).
-Test Suite 'VoiceCaptureViewModelTests' passed at 2026-06-14 13:43:37.309.
+Test Suite 'VoiceCaptureViewModelTests' passed at 2026-06-14 14:00:51.402.
 	 Executed 9 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
-Test Suite 'VoiceIntakeTests' started at 2026-06-14 13:43:37.309.
+Test Suite 'VoiceIntakeTests' started at 2026-06-14 14:00:51.402.
 Test Case '-[AgentPocketCoreTests.VoiceIntakeTests testVoiceFollowUpDraftEncodesTranscriptAndSourceIDs]' started.
 Test Case '-[AgentPocketCoreTests.VoiceIntakeTests testVoiceFollowUpDraftEncodesTranscriptAndSourceIDs]' passed (0.000 seconds).
-Test Suite 'VoiceIntakeTests' passed at 2026-06-14 13:43:37.309.
+Test Suite 'VoiceIntakeTests' passed at 2026-06-14 14:00:51.402.
 	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
-Test Suite 'AgentPocketPackageTests.xctest' passed at 2026-06-14 13:43:37.309.
-	 Executed 462 tests, with 0 failures (0 unexpected) in 1.195 (1.214) seconds
-Test Suite 'All tests' passed at 2026-06-14 13:43:37.309.
-	 Executed 462 tests, with 0 failures (0 unexpected) in 1.195 (1.215) seconds
+Test Suite 'AgentPocketPackageTests.xctest' passed at 2026-06-14 14:00:51.402.
+	 Executed 462 tests, with 0 failures (0 unexpected) in 0.988 (1.007) seconds
+Test Suite 'All tests' passed at 2026-06-14 14:00:51.402.
+	 Executed 462 tests, with 0 failures (0 unexpected) in 0.988 (1.007) seconds
 􀟈  Test run started.
 􀄵  Testing Library Version: 1902
 􀄵  Target Platform: arm64e-apple-macos14.0
