@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-06-14 · Local Agent Lens · Inbox result source copy
+
+- 优化 Inbox 提交完成结果横幅来源展示:Local Agent Lens 的 `agent_scanner`、`document_scanner`、`video_capture` 不再显示 raw source surface。
+- 新增 `InboxResultPresentation` 与 focused TDD 覆盖;红测确认旧横幅文案会显示 `Source: agent_scanner` 等内部来源名。
+- QA receipt:`docs/qa-receipts/inbox-result-source-copy-20260614/`,含 focused/full Swift 测试与 `git diff --check` 日志。
+- 验证:`swift test --filter InboxResultPresentationTests` 2 passed; `swift test` 462 passed; `git diff --check`。
+- 遗留:本轮为 presentation-copy 单测切片,未跑模拟器截图、真机硬件路径或 runtime/mock bridge pytest。
+
+---
+
 ## 2026-06-14 · Local Agent Lens · Inbox Files source dedupe copy
 
 - 优化 Inbox pending item `Review Details` 来源展示:Files 导入不再显示重复的 `Files from Files`,改为 `Files`。
