@@ -37,6 +37,15 @@ final class AgentScanActionPolicyTests: XCTestCase {
         XCTAssertFalse(AgentScanActionPolicy.actions(for: result).contains { $0.kind == .openURL })
     }
 
+    func testPaymentLikeHTTPSURLCanBeReviewedWithoutOpenAction() {
+        let result = AgentScanResult(rawValue: "https://example.com/pay/invoice?id=42")
+
+        XCTAssertEqual(
+            AgentScanActionPolicy.actions(for: result).map(\.kind),
+            [.summarizeURL, .copy, .saveToInbox]
+        )
+    }
+
     func testURLScanBuildsInboxDraftWithScannerSourceSurface() {
         let item = AgentScanInboxDraftBuilder.item(for: AgentScanResult(rawValue: "https://example.com"))
 

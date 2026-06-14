@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-06-14 · Local Agent Lens · Scanner payment URL actions
+
+- 收紧 Agent Scanner 本地动作策略:支付/结账类 HTTPS 链接仍保留 Ask Agent、Copy、Save to Inbox 的可见审阅路径,但不提供 Open 动作。
+- 新增 TDD 覆盖 `testPaymentLikeHTTPSURLCanBeReviewedWithoutOpenAction`;红测先确认旧策略会把 HTTPS 支付链接降级成文本动作。
+- QA receipt:`docs/qa-receipts/scanner-payment-url-actions-20260614/`,含 focused/full Swift 测试与 `git diff --check` 日志。
+- 验证:`swift test --filter AgentScanActionPolicyTests` 7 passed; `swift test` 457 passed; `git diff --check`。
+- 遗留:本轮为本地策略切片,未跑真实相机扫码/模拟器 UI;支付链接启发式范围需 Conversation B 重点复核。
+
+---
+
 ## 2026-06-14 · UI/UX QA Second Pass · Quiet Lens polish
 
 - 用 XcodeBuildMCP 在 iPhone 17 Pro Max(iOS 26.5)做主流程 QA,用 iPhone 17e(iOS 26.5)做小屏替代复核;iPhone 16 / 16 Plus 未安装,iPhone 16e 在刷新后不可 build/run。
