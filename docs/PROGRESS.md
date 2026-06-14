@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-06-14 · UI/UX QA · Local Agent Lens polish
+
+- 用 XcodeBuildMCP 在 iPhone 17 Pro Max(iOS 26.5)和 iPhone 16e(iOS 26.1)做 Local Agent Lens / Quiet Lens 系统化 Simulator QA;iPhone 16 / 16 Plus 模拟器未安装。
+- 一对一修复:Hub 首屏 tab bar 遮挡、Voice 暗色导航标题、Scanner Simulator/中文状态、Video Intake 暗色禁用控件对比度、相机权限中文 Pocket Agent 文案。
+- 新增测试覆盖 Scanner copy、Voice dark navigation chrome、dark control contrast、Capture initial layout policy;QA receipt:`docs/qa-receipts/pocket-agent-ui-ux-qa-20260614/`。
+- 验证:`swift test` 453 passed; `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=runtime-kit:mock_bridge python3 -m pytest -p no:cacheprovider runtime-kit/tests mock_bridge/tests photo-pack/tests ios/tests -q` 653 passed; `git diff --check`; XcodeBuildMCP `build_run_sim` succeeded on iPhone 17 Pro Max。
+- 遗留:Simulator 不能验证真实扫码、VisionKit 文档扫描、麦克风录音、相机录制视频和 Dynamic Island 真机表现;iPhone 16e 首次手动保存凭证曾失败一次、重试成功,需真机回归关注。
+
+---
+
 ## 2026-06-14 · Product Rename · Pocket Agent
 
 - 项目用户可见名称正式改为 **Pocket Agent**;同步 README/中文 README 链接、PRODUCT、AGENTS、开发章程、Mobile Bridge API、setup/privacy、Runtime Kit/host package 文案、mock bridge QA 文案和 iOS display/permission strings。

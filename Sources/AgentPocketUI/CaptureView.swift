@@ -78,9 +78,9 @@ public struct CaptureView: View {
                             capturePreview(presentation)
                                 .frame(height: previewHeight(for: geometry.size))
                         }
-                        if geometry.size.height < 860 {
+                        if preControlsSpacerHeight(for: geometry.size.height) > 0 {
                             Color.clear
-                                .frame(height: 120)
+                                .frame(height: preControlsSpacerHeight(for: geometry.size.height))
                         }
                         captureControls(presentation)
                     }
@@ -174,6 +174,20 @@ public struct CaptureView: View {
         let contentWidth = min(size.width - 32, 588)
         let heightRatio = size.height < 860 ? 0.285 : 0.42
         return min(contentWidth * 4.0 / 3.0, size.height * heightRatio)
+    }
+
+    private var isInitialEmptyCapture: Bool {
+        if case .empty = viewModel.state {
+            return viewModel.preparedUpload == nil
+        }
+        return false
+    }
+
+    private func preControlsSpacerHeight(for viewportHeight: CGFloat) -> CGFloat {
+        CaptureLayoutPolicy.preControlsSpacerHeight(
+            for: viewportHeight,
+            isInitialEmptyCapture: isInitialEmptyCapture
+        )
     }
 
     private func localAgentLensHub() -> some View {
@@ -886,6 +900,18 @@ public struct CaptureView: View {
         }
     }
     #endif
+}
+
+enum CaptureLayoutPolicy {
+    static func preControlsSpacerHeight(
+        for viewportHeight: CGFloat,
+        isInitialEmptyCapture: Bool
+    ) -> CGFloat {
+        guard isInitialEmptyCapture else {
+            return 0
+        }
+        return viewportHeight < 980 ? 208 : 0
+    }
 }
 
 private struct CapturePreviewImage: View {

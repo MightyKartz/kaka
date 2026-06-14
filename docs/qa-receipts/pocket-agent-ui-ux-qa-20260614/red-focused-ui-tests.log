@@ -1,0 +1,78 @@
+[0/1] Planning build
+Building for debugging...
+[0/6] Write sources
+[1/6] Write swift-version--58304C5D6DBC2206.txt
+[3/9] Compiling AgentPocketUITests AgentScannerPresentationTests.swift
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/AgentScannerPresentationTests.swift:6:20: error: cannot find 'AgentScannerCopy' in scope
+ 4 | final class AgentScannerPresentationTests: XCTestCase {
+ 5 |     func testScannerCopyIsLocalizedForChinese() {
+ 6 |         let copy = AgentScannerCopy(language: .chinese)
+   |                    `- error: cannot find 'AgentScannerCopy' in scope
+ 7 |
+ 8 |         XCTAssertEqual(copy.title, "扫码")
+
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/AgentScannerPresentationTests.swift:6:48: error: cannot infer contextual base in reference to member 'chinese'
+ 4 | final class AgentScannerPresentationTests: XCTestCase {
+ 5 |     func testScannerCopyIsLocalizedForChinese() {
+ 6 |         let copy = AgentScannerCopy(language: .chinese)
+   |                                                `- error: cannot infer contextual base in reference to member 'chinese'
+ 7 |
+ 8 |         XCTAssertEqual(copy.title, "扫码")
+
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/AgentScannerPresentationTests.swift:15:20: error: cannot find 'AgentScannerCopy' in scope
+13 |
+14 |     func testScannerUnavailableCopyExplainsSimulatorFallback() {
+15 |         let copy = AgentScannerCopy(language: .chinese)
+   |                    `- error: cannot find 'AgentScannerCopy' in scope
+16 |
+17 |         XCTAssertEqual(copy.unavailableTitle, "扫码不可用")
+
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/AgentScannerPresentationTests.swift:15:48: error: cannot infer contextual base in reference to member 'chinese'
+13 |
+14 |     func testScannerUnavailableCopyExplainsSimulatorFallback() {
+15 |         let copy = AgentScannerCopy(language: .chinese)
+   |                                                `- error: cannot infer contextual base in reference to member 'chinese'
+16 |
+17 |         XCTAssertEqual(copy.unavailableTitle, "扫码不可用")
+[4/9] Compiling AgentPocketUITests DarkControlContrastTests.swift
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/DarkControlContrastTests.swift:6:37: error: cannot find 'AgentPocketDarkControlContrast' in scope
+ 4 | final class DarkControlContrastTests: XCTestCase {
+ 5 |     func testDisabledPrimaryControlsRemainReadableOnDarkSheets() {
+ 6 |         XCTAssertGreaterThanOrEqual(AgentPocketDarkControlContrast.disabledPrimaryBackgroundOpacity, 0.62)
+   |                                     `- error: cannot find 'AgentPocketDarkControlContrast' in scope
+ 7 |         XCTAssertGreaterThanOrEqual(AgentPocketDarkControlContrast.disabledPrimaryLabelOpacity, 0.72)
+ 8 |     }
+
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/DarkControlContrastTests.swift:7:37: error: cannot find 'AgentPocketDarkControlContrast' in scope
+ 5 |     func testDisabledPrimaryControlsRemainReadableOnDarkSheets() {
+ 6 |         XCTAssertGreaterThanOrEqual(AgentPocketDarkControlContrast.disabledPrimaryBackgroundOpacity, 0.62)
+ 7 |         XCTAssertGreaterThanOrEqual(AgentPocketDarkControlContrast.disabledPrimaryLabelOpacity, 0.72)
+   |                                     `- error: cannot find 'AgentPocketDarkControlContrast' in scope
+ 8 |     }
+ 9 | }
+[5/9] Compiling AgentPocketUITests VoiceCapturePresentationTests.swift
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/VoiceCapturePresentationTests.swift:50:29: error: value of type 'VoiceCapturePresentation' has no member 'prefersDarkNavigationChrome'
+48 |         let draft = VoiceCapturePresentation.inboxDraft(language: .chinese)
+49 |
+50 |         XCTAssertTrue(draft.prefersDarkNavigationChrome)
+   |                             `- error: value of type 'VoiceCapturePresentation' has no member 'prefersDarkNavigationChrome'
+51 |     }
+52 | }
+[6/9] Emitting module AgentPocketUITests
+[7/9] Compiling AgentPocketUITests CaptureLayoutPolicyTests.swift
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/CaptureLayoutPolicyTests.swift:7:13: error: cannot find 'CaptureLayoutPolicy' in scope
+ 5 |     func testInitialEmptyCaptureDefersControlsBelowTallFirstViewport() {
+ 6 |         XCTAssertEqual(
+ 7 |             CaptureLayoutPolicy.preControlsSpacerHeight(for: 932, isInitialEmptyCapture: true),
+   |             `- error: cannot find 'CaptureLayoutPolicy' in scope
+ 8 |             112
+ 9 |         )
+
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/CaptureLayoutPolicyTests.swift:14:13: error: cannot find 'CaptureLayoutPolicy' in scope
+12 |     func testPreparedCaptureKeepsControlsImmediatelyReachable() {
+13 |         XCTAssertEqual(
+14 |             CaptureLayoutPolicy.preControlsSpacerHeight(for: 932, isInitialEmptyCapture: false),
+   |             `- error: cannot find 'CaptureLayoutPolicy' in scope
+15 |             0
+16 |         )
+error: fatalError

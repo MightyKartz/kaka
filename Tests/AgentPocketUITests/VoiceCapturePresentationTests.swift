@@ -43,4 +43,10 @@ final class VoiceCapturePresentationTests: XCTestCase {
         XCTAssertEqual(instruction.transcriptAccessibilityLabel, "语音指令转写")
         XCTAssertEqual(instruction.submitTitle, "保存指令")
     }
+
+    func testVoiceSheetsRequestDarkNavigationChrome() {
+        let draft = VoiceCapturePresentation.inboxDraft(language: .chinese)
+
+        XCTAssertTrue(draft.prefersDarkNavigationChrome)
+    }
 }

@@ -28,14 +28,19 @@ enum AgentPocketDesignTokens {
     static let mediaRadius: CGFloat = 8
 }
 
+enum AgentPocketDarkControlContrast {
+    static let disabledPrimaryBackgroundOpacity = 0.66
+    static let disabledPrimaryLabelOpacity = 0.76
+}
+
 struct AgentPocketDarkPrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .foregroundStyle(AgentPocketDesignTokens.ink)
+            .foregroundStyle(AgentPocketDesignTokens.ink.opacity(isEnabled ? 1.0 : AgentPocketDarkControlContrast.disabledPrimaryLabelOpacity))
             .background(
-                AgentPocketDesignTokens.accent.opacity(isEnabled ? (configuration.isPressed ? 0.86 : 1.0) : 0.42),
+                AgentPocketDesignTokens.accent.opacity(isEnabled ? (configuration.isPressed ? 0.86 : 1.0) : AgentPocketDarkControlContrast.disabledPrimaryBackgroundOpacity),
                 in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
             )
             .scaleEffect(configuration.isPressed && isEnabled ? 0.98 : 1.0)

@@ -37,7 +37,7 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Pocket Agent uses the camera to take photos for local agent editing and to scan pairing QR codes.</string>
+	<string>Pocket Agent 使用相机拍照、扫码，并在发送前让你确认内容。</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_agent-pocket._tcp</string>

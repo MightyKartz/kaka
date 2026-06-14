@@ -192,16 +192,27 @@ private struct VideoIntakePickerContent: View {
     }
 
     private var promptEditor: some View {
-        TextField(copy.promptPlaceholder, text: $prompt, axis: .vertical)
-            .lineLimit(3, reservesSpace: true)
-            .font(.callout)
-            .padding(12)
-            .foregroundStyle(.white)
-            .background(AgentPocketDesignTokens.darkPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
-                    .stroke(AgentPocketDesignTokens.darkStroke, lineWidth: 1)
-            )
+        ZStack(alignment: .topLeading) {
+            if prompt.isEmpty {
+                Text(copy.promptPlaceholder)
+                    .font(.callout)
+                    .foregroundStyle(.white.opacity(0.58))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 13)
+                    .allowsHitTesting(false)
+            }
+
+            TextField("", text: $prompt, axis: .vertical)
+                .lineLimit(3, reservesSpace: true)
+                .font(.callout)
+                .padding(12)
+                .foregroundStyle(.white)
+        }
+        .background(AgentPocketDesignTokens.darkPanelStrong, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                .stroke(AgentPocketDesignTokens.darkStroke, lineWidth: 1)
+        )
     }
 
     private var sendButton: some View {
@@ -214,7 +225,6 @@ private struct VideoIntakePickerContent: View {
         }
         .buttonStyle(AgentPocketDarkPrimaryButtonStyle())
         .disabled(sourceURL == nil || isLoading)
-        .opacity(sourceURL == nil || isLoading ? 0.54 : 1)
     }
 
     private func loadSelectedVideo(_ item: PhotosPickerItem?) async {

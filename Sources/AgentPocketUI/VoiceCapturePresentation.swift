@@ -7,19 +7,22 @@ public struct VoiceCapturePresentation: Equatable, Sendable {
     public let submitTitle: String
     public let submitSystemImage: String
     public let language: AppLanguage
+    public let prefersDarkNavigationChrome: Bool
 
     public init(
         navigationTitle: String,
         transcriptAccessibilityLabel: String,
         submitTitle: String,
         submitSystemImage: String,
-        language: AppLanguage = .english
+        language: AppLanguage = .english,
+        prefersDarkNavigationChrome: Bool = true
     ) {
         self.navigationTitle = navigationTitle
         self.transcriptAccessibilityLabel = transcriptAccessibilityLabel
         self.submitTitle = submitTitle
         self.submitSystemImage = submitSystemImage
         self.language = language
+        self.prefersDarkNavigationChrome = prefersDarkNavigationChrome
     }
 
     public static let defaultDraft = VoiceCapturePresentation(

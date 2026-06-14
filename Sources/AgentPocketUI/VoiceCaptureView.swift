@@ -97,6 +97,8 @@ public struct VoiceCaptureView: View {
             .background(Color(red: 0.035, green: 0.045, blue: 0.045))
             .foregroundStyle(.white)
             .navigationTitle(presentation.navigationTitle)
+            .modifier(VoiceCaptureNavigationChrome(isDark: presentation.prefersDarkNavigationChrome))
+            .tint(.white)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(cancelTitle) {
@@ -171,5 +173,20 @@ public struct VoiceCaptureView: View {
         } else {
             await viewModel.startRecording()
         }
+    }
+}
+
+private struct VoiceCaptureNavigationChrome: ViewModifier {
+    let isDark: Bool
+
+    func body(content: Content) -> some View {
+        #if os(iOS)
+        content
+            .toolbarColorScheme(isDark ? .dark : .light, for: .navigationBar)
+            .toolbarBackground(AgentPocketDesignTokens.darkBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+        #else
+        content
+        #endif
     }
 }
