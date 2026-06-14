@@ -111,7 +111,19 @@ private extension InboxPendingItemReviewPresentation {
         guard let app = visible(item.sourceApp) else {
             return source
         }
+        guard shouldShowSourceApp(item.sourceSurface, source: source, app: app) else {
+            return source
+        }
         return language == .chinese ? "\(source)来自 \(app)" : "\(source) from \(app)"
+    }
+
+    static func shouldShowSourceApp(_ sourceSurface: String, source: String, app: String) -> Bool {
+        switch sourceSurface {
+        case "file_picker", "document_picker":
+            return app != "Files"
+        default:
+            return app != source
+        }
     }
 
     static func localizedSource(_ source: String, _ language: AppLanguage) -> String {
