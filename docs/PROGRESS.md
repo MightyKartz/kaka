@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-06-14 · UI/UX QA Second Pass · Quiet Lens polish
+
+- 用 XcodeBuildMCP 在 iPhone 17 Pro Max(iOS 26.5)做主流程 QA,用 iPhone 17e(iOS 26.5)做小屏替代复核;iPhone 16 / 16 Plus 未安装,iPhone 16e 在刷新后不可 build/run。
+- 一对一修复:Video Intake/Voice 空内容时禁用主按钮改为中性 inactive 状态,避免看起来像可点击 mint CTA;Activity 默认 `Runtime task` 在中文 UI 中显示为 `运行时任务`。
+- 新增 `TaskInboxPresentation` 与 focused tests,保留 runtime/user 提供的具体英文标题不被误翻译;QA receipt:`docs/qa-receipts/pocket-agent-ui-ux-qa-second-pass-20260614/`。
+- 验证:`swift test` 456 passed; `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=runtime-kit:mock_bridge python3 -m pytest -p no:cacheprovider runtime-kit/tests mock_bridge/tests photo-pack/tests ios/tests -q` 653 passed; `git diff --check`; XcodeBuildMCP `build_run_sim -skipMacroValidation` succeeded on iPhone 17 Pro Max。
+- 遗留:Simulator 仍不能验证真实扫码、VisionKit 文档扫描、麦克风录音、相机视频录制和 Dynamic Island 真机表现;需 iPhone 16 Plus 真机补硬件路径 QA。
+
+---
+
 ## 2026-06-14 · UI/UX QA · Local Agent Lens polish
 
 - 用 XcodeBuildMCP 在 iPhone 17 Pro Max(iOS 26.5)和 iPhone 16e(iOS 26.1)做 Local Agent Lens / Quiet Lens 系统化 Simulator QA;iPhone 16 / 16 Plus 模拟器未安装。

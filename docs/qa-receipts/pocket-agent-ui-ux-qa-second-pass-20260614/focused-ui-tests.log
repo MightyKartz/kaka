@@ -1,0 +1,89 @@
+[0/1] Planning build
+Building for debugging...
+[0/7] Write sources
+[1/7] Write swift-version--58304C5D6DBC2206.txt
+[3/11] Compiling AgentPocketUI TaskInboxPresentation.swift
+[4/11] Compiling AgentPocketUI AgentPocketDesignTokens.swift
+[5/11] Emitting module AgentPocketUI
+[6/11] Compiling AgentPocketUI TaskInboxView.swift
+[7/13] Compiling AgentPocketUI AgentPocketRootView.swift
+[8/13] Compiling AgentPocketUI VoiceCaptureView.swift
+[9/58] Compiling AgentPocketApp TaskProgressView.swift
+[10/58] Compiling AgentPocketApp CaptureView.swift
+[11/58] Compiling AgentPocketApp ConnectView.swift
+[12/58] Compiling AgentPocketApp EditIntentPickerView.swift
+[13/58] Compiling AgentPocketApp ResultGalleryView.swift
+[14/58] Compiling AgentPocketUITests InboxActionFeedbackPresentationTests.swift
+[15/58] Compiling AgentPocketUITests InboxDocumentPayloadLoaderTests.swift
+[16/58] Compiling AgentPocketUITests InboxFileImporterTests.swift
+[17/58] Compiling AgentPocketUITests InboxInstructionPresentationTests.swift
+[18/62] Emitting module AgentPocketUITests
+[19/62] Compiling AgentPocketUITests CaptureAutosubmitPolicyTests.swift
+[20/62] Compiling AgentPocketUITests CaptureCameraAutostartPolicyTests.swift
+[21/62] Compiling AgentPocketUITests CaptureConversationAutoreviewPolicyTests.swift
+[22/62] Compiling AgentPocketUITests CaptureFlowViewModelTests.swift
+[23/62] Compiling AgentPocketUITests PhotoEditSubmitterTests.swift
+[24/62] Compiling AgentPocketUITests PhotoSaveFlowTests.swift
+[25/62] Compiling AgentPocketUITests RecallActionViewModelTests.swift
+[26/62] Compiling AgentPocketUITests RecallBrowseViewModelTests.swift
+[27/62] Compiling AgentPocketUITests ContextSnapshotViewModelTests.swift
+[28/62] Compiling AgentPocketUITests DarkControlContrastTests.swift
+[29/62] Compiling AgentPocketUITests DocumentScanInboxBuilderTests.swift
+[30/62] Compiling AgentPocketUITests ImageConversationViewModelTests.swift
+[31/62] Compiling AgentPocketUITests CaptureLayoutPolicyTests.swift
+[32/62] Compiling AgentPocketUITests CapturePrimaryActionPolicyTests.swift
+[33/62] Compiling AgentPocketUITests CaptureResultAutoreviewPolicyTests.swift
+[34/62] Compiling AgentPocketUITests CaptureScreenPresentationTests.swift
+[35/62] Compiling AgentPocketUITests ResultGalleryViewModelTests.swift
+[36/62] Compiling AgentPocketUITests ResultScreenPresentationTests.swift
+[37/62] Compiling AgentPocketUITests TaskInboxPresentationTests.swift
+[38/62] Compiling AgentPocketUITests TaskInboxViewModelTests.swift
+[39/62] Compiling AgentPocketUITests InboxPendingItemReviewPresentationTests.swift
+[40/62] Compiling AgentPocketUITests InboxViewModelTests.swift
+[41/62] Compiling AgentPocketUITests KakaSkillRouterTests.swift
+[42/62] Compiling AgentPocketUITests LocalAgentLensPresentationTests.swift
+[43/62] Compiling AgentPocketUITests AgentScanActionPolicyTests.swift
+[44/62] Compiling AgentPocketUITests AgentScannerPresentationTests.swift
+[45/62] Compiling AgentPocketUITests AppIntentPresentationTests.swift
+[46/62] Compiling AgentPocketUITests CameraModeSelectionPolicyTests.swift
+[47/62] Compiling AgentPocketUITests ConnectScreenCopyTests.swift
+[48/62] Compiling AgentPocketUITests ConnectionReadinessPresentationTests.swift
+[49/62] Compiling AgentPocketUITests ConnectionStateTests.swift
+[50/62] Compiling AgentPocketUITests ConnectionViewModelTests.swift
+[51/62] Compiling AgentPocketApp AgentPocketAppIntentsPackage.swift
+[52/62] Emitting module AgentPocketApp
+[53/62] Compiling AgentPocketApp AgentPocketApp.swift
+[53/62] Write Objects.LinkFileList
+[55/62] Compiling AgentPocketUITests UniversalIntakeSubmitterTests.swift
+[56/62] Compiling AgentPocketUITests VideoInboxBuilderTests.swift
+[57/62] Compiling AgentPocketUITests VoiceCapturePresentationTests.swift
+[58/62] Compiling AgentPocketUITests VoiceCaptureViewModelTests.swift
+[58/62] Write Objects.LinkFileList
+[59/62] Linking AgentPocketApp
+[60/62] Applying AgentPocketApp
+[61/62] Linking AgentPocketPackageTests
+Build complete! (4.00s)
+Test Suite 'Selected tests' started at 2026-06-14 10:46:35.081.
+Test Suite 'AgentPocketPackageTests.xctest' started at 2026-06-14 10:46:35.083.
+Test Suite 'DarkControlContrastTests' started at 2026-06-14 10:46:35.083.
+Test Case '-[AgentPocketUITests.DarkControlContrastTests testDisabledPrimaryControlsReadAsInactiveOnDarkSheets]' started.
+Test Case '-[AgentPocketUITests.DarkControlContrastTests testDisabledPrimaryControlsReadAsInactiveOnDarkSheets]' passed (0.002 seconds).
+Test Suite 'DarkControlContrastTests' passed at 2026-06-14 10:46:35.085.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'TaskInboxPresentationTests' started at 2026-06-14 10:46:35.085.
+Test Case '-[AgentPocketUITests.TaskInboxPresentationTests testActivityTitleKeepsRuntimeProvidedSpecificTitle]' started.
+Test Case '-[AgentPocketUITests.TaskInboxPresentationTests testActivityTitleKeepsRuntimeProvidedSpecificTitle]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.TaskInboxPresentationTests testChineseActivityTitleLocalizesRuntimeFallback]' started.
+Test Case '-[AgentPocketUITests.TaskInboxPresentationTests testChineseActivityTitleLocalizesRuntimeFallback]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.TaskInboxPresentationTests testChineseActivityTitleUsesLocalFallbackForBlankTitle]' started.
+Test Case '-[AgentPocketUITests.TaskInboxPresentationTests testChineseActivityTitleUsesLocalFallbackForBlankTitle]' passed (0.000 seconds).
+Test Suite 'TaskInboxPresentationTests' passed at 2026-06-14 10:46:35.085.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'AgentPocketPackageTests.xctest' passed at 2026-06-14 10:46:35.085.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'Selected tests' passed at 2026-06-14 10:46:35.085.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.002 (0.004) seconds
+􀟈  Test run started.
+􀄵  Testing Library Version: 1902
+􀄵  Target Platform: arm64e-apple-macos14.0
+􁁛  Test run with 0 tests in 0 suites passed after 0.001 seconds.

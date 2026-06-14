@@ -29,8 +29,8 @@ enum AgentPocketDesignTokens {
 }
 
 enum AgentPocketDarkControlContrast {
-    static let disabledPrimaryBackgroundOpacity = 0.66
-    static let disabledPrimaryLabelOpacity = 0.76
+    static let disabledPrimaryNeutralFillOpacity = 0.10
+    static let disabledPrimaryLabelOpacity = 0.58
 }
 
 struct AgentPocketDarkPrimaryButtonStyle: ButtonStyle {
@@ -38,13 +38,31 @@ struct AgentPocketDarkPrimaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .foregroundStyle(AgentPocketDesignTokens.ink.opacity(isEnabled ? 1.0 : AgentPocketDarkControlContrast.disabledPrimaryLabelOpacity))
+            .foregroundStyle(primaryForeground)
             .background(
-                AgentPocketDesignTokens.accent.opacity(isEnabled ? (configuration.isPressed ? 0.86 : 1.0) : AgentPocketDarkControlContrast.disabledPrimaryBackgroundOpacity),
+                primaryBackground(configuration: configuration),
                 in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
             )
+            .overlay {
+                RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                    .stroke(Color.white.opacity(isEnabled ? 0 : 0.08), lineWidth: 1)
+            }
             .scaleEffect(configuration.isPressed && isEnabled ? 0.98 : 1.0)
             .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
+    }
+
+    private var primaryForeground: Color {
+        isEnabled
+            ? AgentPocketDesignTokens.ink
+            : Color.white.opacity(AgentPocketDarkControlContrast.disabledPrimaryLabelOpacity)
+    }
+
+    private func primaryBackground(configuration: Configuration) -> Color {
+        if isEnabled {
+            return AgentPocketDesignTokens.accent.opacity(configuration.isPressed ? 0.86 : 1.0)
+        }
+
+        return Color.white.opacity(AgentPocketDarkControlContrast.disabledPrimaryNeutralFillOpacity)
     }
 }
 
