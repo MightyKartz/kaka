@@ -152,6 +152,29 @@ final class ContextSnapshotViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isContextSnapshotPreparing)
     }
 
+    func testPreviewRowsUseUserFacingLocalAgentLensSources() async {
+        let cases: [(AgentLensSourceSurface, String)] = [
+            (.agentScanner, "Scanner"),
+            (.documentScanner, "Document Scan"),
+            (.videoCapture, "Video")
+        ]
+
+        for (sourceSurface, expectedValue) in cases {
+            let snapshot = ContextSnapshotPayload(
+                timestamp: "2026-06-07T10:00:00Z",
+                timezone: "Asia/Shanghai",
+                sourceSurface: sourceSurface.rawValue
+            )
+            let viewModel = ContextSnapshotViewModel(
+                collector: StubContextSnapshotCollector(result: .success(snapshot))
+            )
+
+            await viewModel.refresh()
+
+            XCTAssertTrue(viewModel.previewRows.contains(.init(label: "Source", value: expectedValue)))
+        }
+    }
+
     func testPreviewRowsDescribeMotionAndCalendarBusyWindowValuesWithoutChangingPayload() async {
         let snapshot = ContextSnapshotPayload(
             timestamp: "2026-06-07T10:00:00Z",
