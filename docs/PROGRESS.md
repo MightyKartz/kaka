@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-06-14 · Local Agent Lens · Context Snapshot courier source copy
+
+- 优化 Context Snapshot 预览的 Source 行:显式 `paste` 显示为 Paste,`file_picker`/`document_picker` 显示为 Files,与 Inbox Review 来源命名对齐。
+- 新增 TDD 覆盖 `testPreviewRowsUseInboxFacingCourierSourceNames`;红测确认 Files 来源仍显示内部式来源名。
+- QA receipt:`docs/qa-receipts/context-snapshot-courier-source-copy-20260614/`,含 focused/full Swift 测试与 `git diff --check` 日志。
+- 验证:`swift test --filter ContextSnapshotViewModelTests` 16 passed; `swift test` 460 passed; `git diff --check`。
+- 遗留:本轮为 presentation-copy 单测切片,未跑模拟器截图或真机硬件路径。
+
+---
+
 ## 2026-06-14 · Local Agent Lens · Context Snapshot source preview copy
 
 - 优化 Context Snapshot 预览的 Source 行:Local Agent Lens 的 `agent_scanner`、`document_scanner`、`video_capture` 显示为 Scanner、Document Scan、Video。
