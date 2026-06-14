@@ -124,6 +124,12 @@ private extension InboxPendingItemReviewPresentation {
             return text("Share Extension", "系统分享", language)
         case "file_picker", "document_picker":
             return text("Files", "文件", language)
+        case AgentLensSourceSurface.agentScanner.rawValue:
+            return text("Scanner", "扫描", language)
+        case AgentLensSourceSurface.documentScanner.rawValue:
+            return text("Document Scan", "文档扫描", language)
+        case AgentLensSourceSurface.videoCapture.rawValue:
+            return text("Video", "视频", language)
         default:
             return source
         }
