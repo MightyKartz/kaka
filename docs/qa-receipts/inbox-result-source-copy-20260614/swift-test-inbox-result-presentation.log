@@ -1,0 +1,20 @@
+Building for debugging...
+[0/4] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.13s)
+Test Suite 'Selected tests' started at 2026-06-14 14:00:46.150.
+Test Suite 'AgentPocketPackageTests.xctest' started at 2026-06-14 14:00:46.151.
+Test Suite 'InboxResultPresentationTests' started at 2026-06-14 14:00:46.151.
+Test Case '-[AgentPocketUITests.InboxResultPresentationTests testContextSelectionCopyStaysLocalized]' started.
+Test Case '-[AgentPocketUITests.InboxResultPresentationTests testContextSelectionCopyStaysLocalized]' passed (0.003 seconds).
+Test Case '-[AgentPocketUITests.InboxResultPresentationTests testLocalAgentLensSourcesUseUserFacingNames]' started.
+Test Case '-[AgentPocketUITests.InboxResultPresentationTests testLocalAgentLensSourcesUseUserFacingNames]' passed (0.000 seconds).
+Test Suite 'InboxResultPresentationTests' passed at 2026-06-14 14:00:46.154.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'AgentPocketPackageTests.xctest' passed at 2026-06-14 14:00:46.154.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'Selected tests' passed at 2026-06-14 14:00:46.154.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+􀟈  Test run started.
+􀄵  Testing Library Version: 1902
+􀄵  Target Platform: arm64e-apple-macos14.0
+􁁛  Test run with 0 tests in 0 suites passed after 0.001 seconds.

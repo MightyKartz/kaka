@@ -465,11 +465,13 @@ public struct InboxView: View {
     }
 
     private func resultBanner(_ status: TaskStatusResponse, context: InboxSubmissionContext?) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let presentation = InboxResultPresentation(status: status, context: context, language: language)
+
+        return VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(AgentPocketDesignTokens.accent)
-                Text(resultTitle(status))
+                Text(presentation.title)
                     .font(.headline)
                     .foregroundStyle(AgentPocketDesignTokens.ink)
                 Spacer()
@@ -484,7 +486,7 @@ public struct InboxView: View {
                 .accessibilityLabel(language == .chinese ? "关闭" : "Close")
             }
 
-            if let summary = resultSummary(status) {
+            if let summary = presentation.summary {
                 Text(summary)
                     .font(.subheadline)
                     .foregroundStyle(AgentPocketDesignTokens.inkMuted)
@@ -492,10 +494,12 @@ public struct InboxView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            if let context {
+            if let sourceText = presentation.sourceText,
+               let contextText = presentation.contextText,
+               let context {
                 VStack(alignment: .leading, spacing: 4) {
-                    Label(resultSourceText(context), systemImage: "link")
-                    Label(resultContextText(context), systemImage: context.contextSelected ? "location.circle.fill" : "location.slash")
+                    Label(sourceText, systemImage: "link")
+                    Label(contextText, systemImage: context.contextSelected ? "location.circle.fill" : "location.slash")
                 }
                 .font(.caption.weight(.medium))
                 .foregroundStyle(AgentPocketDesignTokens.inkMuted)
@@ -504,7 +508,7 @@ public struct InboxView: View {
             RecallView(
                 sourceTaskID: status.taskID,
                 sourceInboxItemID: context?.sourceInboxItemID,
-                initialSummary: resultSummary(status) ?? resultTitle(status),
+                initialSummary: presentation.summary ?? presentation.title,
                 isFramed: false,
                 activeConnection: activeConnection
             )
@@ -629,52 +633,6 @@ public struct InboxView: View {
             ?? item.fileName
             ?? item.sourceApp
             ?? formattedDate(item.receivedAt)
-    }
-
-    private func resultTitle(_ status: TaskStatusResponse) -> String {
-        status.intake?.title
-            ?? status.imageIntake?.title
-            ?? (language == .chinese ? "已完成" : "Completed")
-    }
-
-    private func resultSummary(_ status: TaskStatusResponse) -> String? {
-        status.intake?.summary
-            ?? status.imageIntake?.summary
-            ?? status.message
-    }
-
-    private func resultSourceText(_ context: InboxSubmissionContext) -> String {
-        let source = context.sourceSurface ?? context.sourceApp ?? context.kind.rawValue
-        if language == .chinese {
-            return "来源：\(localizedSource(source))"
-        }
-        return "Source: \(localizedSource(source))"
-    }
-
-    private func resultContextText(_ context: InboxSubmissionContext) -> String {
-        if context.contextSelected {
-            return language == .chinese
-                ? "已选择 Context Snapshot；支持的运行时会随本次任务接收。"
-                : "Context Snapshot selected; supported runtimes receive it with this task."
-        }
-        return language == .chinese
-            ? "本次任务未选择 Context Snapshot。"
-            : "No Context Snapshot selected for this task."
-    }
-
-    private func localizedSource(_ source: String) -> String {
-        switch source {
-        case "paste":
-            return language == .chinese ? "粘贴" : "Paste"
-        case "voice":
-            return language == .chinese ? "语音" : "Voice"
-        case "share_extension":
-            return language == .chinese ? "系统分享" : "Share Extension"
-        case "file_picker", "document_picker":
-            return language == .chinese ? "文件" : "Files"
-        default:
-            return source
-        }
     }
 
     private func formattedDate(_ date: Date) -> String {
