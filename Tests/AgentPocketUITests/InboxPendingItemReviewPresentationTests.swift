@@ -65,7 +65,7 @@ final class InboxPendingItemReviewPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.value(for: "type"), "PDF")
         XCTAssertEqual(presentation.value(for: "file"), "brief.pdf")
         XCTAssertEqual(presentation.value(for: "mime_type"), "application/pdf")
-        XCTAssertEqual(presentation.value(for: "local_payload"), "Copied into Kaka Inbox")
+        XCTAssertEqual(presentation.value(for: "local_payload"), "Copied into Pocket Agent Inbox")
         XCTAssertEqual(presentation.value(for: "context"), "Not selected for this task")
         let joinedValues = presentation.rows.map(\.value).joined(separator: "\n")
         XCTAssertFalse(joinedValues.contains("SharedPayloads"))

@@ -1,12 +1,12 @@
-# Agent Pocket Setup
+# Pocket Agent Setup
 
 This guide is for Phase 1 development and QA. Ordinary users should not run
 `runtime-kit`, `mock_bridge`, `photo-pack/adapters`, `curl`, or manual LAN
 endpoint commands as their normal setup path.
 
 The intended ordinary-user flow is: install the host-native Hermes Plugin or
-OpenClaw Skill/sidecar, open the host **Kaka Mobile Bridge** panel, explicitly
-enable the bridge, pair by QR or Bonjour, and use Kaka iPhone through
+OpenClaw Skill/sidecar, open the host **Pocket Agent Mobile Bridge** panel, explicitly
+enable the bridge, pair by QR or Bonjour, and use Pocket Agent iPhone through
 `/mobile/v1`. Manual endpoints, LAN IPs, Runtime Kit commands, and shell
 diagnostics below are developer, host-engineer, or external-pilot
 troubleshooting paths only.
@@ -21,7 +21,7 @@ Phase 1 uses **Master Shot Agent + Local Recipe Photo Flow**:
 4. The Mac-side runtime validates/clamps the recipe and renders `Master` plus `Social` locally.
 5. iPhone downloads the variants, compares Original / Master / Social, saves, or opens the iOS system share sheet with image plus caption.
 
-The old OpenAI Images adapter is a legacy optional path. It is not required for the first shippable Kaka/Agent Pocket build, and missing `OPENAI_API_KEY` no longer blocks the Local Recipe milestone.
+The old OpenAI Images adapter is a legacy optional path. It is not required for the first shippable Pocket Agent build, and missing `OPENAI_API_KEY` no longer blocks the Local Recipe milestone.
 
 ## Local Mock Bridge
 
@@ -60,7 +60,7 @@ PYTHONPATH=mock_bridge python3 -m agent_pocket_mock_bridge.server \
   --bonjour-host "$(ipconfig getifaddr en0)"
 ```
 
-The mock bridge publishes `_agent-pocket._tcp` with a runtime identifier such as `hermes` or `openclaw` and the development `pair_dev` pairing code. If the advertised code was already used, Agent Pocket refreshes `/mobile/v1/pairing/dev` and retries with the current local QA code.
+The mock bridge publishes `_agent-pocket._tcp` with a runtime identifier such as `hermes` or `openclaw` and the development `pair_dev` pairing code. If the advertised code was already used, Pocket Agent refreshes `/mobile/v1/pairing/dev` and retries with the current local QA code.
 
 ## 使用真实 Claude API 运行
 
@@ -98,7 +98,7 @@ The key stays on the Mac/runtime side. The iPhone continues to call only `/mobil
 
 The mock bridge can also use a local Hermes API server as a minimal real runtime for image intake, vision skills, and universal intake. This is explicit opt-in only; the default provider remains deterministic fake behavior.
 
-Enable the Hermes API server yourself before starting Kaka. See [Hermes Local Integration Notes](hermes-local-integration-notes.md) for the read-only survey and the Hermes-side settings. Kaka does not modify Hermes config or start/restart Hermes for you.
+Enable the Hermes API server yourself before starting Pocket Agent. See [Hermes Local Integration Notes](hermes-local-integration-notes.md) for the read-only survey and the Hermes-side settings. Pocket Agent does not modify Hermes config or start/restart Hermes for you.
 
 Set only runtime-side environment variables:
 
@@ -124,16 +124,16 @@ For LAN testing, combine `--provider hermes` with the same `--host 0.0.0.0`, `--
 
 The key stays on the Mac/runtime side. The iPhone continues to call only `/mobile/v1`; pairing payloads, capabilities, task results, QA status, logs, and Recall data must never include `KAKA_HERMES_API_KEY`.
 
-Do not point Kaka at the Hermes dashboard or raw proxy. `127.0.0.1:9120` is the web dashboard, not the agent API. `127.0.0.1:8645` is the `hermes proxy` raw upstream proxy, not the Kaka provider target.
+Do not point Pocket Agent at the Hermes dashboard or raw proxy. `127.0.0.1:9120` is the web dashboard, not the agent API. `127.0.0.1:8645` is the `hermes proxy` raw upstream proxy, not the Pocket Agent provider target.
 
 ## First iPhone Connection
 
 The first-run connection flow is user-initiated:
 
-1. Start Hermes, OpenClaw, or the compatible Mobile Bridge on the Mac. For normal users this should be a visible **Kaka Mobile Bridge** enable/start control inside the runtime, not a pasted terminal command.
-2. Open Kaka on iPhone.
+1. Start Hermes, OpenClaw, or the compatible Mobile Bridge on the Mac. For normal users this should be a visible **Pocket Agent Mobile Bridge** enable/start control inside the runtime, not a pasted terminal command.
+2. Open Pocket Agent on iPhone.
 3. Tap **Connect** to begin Bonjour discovery. This is when iOS may ask for Local Network permission.
-4. If Kaka finds one or more local runtimes, confirm the displayed Mac card to exchange the one-time pairing code for a mobile token.
+4. If Pocket Agent finds one or more local runtimes, confirm the displayed Mac card to exchange the one-time pairing code for a mobile token.
 5. If discovery finds nothing, scan the pairing QR shown by the Mac bridge.
 6. Use manual endpoint entry only as a troubleshooting fallback.
 
@@ -191,7 +191,7 @@ preview JSON, logs, pairing payloads, `/mobile/v1` responses, and SQLite.
 
 For daily iPhone testing through a local Hermes API server, enable the Hermes API
 server manually first. Use [Hermes Local Integration Notes](hermes-local-integration-notes.md)
-as the setup reference; Kaka and Runtime Kit do not start Hermes, edit Hermes
+as the setup reference; Pocket Agent and Runtime Kit do not start Hermes, edit Hermes
 configuration, or touch the Hermes dashboard/proxy.
 
 Keep the Hermes bearer only in the Mac/runtime environment:
@@ -220,7 +220,7 @@ show `KAKA_HERMES_BASE_URL` and whether `KAKA_HERMES_API_KEY` is set, but it mus
 not print the key value or include it in preview JSON, logs, pairing payloads,
 `/mobile/v1` responses, or SQLite.
 
-These commands are developer diagnostics. The product goal is to hide them behind a Hermes/OpenClaw **Kaka Mobile Bridge** toggle with **Show QR**, **Stop**, and token revocation controls. Install must not auto-start a bridge; LAN and Bonjour exposure must be explicit.
+These commands are developer diagnostics. The product goal is to hide them behind a Hermes/OpenClaw **Pocket Agent Mobile Bridge** toggle with **Show QR**, **Stop**, and token revocation controls. Install must not auto-start a bridge; LAN and Bonjour exposure must be explicit.
 
 ## Development Pairing Payload
 
@@ -453,7 +453,7 @@ If Xcode says a device runtime is not installed while `xcrun devicectl list devi
 
 ## Connection Persistence
 
-After a successful manual connection, QR scan, or Bonjour pairing, Agent Pocket stores the bridge endpoint and mobile bearer token in Keychain. On launch it verifies the saved runtime before showing the capture flow. If there is no saved connection, it does not search the local network until the user taps Connect. If the saved endpoint is offline, the app shows the offline recovery state so the user can retry discovery or scan a fresh QR code.
+After a successful manual connection, QR scan, or Bonjour pairing, Pocket Agent stores the bridge endpoint and mobile bearer token in Keychain. On launch it verifies the saved runtime before showing the capture flow. If there is no saved connection, it does not search the local network until the user taps Connect. If the saved endpoint is offline, the app shows the offline recovery state so the user can retry discovery or scan a fresh QR code.
 
 If the runtime revokes the token, the app clears the saved connection during restore and returns to the connection flow. To pair with a different runtime, use the connected workspace's change-runtime control.
 
@@ -465,7 +465,7 @@ On the results screen, tap Download Selected before saving or sharing. The app d
 
 The Phase 1 share action should use the iOS system share sheet with the selected image and generated caption. Direct WeChat, WeChat Moments, Xiaohongshu, and X SDK/API posting is a later enhancement, not a first-version blocker.
 
-Camera capture uses the system iOS camera sheet on devices with a camera. On simulators or Macs without a camera, Agent Pocket shows a recoverable message and keeps the library picker available.
+Camera capture uses the system iOS camera sheet on devices with a camera. On simulators or Macs without a camera, Pocket Agent shows a recoverable message and keeps the library picker available.
 
 ## Legacy Optional OpenAI Images Adapter
 

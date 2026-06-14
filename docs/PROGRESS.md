@@ -1,8 +1,54 @@
-# Kaka 开发进度日志
+# Pocket Agent 开发进度日志
 
 倒序追加。每条 ≤10 行:日期、轨道/里程碑、做了什么、验证方式、遗留问题。章程见 `docs/KAKA-DEVELOPMENT-CHARTER-2026-06-13.md`。
 
 ---
+
+## 2026-06-14 · UI/UX QA · Local Agent Lens polish
+
+- 用 XcodeBuildMCP 在 iPhone 17 Pro Max(iOS 26.5)和 iPhone 16e(iOS 26.1)做 Local Agent Lens / Quiet Lens 系统化 Simulator QA;iPhone 16 / 16 Plus 模拟器未安装。
+- 一对一修复:Hub 首屏 tab bar 遮挡、Voice 暗色导航标题、Scanner Simulator/中文状态、Video Intake 暗色禁用控件对比度、相机权限中文 Pocket Agent 文案。
+- 新增测试覆盖 Scanner copy、Voice dark navigation chrome、dark control contrast、Capture initial layout policy;QA receipt:`docs/qa-receipts/pocket-agent-ui-ux-qa-20260614/`。
+- 验证:`swift test` 453 passed; `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=runtime-kit:mock_bridge python3 -m pytest -p no:cacheprovider runtime-kit/tests mock_bridge/tests photo-pack/tests ios/tests -q` 653 passed; `git diff --check`; XcodeBuildMCP `build_run_sim` succeeded on iPhone 17 Pro Max。
+- 遗留:Simulator 不能验证真实扫码、VisionKit 文档扫描、麦克风录音、相机录制视频和 Dynamic Island 真机表现;iPhone 16e 首次手动保存凭证曾失败一次、重试成功,需真机回归关注。
+
+---
+
+## 2026-06-14 · Product Rename · Pocket Agent
+
+- 项目用户可见名称正式改为 **Pocket Agent**;同步 README/中文 README 链接、PRODUCT、AGENTS、开发章程、Mobile Bridge API、setup/privacy、Runtime Kit/host package 文案、mock bridge QA 文案和 iOS display/permission strings。
+- 保留兼容标识:`AgentPocket` 模块/target、`KakaInboxItem`、`KakaShareExtension` 路径、`group.dev.kartz.Kaka`、`kaka_mobile_runtime_kit`、旧 host adapter 路径和 legacy pairing error 输入。
+- GitHub About 已更新为:`Pocket Agent: local-first iPhone front end for user-owned agent runtimes / 本地优先的 iPhone 本地智能体入口`;仓库 slug 未改。
+- 验证:`swift test` 447 passed; `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=runtime-kit:mock_bridge python3 -m pytest -p no:cacheprovider runtime-kit/tests mock_bridge/tests photo-pack/tests ios/tests -q` 653 passed; `git diff --check`; XcodeBuildMCP `build_sim -skipMacroValidation` succeeded on iPhone 17 / iOS 26.5。
+- 遗留:若后续要改 repo slug、bundle id、App Group、target/path/type names,需要单独迁移计划和兼容策略。
+
+---
+
+## 2026-06-13 · QA · Simulator UI/UX sweep
+
+- 用 XcodeBuildMCP 在 iPhone 16e fresh install 和 iPhone 17 connected runtime 两个模拟器上跑系统化 UI/UX QA。
+- 覆盖:first pairing、connected Lens Hub、Scanner、Document Scan、Video Intake、Voice、Inbox、Recall、Activity、connected runtime sheet。
+- QA receipt:`docs/qa-receipts/simulator-ui-ux-20260613-185716/`,含 10 张截图、构建日志和设计 review findings。
+- 主要发现:Hub 底部 tile 被 tab bar 轻微遮挡、Scanner 缺少明显关闭、Voice/Video/Activity 有中文环境英文残留、连接 sheet 文案仍偏照片场景。
+- 验证:XcodeBuildMCP `build_run_sim` 在 iPhone 16e/iPhone 17 均成功;本轮未改代码。
+- 遗留:真机 iPhone 16 Plus 仍需补 Scanner、Document Scan、Video、Share Extension、Action Button、Dynamic Island 硬件/系统能力 QA。
+
+## 2026-06-13 · Simulator UI/UX QA · 一对一修复闭环
+
+- 基于 `docs/qa-receipts/simulator-ui-ux-20260613-185716/` 的 8 条问题逐项修复:Hub 底部遮挡、Scanner 关闭入口、Voice/Video 中文文案、Activity `Completed.`、Recall 浅色空状态、连接页照片专用文案和隐私提示弱化。
+- Hub 紧凑高度布局改为更短预览、更密 Lens tiles,并在 Hub 与拍照控制区之间加空白缓冲,避免 iPhone 17 浮动 Tab bar 遮挡入口或透出下一区文字。
+- Scanner sheet 增加明确 Close;Video Intake/Voice sheet 增加中文 presentation;Activity 卡片本地化常见状态消息;连接页改为 “接收手机动作 / 打开 Lens / 输入与密钥边界”。
+- QA 证据:`docs/qa-receipts/simulator-ui-ux-fixes-20260613-192854/`,含一对一修复表和 7 张 iPhone 17 Simulator 截图。
+- 验证:`swift test --filter ConnectScreenCopyTests`; `swift test --filter ConnectionStateTests`; `swift test --filter VoiceCapturePresentationTests`; `swift test --filter LocalAgentLensPresentationTests`; `swift test` 447 passed; `git diff --check`; XcodeBuildMCP `build_run_sim -skipMacroValidation` succeeded。
+- 遗留:Simulator 无法验证真实摄像头扫码、VisionKit 文档扫描、麦克风录音和相机录制视频;仍需 iPhone 16 Plus 真机补硬件路径 QA。
+
+## 2026-06-13 · Docs · GitHub 介绍与英文 README 更新
+
+- 更新 GitHub 仓库 About 描述为中英双语短介绍:`Local-first iPhone front end for user-owned agent runtimes / 本地优先的 iPhone 智能体入口`。
+- 更新 `README.md`,把当前主线改为 Local Agent Lens,覆盖 Scan、Document、Video、Record、Inbox、Activity、App Intents、Live Activity/Dynamic Island 等现状。
+- README 英文版顶部仅保留中文版链接 `[简体中文](README.zh-CN.md)`,中文版 README 继续反向链接英文版。
+- 验证:`git diff --check`; `gh repo view MightyKartz/kaka --json description`。
+- 遗留:本次仅更新公开介绍/README 文档,未改代码。
 
 ## 2026-06-13 · M1 Local Agent Lens · Quiet Lens UI/UX 落地
 

@@ -108,7 +108,7 @@ public struct TaskInboxView: View {
                 .tint(task.requiresUserAction ? Color.orange : AgentPocketDesignTokens.accentStrong)
 
             if let message = task.message, message.isEmpty == false {
-                Text(message)
+                Text(localizedTaskMessage(message))
                     .font(.footnote)
                     .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -178,6 +178,25 @@ public struct TaskInboxView: View {
             return "等待确认"
         default:
             return rawValue.replacingOccurrences(of: "_", with: " ")
+        }
+    }
+
+    private func localizedTaskMessage(_ message: String) -> String {
+        guard language == .chinese else {
+            return message
+        }
+
+        switch message {
+        case "Completed.":
+            return "已完成。"
+        case "Cancelled.", "Canceled.":
+            return "已取消。"
+        case "Waiting for approval.":
+            return "等待确认。"
+        case "Running.":
+            return "运行中。"
+        default:
+            return message
         }
     }
 }

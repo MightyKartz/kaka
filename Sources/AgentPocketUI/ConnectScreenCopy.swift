@@ -28,7 +28,7 @@ public enum AppLanguage: String, CaseIterable, Identifiable, Sendable {
 }
 
 public struct ConnectScreenCopy: Equatable, Sendable {
-    public let appName = "Kaka"
+    public let appName = "Pocket Agent"
     public let connectTitle: String
     public let connectSubtitle: String
     public let deviceName: String
@@ -73,7 +73,7 @@ public struct ConnectScreenCopy: Equatable, Sendable {
             trustBadgeTitles = state.localizedTrustBadgeTitles(language: language)
             primaryButtonTitle = state.localizedPrimaryButtonTitle(language: language)
             scanCodeTitle = state == .scanning ? "手动输入" : "扫描二维码"
-            privacyLine = "照片和密钥留在你的设备与本机运行时"
+            privacyLine = "输入留在你的设备，密钥留在本机运行时"
             settingsTitle = "项目设置"
             runtimeTitle = "本机运行时"
             runtimeDescription = "管理当前连接和信任状态。"
@@ -103,7 +103,7 @@ public struct ConnectScreenCopy: Equatable, Sendable {
             trustBadgeTitles = state.localizedTrustBadgeTitles(language: language)
             primaryButtonTitle = state.localizedPrimaryButtonTitle(language: language)
             scanCodeTitle = state == .scanning ? "Enter Manually" : "Scan Code"
-            privacyLine = "Photos and secrets stay on your devices and local runtime"
+            privacyLine = "Inputs stay on your device; secrets stay in the local runtime"
             settingsTitle = "Project Settings"
             runtimeTitle = "Local Runtime"
             runtimeDescription = "Current pairing and trust."
@@ -234,9 +234,9 @@ private extension ConnectionState {
     func localizedConnectSubtitle(language: AppLanguage, connectedRuntime: ConnectedRuntime?) -> String {
         switch (self, language) {
         case (.connected, .chinese):
-            return "\(connectedRuntime?.displayName ?? "本机智能体") 已准备好处理照片。"
+            return "\(connectedRuntime?.displayName ?? "本机智能体") 已准备好接收手机动作。"
         case (.connected, .english):
-            return "\(connectedRuntime?.displayName ?? "Local agent") is ready for photo edits."
+            return "\(connectedRuntime?.displayName ?? "Local agent") is ready for phone actions."
         case (.scanning, .chinese):
             return "对准本机智能体显示的配对二维码。"
         case (.scanning, .english):
@@ -250,9 +250,9 @@ private extension ConnectionState {
         case (.restoringSavedConnection(let displayName), .english):
             return "Checking \(displayName) with your saved pairing."
         case (.testing, .chinese):
-            return "正在检查健康状态和照片处理能力。"
+            return "正在检查健康状态和移动端能力。"
         case (.testing, .english):
-            return "Checking health and photo editing capabilities."
+            return "Checking health and mobile capabilities."
         case (.savedConnectionOffline(let displayName), .chinese):
             return "\(displayName) 的配对还在。请先在 Mac 上启动 Hermes/OpenClaw 或 runtime-kit，再回到这里重新连接。"
         case (.savedConnectionOffline(let displayName), .english):
@@ -262,17 +262,17 @@ private extension ConnectionState {
         case (.offline, .english):
             return "Make sure your local agent is running and reachable from this iPhone."
         case (.localNetworkPermissionRequired, .chinese):
-            return "允许 Kaka 在本地网络中发现你的智能体。"
+            return "允许 Pocket Agent 在本地网络中发现你的智能体。"
         case (.localNetworkPermissionRequired, .english):
-            return "Allow Kaka to find your local agent on the local network."
+            return "Allow Pocket Agent to find your local agent on the local network."
         case (.unauthorized, .chinese):
             return "请在本机智能体里生成新的移动端配对码。"
         case (.unauthorized, .english):
             return "Create a new mobile pairing code in your local agent, then try again."
         case (.invalidCertificate, .chinese):
-            return "请使用可信 HTTPS 证书、Tailscale HTTPS 或本地开发模式。"
+            return "请使用可信 HTTPS 证书，或切换到本地开发连接方式。"
         case (.invalidCertificate, .english):
-            return "Use a trusted HTTPS certificate, Tailscale HTTPS, or local developer mode."
+            return "Use a trusted HTTPS certificate or local developer mode."
         case (.missingPhotoEdit, .chinese):
             return "运行时可访问，但照片处理能力还未安装。"
         case (.missingPhotoEdit, .english):
@@ -282,9 +282,9 @@ private extension ConnectionState {
         case (.failed(let message), .english):
             return message
         case (.idle, .chinese):
-            return "首次连接需要扫描 Mac 上的配对二维码。之后 Kaka 会自动连接。"
+            return "首次连接需要扫描 Mac 上的配对二维码。之后 Pocket Agent 会自动连接。"
         case (.idle, .english):
-            return "Scan the pairing QR on your Mac once. Kaka will reconnect automatically after that."
+            return "Scan the pairing QR on your Mac once. Pocket Agent will reconnect automatically after that."
         case (_, .chinese):
             return "发现附近运行时，确认后即可拍照成片。"
         case (_, .english):
@@ -303,7 +303,7 @@ private extension ConnectionState {
         case "Pairing code already used. Scan a new QR code.":
             return "这个配对二维码已经使用过。请在本机运行时生成新的二维码。"
         case "QR code is not a Kaka pairing code.":
-            return "这不是 Kaka 配对二维码。请扫描本机运行时显示的 Kaka Mobile Bridge 二维码。"
+            return "这不是 Pocket Agent 配对二维码。请扫描本机运行时显示的 Pocket Agent Mobile Bridge 二维码。"
         case "No local agent runtime found. Scan a pairing QR or enter an endpoint.":
             return "没有发现本机智能体。请扫描配对二维码，或手动输入本机地址。"
         case "Could not search the local network. Check Local Network permission and try again.":
@@ -346,9 +346,9 @@ private extension ConnectionState {
         case (.testing, .english):
             return "Testing..."
         case (.connected, .chinese):
-            return "开始拍摄"
+            return "打开 Lens"
         case (.connected, .english):
-            return "Start Shooting"
+            return "Open Lens"
         case (.localNetworkPermissionRequired, .chinese):
             return "打开设置"
         case (.localNetworkPermissionRequired, .english):

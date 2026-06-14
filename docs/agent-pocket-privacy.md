@@ -1,8 +1,8 @@
-# Agent Pocket Privacy
+# Pocket Agent Privacy
 
-Agent Pocket is a thin client. The phone owns capture, upload, progress, review, save, and share. The user-owned compatible runtime, such as Hermes, OpenClaw, or a Mobile Bridge sidecar, owns model/provider credentials, crop planning, recipe generation, local rendering, optional upscale, workflow execution, memory, retention, and approvals.
+Pocket Agent is a thin client. The phone owns capture, upload, progress, review, save, and share. The user-owned compatible runtime, such as Hermes, OpenClaw, or a Mobile Bridge sidecar, owns model/provider credentials, crop planning, recipe generation, local rendering, optional upscale, workflow execution, memory, retention, and approvals.
 
-The broader Pocket Agents direction keeps the same boundary. The phone can collect share-sheet items, screenshots, explicitly pasted text, voice input, and permissioned context snapshots, but those inputs must remain user-visible and task-scoped unless the user explicitly saves them to Recall.
+The broader Pocket Agent direction keeps the same boundary. The phone can collect share-sheet items, screenshots, explicitly pasted text, voice input, and permissioned context snapshots, but those inputs must remain user-visible and task-scoped unless the user explicitly saves them to Recall.
 
 ## Photo Handling
 
@@ -20,7 +20,7 @@ The broader Pocket Agents direction keeps the same boundary. The phone can colle
 ## Credentials
 
 - Mobile bearer tokens are scoped to Mobile Bridge access and must be revocable.
-- Agent Pocket stores saved runtime connection credentials only in iOS Keychain via `StoredConnection`; provider credentials are never stored on the phone.
+- Pocket Agent stores saved runtime connection credentials only in iOS Keychain via `StoredConnection`; provider credentials are never stored on the phone.
 - If the runtime revokes a mobile token, restore-on-launch clears the saved Keychain entry and requires pairing again.
 - Provider API keys remain on the runtime side.
 - The iOS app must never contain OpenAI, ComfyUI, cloud, tunnel, or model-provider credentials.
@@ -31,7 +31,7 @@ Production pairing state is runtime-owned. The runtime may keep pairing sessions
 P3.10a keeps the same ownership boundary while adding real local HTTPS serving.
 The runtime may read host-owned certificate chain and private key files only to
 wrap the local Mobile Bridge socket after explicit runtime-side launch
-configuration. Kaka must not generate certificates, install trust, modify
+configuration. Pocket Agent must not generate certificates, install trust, modify
 Keychain, manage renewal, or copy certificate/private-key paths into phone-bound
 responses.
 
@@ -52,7 +52,7 @@ Context Snapshot content remains task-scoped input. It must not be written into 
 
 Export and deletion are explicit user-triggered actions. Export should return only the Recall metadata, summaries, timestamps, and provenance retained by the runtime. Deletion receipts should identify content and retrieval-index records removed by the runtime where the runtime controls those records.
 
-Semantic Recall search is also runtime-owned. Kaka may request `POST /mobile/v1/recall/search` and display ranked Recall items plus a user-safe match reason. Runtime Kit now supports deterministic local scoring, an explicit provider-backed retrieval adapter boundary, and a read-only production retrieval packaging readiness artifact. Raw embeddings, retrieval-index rows, provider endpoints, hidden prompts, provider keys, bearer tokens, SQLite paths, raw provider responses, and unrelated task logs must not be returned to the phone or included in Recall export. Runtime-side provider candidate requests must send only query, limit, sanitized Recall item fields, and allowlisted provenance.
+Semantic Recall search is also runtime-owned. Pocket Agent may request `POST /mobile/v1/recall/search` and display ranked Recall items plus a user-safe match reason. Runtime Kit now supports deterministic local scoring, an explicit provider-backed retrieval adapter boundary, and a read-only production retrieval packaging readiness artifact. Raw embeddings, retrieval-index rows, provider endpoints, hidden prompts, provider keys, bearer tokens, SQLite paths, raw provider responses, and unrelated task logs must not be returned to the phone or included in Recall export. Runtime-side provider candidate requests must send only query, limit, sanitized Recall item fields, and allowlisted provenance.
 
 `GET /mobile/v1/runtime/settings` may show whether the local Recall/task store and semantic Recall are enabled, and whether retrieval is `local_deterministic` or `provider_backed`, but it is status/control metadata from the runtime. The iPhone must not become the owner of persistence settings, provider endpoints, provider keys, or the SQLite path.
 
@@ -62,7 +62,7 @@ Hermes/OpenClaw Plugin or Skill installation details are also runtime-side
 controls. Package manifests, private adapter command paths, install/update
 channels, signature refs, conformance reports, raw logs, process IDs, Codex
 developer plugin/skill source roots, and user-home Codex install paths must not
-be exposed to Kaka iPhone. The phone should only see `/mobile/v1` pairing,
+be exposed to Pocket Agent iPhone. The phone should only see `/mobile/v1` pairing,
 coarse connection status, and user-safe runtime settings summaries.
 The phone must not receive, cache, display, or invoke
 `hermes-kaka-host-api` / `openclaw-kaka-host-api`; those names, if present, are
@@ -73,17 +73,17 @@ developer install paths, validation receipts, and release-gate evidence stay on
 the host/runtime side and must not become phone-visible onboarding, runtime
 settings payloads, Recall export data, search responses, or task logs.
 
-## Pocket Agents Inputs
+## Pocket Agent Inputs
 
-Future Pocket Agents inputs must follow explicit-user-intent rules:
+Future Pocket Agent inputs must follow explicit-user-intent rules:
 
-- **Share to Kaka**: content arrives because the user selected Kaka from the system share sheet or action sheet.
-- **Paste**: pasteboard content is read only after a visible paste or submit action. Kaka must not poll the general pasteboard in the background. P3.36b Explicit Paste-to-Inbox Courier reads text once from a user-triggered Inbox Paste control, creates a pending text or http/https link item, and still requires visible `Send`; it does not auto-submit, auto-Recall, fetch URLs, import binary/file pasteboard payloads, or add a new Mobile Bridge endpoint.
-- **Voice**: B.1 uses real push-to-talk with on-device transcription. Kaka records only while the user explicitly presses the visible control, transcribes with iOS Speech, lets the user edit the transcript, and sends text through Mobile Bridge. A returned summary may be read aloud by the phone. P3.30 Voice-to-Inbox Draft reuses this same boundary: the reviewed transcript becomes a pending text Inbox item, and the user must still tap `Send`. P3.32 Inbox Voice Instruction also reuses it: the reviewed transcript is saved into an existing `KakaInboxItem.note` and is submitted only after visible Inbox `Send` as text. P3.33 Inbox Instruction Polish keeps the same boundary while adding local edit, clear, and send-preview UI before `Send`. P3.34 Inbox Instruction Templates adds deterministic local chips that write template text into `KakaInboxItem.note`; chip taps do not submit runtime work. P3.36a Inbox Voice Capture Context Copy clarifies local save copy for drafts and instructions without changing this behavior. Raw microphone audio is not uploaded, and always-on background listening, hidden transcription, automatic runtime submission, and automatic Recall writes are out of scope.
+- **Share to Pocket Agent**: content arrives because the user selected Pocket Agent from the system share sheet or action sheet.
+- **Paste**: pasteboard content is read only after a visible paste or submit action. Pocket Agent must not poll the general pasteboard in the background. P3.36b Explicit Paste-to-Inbox Courier reads text once from a user-triggered Inbox Paste control, creates a pending text or http/https link item, and still requires visible `Send`; it does not auto-submit, auto-Recall, fetch URLs, import binary/file pasteboard payloads, or add a new Mobile Bridge endpoint.
+- **Voice**: B.1 uses real push-to-talk with on-device transcription. Pocket Agent records only while the user explicitly presses the visible control, transcribes with iOS Speech, lets the user edit the transcript, and sends text through Mobile Bridge. A returned summary may be read aloud by the phone. P3.30 Voice-to-Inbox Draft reuses this same boundary: the reviewed transcript becomes a pending text Inbox item, and the user must still tap `Send`. P3.32 Inbox Voice Instruction also reuses it: the reviewed transcript is saved into an existing `KakaInboxItem.note` and is submitted only after visible Inbox `Send` as text. P3.33 Inbox Instruction Polish keeps the same boundary while adding local edit, clear, and send-preview UI before `Send`. P3.34 Inbox Instruction Templates adds deterministic local chips that write template text into `KakaInboxItem.note`; chip taps do not submit runtime work. P3.36a Inbox Voice Capture Context Copy clarifies local save copy for drafts and instructions without changing this behavior. Raw microphone audio is not uploaded, and always-on background listening, hidden transcription, automatic runtime submission, and automatic Recall writes are out of scope.
 - **Result Review Recall provenance**: P3.37 keeps completed Inbox result provenance phone-safe and visible. The result banner may show source surface and whether Context Snapshot was selected; explicit Recall actions can include the existing runtime task ID and source Inbox item ID. This does not remember anything automatically, expose raw Inbox payloads, add a Recall endpoint, or move Recall storage away from the runtime.
 - **Screenshot Q&A**: screenshots are treated as sensitive because they may include private messages, account data, or other apps' content.
 - **Files and PDFs**: file contents should be uploaded only after the user sees what is being submitted. P3.38 Explicit Files-to-Inbox Import keeps file access user-selected and one-shot: a visible Files picker can copy one supported PDF or image into the Inbox payload store, but it does not scan folders, upload immediately, submit runtime work, write Recall, or add a Mobile Bridge endpoint before the user taps visible `Send`.
-- **Pending Inbox discard**: P3.39 lets the user discard one pending Inbox item before `Send`; P3.40 gates that local action behind a visible confirmation dialog. Confirm removes only Kaka's local Inbox record and any Kaka-copied App Group payload through the existing store removal path. Cancel or dismissal leaves the pending item and payload untouched. This is not Recall deletion, runtime task cancellation, retention purge, source-file deletion from Files/Photos, or a Mobile Bridge request.
+- **Pending Inbox discard**: P3.39 lets the user discard one pending Inbox item before `Send`; P3.40 gates that local action behind a visible confirmation dialog. Confirm removes only Pocket Agent's local Inbox record and any Pocket Agent-copied App Group payload through the existing store removal path. Cancel or dismissal leaves the pending item and payload untouched. This is not Recall deletion, runtime task cancellation, retention purge, source-file deletion from Files/Photos, or a Mobile Bridge request.
 - **Inbox action feedback**: P3.41 makes existing local Inbox failure/progress state visible in the main Inbox. It does not retry failed work, cancel runtime tasks, submit automatically, write or delete Recall, add a Mobile Bridge request, or expose provider/runtime secrets.
 - **Pending Inbox review details**: P3.42 lets the user expand local read-only details for a pending Inbox item before `Send`. It displays only existing local metadata and bounded text/URL excerpts, such as source, type, file name/type, copied-payload state, saved instruction, route, locale/profile when present, and Context Snapshot inclusion state. It must not display raw `relativeFilePath`, read payload bytes, inspect source files, fetch URLs, parse PDFs/OCR, summarize content, submit runtime work, write Recall, expose raw payload dumps, scan folders, delete source files, or add Mobile Bridge requests.
 
@@ -102,7 +102,7 @@ Allowed fields for an MVP:
 - one-shot current motion state, such as stationary, walking, running, driving, or unknown
 - network and battery state
 - optional next-30-minute calendar availability, not full calendar contents by default
-- current Kaka conversation context
+- current Pocket Agent conversation context
 
 Rules:
 
@@ -126,7 +126,7 @@ Rules:
 
 Voice interaction should be visible and controllable:
 
-- The UI should show when Kaka is listening, transcribing, sending, or speaking.
+- The UI should show when Pocket Agent is listening, transcribing, sending, or speaking.
 - The transcript should remain visible before high-impact actions.
 - Voice-to-Inbox should create only a pending Inbox item from the reviewed transcript; creating the draft must not submit to runtime or save to Recall.
 - Inbox Voice Instruction should update only the selected existing Inbox item's
@@ -142,17 +142,17 @@ Voice interaction should be visible and controllable:
 
 ## System Surfaces
 
-App Intents, Shortcuts, Siri, Spotlight, widgets, Action Button flows, and Live Activity must stay thinner than the app. They can help the user get back to visible Kaka surfaces, but they must not become hidden task controllers.
+App Intents, Shortcuts, Siri, Spotlight, widgets, Action Button flows, and Live Activity must stay thinner than the app. They can help the user get back to visible Pocket Agent surfaces, but they must not become hidden task controllers.
 
-The E.1 App Intents surface is allowlisted to opening Inbox, showing Tasks, reviewing an Inbox item, or reviewing a runtime task. These intents write a small app handoff and open Kaka. They do not submit content, approve tasks, cancel tasks, remember Recall items, collect Context Snapshot data, read pasteboard content, start microphone/camera capture, configure providers, or change runtime settings in the background.
+The E.1 App Intents surface is allowlisted to opening Inbox, showing Tasks, reviewing an Inbox item, or reviewing a runtime task. These intents write a small app handoff and open Pocket Agent. They do not submit content, approve tasks, cancel tasks, remember Recall items, collect Context Snapshot data, read pasteboard content, start microphone/camera capture, configure providers, or change runtime settings in the background.
 
-Action Button support reuses Kaka's foreground App Intent handoff and only opens visible Inbox or Tasks review surfaces. It does not submit inbox items, approve or cancel runtime tasks, remember Recall items, collect Context Snapshot data, start microphone or camera capture, configure providers, or change runtime settings in the background.
+Action Button support reuses Pocket Agent's foreground App Intent handoff and only opens visible Inbox or Tasks review surfaces. It does not submit inbox items, approve or cancel runtime tasks, remember Recall items, collect Context Snapshot data, start microphone or camera capture, configure providers, or change runtime settings in the background.
 
 Inbox pending discard remains a visible, confirmed in-app row action only. App Intents, Shortcuts, widgets, Action Button, and Live Activity must not discard Inbox items in the background.
 
 Live Activity payloads are also allowlisted. They may contain only task ID, a client-generated generic title, phase, and whether approval is needed. They must not copy runtime-controlled task titles and must not contain bearer tokens, endpoint URLs, provider keys, hidden prompts, task logs, approval notes, asset bytes, transcripts, Context Snapshot fields, Recall content, embeddings, retrieval-index rows, provider responses, or runtime store paths.
 
-The WidgetKit Live Activity presentation consumes only that phone-safe projection for Lock Screen and Dynamic Island UI. It does not expand the Mobile Bridge API, does not show runtime task messages or progress, and does not approve or cancel tasks outside the visible Kaka app.
+The WidgetKit Live Activity presentation consumes only that phone-safe projection for Lock Screen and Dynamic Island UI. It does not expand the Mobile Bridge API, does not show runtime task messages or progress, and does not approve or cancel tasks outside the visible Pocket Agent app.
 
 ## Recall
 
@@ -166,7 +166,7 @@ Required controls:
 
 Current Recall exposes `POST /mobile/v1/recall/actions`, queryable `GET /mobile/v1/recall/items`, semantic `POST /mobile/v1/recall/search`, `GET /mobile/v1/recall/export`, and `DELETE /mobile/v1/recall/items/{item_id}` with deletion receipts for runtime-owned retrieval indexes. P3.20 labels Recall export as `kaka.recall_export.v1` and attaches an artifact policy proving it is JSON-first, user-readable, and not a database dump. `remember` and `forget` require visible confirmation in the phone UI before submission; `use_once` succeeds without creating a persisted item.
 
-Recall records should keep provenance so the user can understand why an item exists, where it came from, and which task created it. The iPhone offers browsing, search, delete, and export entry points, while the runtime owns storage and index deletion. Searching Recall is user-initiated from Kaka and should not trigger background profiling; export must be explicit, visible, and limited to user-owned Recall item IDs, summaries, created timestamps, and provenance. Export must not include embeddings, retrieval-index rows, provider endpoints or keys, bearer/mobile tokens, SQLite paths, hidden prompts, raw provider responses, unrelated task logs, raw asset bytes, or unconfirmed Context Snapshot content. Production persistence remains the Runtime Kit/Hermes/OpenClaw side of the boundary, not an iPhone database.
+Recall records should keep provenance so the user can understand why an item exists, where it came from, and which task created it. The iPhone offers browsing, search, delete, and export entry points, while the runtime owns storage and index deletion. Searching Recall is user-initiated from Pocket Agent and should not trigger background profiling; export must be explicit, visible, and limited to user-owned Recall item IDs, summaries, created timestamps, and provenance. Export must not include embeddings, retrieval-index rows, provider endpoints or keys, bearer/mobile tokens, SQLite paths, hidden prompts, raw provider responses, unrelated task logs, raw asset bytes, or unconfirmed Context Snapshot content. Production persistence remains the Runtime Kit/Hermes/OpenClaw side of the boundary, not an iPhone database.
 
 P3.9 retention policy controls keep that same ownership model. The runtime host
 may show and configure input asset, output asset, and task-history retention

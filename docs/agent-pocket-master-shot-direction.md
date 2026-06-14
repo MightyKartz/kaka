@@ -1,8 +1,8 @@
-# Agent Pocket Master Shot Direction
+# Pocket Agent Master Shot Direction
 
 ## Product Thesis
 
-Agent Pocket should not become a generic visual assistant or another closed AI photo editor. The strongest first product is a private-runtime **Master Shot Agent**:
+Pocket Agent should not become a generic visual assistant or another closed AI photo editor. The strongest first product is a private-runtime **Master Shot Agent**:
 
 1. iPhone captures or selects a real photo.
 2. The photo goes to the user's compatible local runtime through Mobile Bridge.
@@ -17,15 +17,15 @@ This keeps the phone simple, protects provider keys, and preserves faces, produc
 
 Chinese positioning:
 
-> Agent Pocket：把 iPhone 变成你私有智能体的摄影成片入口。
+> Pocket Agent：把 iPhone 变成你私有智能体的摄影成片入口。
 
 English positioning:
 
-> Agent Pocket turns your iPhone into a private-agent camera that produces share-ready master shots.
+> Pocket Agent turns your iPhone into a private-agent camera that produces share-ready master shots.
 
 ## Why This Is The Wedge
 
-General visual assistants already exist in system products and chat apps. Generic mobile clients for local AI also exist. Agent Pocket's useful wedge is narrower and more concrete:
+General visual assistants already exist in system products and chat apps. Generic mobile clients for local AI also exist. Pocket Agent's useful wedge is narrower and more concrete:
 
 - **Not generic Q&A:** the first job is "make this photo look professionally finished."
 - **Not cloud-first AI retouching:** the user-owned runtime owns model calls, rendering, assets, and retention.

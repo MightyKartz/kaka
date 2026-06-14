@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://kaka.local/schemas/host-private-adapter-response.schema.json",
-  "title": "Kaka Runtime Host Private Adapter Response",
+  "title": "Pocket Agent Runtime Host Private Adapter Response",
   "type": "object",
   "additionalProperties": false,
   "required": [

@@ -40,7 +40,7 @@ public struct ResultScreenPresentation: Equatable, Sendable {
         beforeLabel = language == .chinese ? "原图" : comparison.beforeLabel
         afterLabel = Self.localizedVariantTitle(comparison.afterLabel, language: language)
         afterDetail = Self.localizedAfterDetail(comparison.afterDetail, language: language)
-        summaryTitle = language == .chinese ? "Kaka 做了什么" : "What Kaka made"
+        summaryTitle = language == .chinese ? "Pocket Agent 做了什么" : "What Pocket Agent made"
         summaryMessage = Self.summaryMessage(
             afterLabel: comparison.afterLabel,
             isDownloaded: comparison.isDownloaded,

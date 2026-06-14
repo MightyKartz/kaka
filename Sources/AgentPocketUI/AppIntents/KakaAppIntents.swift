@@ -250,8 +250,8 @@ public enum KakaSystemDestination: String, AppEnum {
 
 @available(iOS 17.0, macOS 14.0, *)
 public struct OpenKakaSurfaceIntent: AppIntent {
-    public static let title: LocalizedStringResource = "Open Kaka"
-    public static let description = IntentDescription("Open Kaka to a visible surface.")
+    public static let title: LocalizedStringResource = "Open Pocket Agent"
+    public static let description = IntentDescription("Open Pocket Agent to a visible surface.")
     public static let openAppWhenRun = true
 
     @Parameter(title: "Destination")
@@ -276,7 +276,7 @@ public struct OpenKakaSurfaceIntent: AppIntent {
 @available(iOS 17.0, macOS 14.0, *)
 public struct ReviewKakaInboxItemIntent: AppIntent {
     public static let title: LocalizedStringResource = "Review Inbox Item"
-    public static let description = IntentDescription("Open Kaka to review a visible inbox item.")
+    public static let description = IntentDescription("Open Pocket Agent to review a visible inbox item.")
     public static let openAppWhenRun = true
 
     @Parameter(title: "Inbox Item ID")
@@ -304,7 +304,7 @@ public struct ReviewKakaInboxItemIntent: AppIntent {
 @available(iOS 17.0, macOS 14.0, *)
 public struct ReviewKakaRuntimeTaskIntent: AppIntent {
     public static let title: LocalizedStringResource = "Review Runtime Task"
-    public static let description = IntentDescription("Open Kaka to review a visible runtime task.")
+    public static let description = IntentDescription("Open Pocket Agent to review a visible runtime task.")
     public static let openAppWhenRun = true
 
     @Parameter(title: "Task ID")

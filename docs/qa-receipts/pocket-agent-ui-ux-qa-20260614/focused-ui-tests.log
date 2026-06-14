@@ -1,0 +1,95 @@
+Building for debugging...
+[0/6] Write sources
+[1/6] Write swift-version--58304C5D6DBC2206.txt
+[3/8] Compiling AgentPocketUI VoiceCaptureView.swift
+[4/8] Emitting module AgentPocketUI
+[5/11] Compiling AgentPocketUI ImageConversationView.swift
+[6/11] Compiling AgentPocketUI AgentPocketRootView.swift
+[7/11] Compiling AgentPocketUI InboxView.swift
+[8/56] Compiling AgentPocketApp ConnectView.swift
+[9/56] Compiling AgentPocketApp ResultGalleryView.swift
+[10/56] Compiling AgentPocketApp TaskProgressView.swift
+[11/56] Compiling AgentPocketApp EditIntentPickerView.swift
+[12/56] Compiling AgentPocketUITests CaptureLayoutPolicyTests.swift
+[13/56] Compiling AgentPocketUITests CapturePrimaryActionPolicyTests.swift
+[14/56] Compiling AgentPocketUITests CaptureResultAutoreviewPolicyTests.swift
+[15/56] Compiling AgentPocketUITests CaptureScreenPresentationTests.swift
+[16/59] Compiling AgentPocketUITests AgentScanActionPolicyTests.swift
+[17/59] Compiling AgentPocketUITests AgentScannerPresentationTests.swift
+[18/59] Compiling AgentPocketUITests AppIntentPresentationTests.swift
+[19/59] Compiling AgentPocketUITests CameraModeSelectionPolicyTests.swift
+[20/59] Emitting module AgentPocketUITests
+[21/59] Compiling AgentPocketUITests InboxActionFeedbackPresentationTests.swift
+[22/59] Compiling AgentPocketUITests InboxDocumentPayloadLoaderTests.swift
+[23/59] Compiling AgentPocketUITests InboxFileImporterTests.swift
+[24/59] Compiling AgentPocketUITests InboxInstructionPresentationTests.swift
+[25/59] Compiling AgentPocketUITests CaptureAutosubmitPolicyTests.swift
+[26/59] Compiling AgentPocketUITests CaptureCameraAutostartPolicyTests.swift
+[27/59] Compiling AgentPocketUITests CaptureConversationAutoreviewPolicyTests.swift
+[28/59] Compiling AgentPocketUITests CaptureFlowViewModelTests.swift
+[29/59] Compiling AgentPocketUITests PhotoEditSubmitterTests.swift
+[30/59] Compiling AgentPocketUITests PhotoSaveFlowTests.swift
+[31/59] Compiling AgentPocketUITests RecallActionViewModelTests.swift
+[32/59] Compiling AgentPocketUITests RecallBrowseViewModelTests.swift
+[33/59] Compiling AgentPocketUITests ContextSnapshotViewModelTests.swift
+[34/59] Compiling AgentPocketUITests DarkControlContrastTests.swift
+[35/59] Compiling AgentPocketUITests DocumentScanInboxBuilderTests.swift
+[36/59] Compiling AgentPocketUITests ImageConversationViewModelTests.swift
+[37/59] Compiling AgentPocketUITests VideoInboxBuilderTests.swift
+[38/59] Compiling AgentPocketUITests VoiceCapturePresentationTests.swift
+[39/59] Compiling AgentPocketUITests VoiceCaptureViewModelTests.swift
+[40/59] Compiling AgentPocketUITests ResultGalleryViewModelTests.swift
+[41/59] Compiling AgentPocketUITests ResultScreenPresentationTests.swift
+[42/59] Compiling AgentPocketUITests TaskInboxViewModelTests.swift
+[43/59] Compiling AgentPocketUITests UniversalIntakeSubmitterTests.swift
+[44/59] Compiling AgentPocketUITests InboxPendingItemReviewPresentationTests.swift
+[45/59] Compiling AgentPocketUITests InboxViewModelTests.swift
+[46/59] Compiling AgentPocketUITests KakaSkillRouterTests.swift
+[47/59] Compiling AgentPocketUITests LocalAgentLensPresentationTests.swift
+[48/59] Compiling AgentPocketApp AgentPocketAppIntentsPackage.swift
+[49/59] Emitting module AgentPocketApp
+[50/59] Compiling AgentPocketApp AgentPocketApp.swift
+[51/59] Compiling AgentPocketApp CaptureView.swift
+[52/59] Compiling AgentPocketUITests ConnectScreenCopyTests.swift
+[53/59] Compiling AgentPocketUITests ConnectionReadinessPresentationTests.swift
+[54/59] Compiling AgentPocketUITests ConnectionStateTests.swift
+[55/59] Compiling AgentPocketUITests ConnectionViewModelTests.swift
+[55/60] Write Objects.LinkFileList
+[57/60] Linking AgentPocketApp
+[58/60] Applying AgentPocketApp
+[59/60] Linking AgentPocketPackageTests
+Build complete! (5.61s)
+Test Suite 'Selected tests' started at 2026-06-14 09:42:25.189.
+Test Suite 'AgentPocketPackageTests.xctest' started at 2026-06-14 09:42:25.191.
+Test Suite 'AgentScannerPresentationTests' started at 2026-06-14 09:42:25.192.
+Test Case '-[AgentPocketUITests.AgentScannerPresentationTests testScannerCopyIsLocalizedForChinese]' started.
+Test Case '-[AgentPocketUITests.AgentScannerPresentationTests testScannerCopyIsLocalizedForChinese]' passed (0.002 seconds).
+Test Case '-[AgentPocketUITests.AgentScannerPresentationTests testScannerUnavailableCopyExplainsSimulatorFallback]' started.
+Test Case '-[AgentPocketUITests.AgentScannerPresentationTests testScannerUnavailableCopyExplainsSimulatorFallback]' passed (0.000 seconds).
+Test Suite 'AgentScannerPresentationTests' passed at 2026-06-14 09:42:25.194.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'CaptureLayoutPolicyTests' started at 2026-06-14 09:42:25.194.
+Test Case '-[AgentPocketUITests.CaptureLayoutPolicyTests testInitialEmptyCaptureDefersControlsBelowTallFirstViewport]' started.
+Test Case '-[AgentPocketUITests.CaptureLayoutPolicyTests testInitialEmptyCaptureDefersControlsBelowTallFirstViewport]' passed (0.000 seconds).
+Test Case '-[AgentPocketUITests.CaptureLayoutPolicyTests testPreparedCaptureKeepsControlsImmediatelyReachable]' started.
+Test Case '-[AgentPocketUITests.CaptureLayoutPolicyTests testPreparedCaptureKeepsControlsImmediatelyReachable]' passed (0.000 seconds).
+Test Suite 'CaptureLayoutPolicyTests' passed at 2026-06-14 09:42:25.195.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'DarkControlContrastTests' started at 2026-06-14 09:42:25.195.
+Test Case '-[AgentPocketUITests.DarkControlContrastTests testDisabledPrimaryControlsRemainReadableOnDarkSheets]' started.
+Test Case '-[AgentPocketUITests.DarkControlContrastTests testDisabledPrimaryControlsRemainReadableOnDarkSheets]' passed (0.000 seconds).
+Test Suite 'DarkControlContrastTests' passed at 2026-06-14 09:42:25.195.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'VoiceCapturePresentationTests' started at 2026-06-14 09:42:25.195.
+Test Case '-[AgentPocketUITests.VoiceCapturePresentationTests testVoiceSheetsRequestDarkNavigationChrome]' started.
+Test Case '-[AgentPocketUITests.VoiceCapturePresentationTests testVoiceSheetsRequestDarkNavigationChrome]' passed (0.000 seconds).
+Test Suite 'VoiceCapturePresentationTests' passed at 2026-06-14 09:42:25.195.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'AgentPocketPackageTests.xctest' passed at 2026-06-14 09:42:25.195.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'Selected tests' passed at 2026-06-14 09:42:25.195.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.003 (0.006) seconds
+􀟈  Test run started.
+􀄵  Testing Library Version: 1902
+􀄵  Target Platform: arm64e-apple-macos14.0
+􁁛  Test run with 0 tests in 0 suites passed after 0.001 seconds.

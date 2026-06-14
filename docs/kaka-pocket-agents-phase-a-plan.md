@@ -1,4 +1,4 @@
-# Kaka Pocket Agents Phase A Development Plan
+# Kaka Pocket Agent Phase A Development Plan
 
 Updated: 2026-06-05
 
@@ -19,11 +19,11 @@ Kaka currently has a working image-first loop:
 5. Skill taps or typed requests route to `photo_edit` or `vision`.
 6. Results render locally on the phone.
 
-The Pocket Agents direction is broader, but not yet implemented. Share Extension, App Group inbox storage, voice transcription, Context Snapshot, Recall, App Intents, and Live Activity are still future work.
+The Pocket Agent direction is broader, but not yet implemented. Share Extension, App Group inbox storage, voice transcription, Context Snapshot, Recall, App Intents, and Live Activity are still future work.
 
 ## Phase A Goal
 
-Build the first Pocket Agents slice:
+Build the first Pocket Agent slice:
 
 - Share text, URL, image, screenshot, and PDF items to Kaka.
 - Store shared items in an explicit App Group inbox.
@@ -87,7 +87,7 @@ Build the first Pocket Agents slice:
 
 - Confirm App Group identifier before touching entitlements and Xcode project settings.
 - Confirm whether PDF is public in Phase A or development-only.
-- Confirm whether external branding remains Kaka while Pocket Agents is the product category.
+- Confirm whether external branding remains Kaka while Pocket Agent is the product category.
 - Confirm voice transcription direction before Phase B: on-device, runtime-side, or capability-negotiated.
 
 ## Roadmap After Phase A

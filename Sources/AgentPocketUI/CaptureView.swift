@@ -78,11 +78,15 @@ public struct CaptureView: View {
                             capturePreview(presentation)
                                 .frame(height: previewHeight(for: geometry.size))
                         }
+                        if preControlsSpacerHeight(for: geometry.size.height) > 0 {
+                            Color.clear
+                                .frame(height: preControlsSpacerHeight(for: geometry.size.height))
+                        }
                         captureControls(presentation)
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 18)
-                    .padding(.bottom, 96)
+                    .padding(.bottom, 132)
                     .frame(maxWidth: 620)
                     .frame(maxWidth: .infinity)
                 }
@@ -168,7 +172,22 @@ public struct CaptureView: View {
 
     private func previewHeight(for size: CGSize) -> CGFloat {
         let contentWidth = min(size.width - 32, 588)
-        return min(contentWidth * 4.0 / 3.0, size.height * 0.42)
+        let heightRatio = size.height < 860 ? 0.285 : 0.42
+        return min(contentWidth * 4.0 / 3.0, size.height * heightRatio)
+    }
+
+    private var isInitialEmptyCapture: Bool {
+        if case .empty = viewModel.state {
+            return viewModel.preparedUpload == nil
+        }
+        return false
+    }
+
+    private func preControlsSpacerHeight(for viewportHeight: CGFloat) -> CGFloat {
+        CaptureLayoutPolicy.preControlsSpacerHeight(
+            for: viewportHeight,
+            isInitialEmptyCapture: isInitialEmptyCapture
+        )
     }
 
     private func localAgentLensHub() -> some View {
@@ -376,10 +395,10 @@ public struct CaptureView: View {
 
     private func captureIntentSummary(_ presentation: CaptureScreenPresentation) -> some View {
         CaptureIntentSummaryCard(
-            title: language == .chinese ? "Kaka 会自动判断" : "Kaka will decide",
+            title: language == .chinese ? "Pocket Agent 会自动判断" : "Pocket Agent will decide",
             message: viewModel.preparedUpload == nil
-                ? (language == .chinese ? "拍照或选图后，先理解画面，再选择识别、OCR 或修图。" : "After capture, Kaka reads the image and chooses identify, OCR, or edit.")
-                : (language == .chinese ? "发送后会先理解图片，再给出可执行建议或成片结果。" : "After sending, Kaka reads the image and returns suggestions or a finished result."),
+                ? (language == .chinese ? "拍照或选图后，先理解画面，再选择识别、OCR 或修图。" : "After capture, Pocket Agent reads the image and chooses identify, OCR, or edit.")
+                : (language == .chinese ? "发送后会先理解图片，再给出可执行建议或成片结果。" : "After sending, Pocket Agent reads the image and returns suggestions or a finished result."),
             systemImage: viewModel.preparedUpload == nil ? "viewfinder" : "sparkles"
         )
     }
@@ -881,6 +900,18 @@ public struct CaptureView: View {
         }
     }
     #endif
+}
+
+enum CaptureLayoutPolicy {
+    static func preControlsSpacerHeight(
+        for viewportHeight: CGFloat,
+        isInitialEmptyCapture: Bool
+    ) -> CGFloat {
+        guard isInitialEmptyCapture else {
+            return 0
+        }
+        return viewportHeight < 980 ? 208 : 0
+    }
 }
 
 private struct CapturePreviewImage: View {

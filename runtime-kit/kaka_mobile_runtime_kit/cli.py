@@ -53,7 +53,7 @@ from .runtime_store import SQLiteRuntimeStore
 
 DEFAULT_PORT = 8765
 DEFAULT_PHOTO_PROVIDER = "recipe_local"
-DEFAULT_BONJOUR_NAME = "Kaka Mobile Bridge"
+DEFAULT_BONJOUR_NAME = "Pocket Agent Mobile Bridge"
 DEFAULT_INPUT_ASSETS_DAYS = 7
 DEFAULT_OUTPUT_ASSETS_DAYS = 30
 DEFAULT_TASK_HISTORY_DAYS = 30
@@ -576,8 +576,8 @@ def build_runtime_consumer_ui(
     return {
         "schema_version": "kaka.runtime_consumer_ui.v1",
         "surface": "hermes_openclaw_consumer_runtime_ui",
-        "title": "Kaka Mobile Bridge",
-        "subtitle": "Connect Kaka iPhone to this local runtime after explicit approval.",
+        "title": "Pocket Agent Mobile Bridge",
+        "subtitle": "Connect Pocket Agent iPhone to this local runtime after explicit approval.",
         "status_badges": [
             {
                 "id": "bridge",
@@ -604,7 +604,7 @@ def build_runtime_consumer_ui(
         "empty_state": None if bridge_enabled else {
             "id": "bridge_stopped",
             "title": "Bridge is stopped",
-            "message": "Start Kaka Mobile Bridge from this runtime before pairing an iPhone.",
+            "message": "Start Pocket Agent Mobile Bridge from this runtime before pairing an iPhone.",
             "primary_action": "start_bridge",
         },
         "sections": [
@@ -683,7 +683,7 @@ def build_runtime_settings_preview(
         bridge_enabled=bridge_enabled,
     )
     return {
-        "bridge": "Kaka Mobile Bridge",
+        "bridge": "Pocket Agent Mobile Bridge",
         "surface": "runtime_side_settings_preview",
         "bridge_enabled": bridge_enabled,
         "runtime": config.runtime,
@@ -1086,7 +1086,7 @@ def build_runtime_package_manifest(
     return {
         "schema_version": "kaka.runtime_package.v1",
         "package": "kaka-mobile-bridge",
-        "bridge": "Kaka Mobile Bridge",
+        "bridge": "Pocket Agent Mobile Bridge",
         "surface": "native_runtime_package_preview",
         "runtime": config.runtime,
         "install": {
@@ -1348,7 +1348,7 @@ def doctor_report(
     ok = all(bool(checks[name]["ok"]) for name in required)
     return {
         "ok": ok,
-        "scope": "local Kaka Mobile Bridge launcher",
+        "scope": "local Pocket Agent Mobile Bridge launcher",
         "secrets": "not inspected or printed",
         "checks": checks,
     }
@@ -1460,7 +1460,7 @@ def run_start(args: argparse.Namespace) -> int:
     command = build_server_command(config)
     phone_safe_summary = build_phone_safe_runtime_summary(config)
     summary = {
-        "bridge": "Kaka Mobile Bridge",
+        "bridge": "Pocket Agent Mobile Bridge",
         "runtime": config.runtime,
         "bind_url": f"{config.scheme}://{config.bind_host}:{config.port}",
         "lan_exposed": config.lan,
@@ -2116,18 +2116,18 @@ def _add_host_package_distribution_arguments(parser_for_command: argparse.Argume
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="kaka-mobile-runtime-kit",
-        description="Explicit local launcher for Kaka Mobile Bridge development and runtime adapters.",
+        description="Explicit local launcher for Pocket Agent Mobile Bridge development and runtime adapters.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     doctor = subparsers.add_parser("doctor", help="Check local runtime-kit prerequisites without printing secrets.")
-    doctor.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    doctor.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     doctor.add_argument("--photo-pack-root", default="photo-pack", help="Photo Pack root relative to repo root.")
     _add_intelligence_provider_arguments(doctor)
     doctor.set_defaults(func=run_doctor)
 
     start = subparsers.add_parser("start", help="Explicitly start the local Mobile Bridge.")
-    start.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    start.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     start.add_argument("--host", default="127.0.0.1", help="Loopback bind host for local development.")
     start.add_argument("--port", default=DEFAULT_PORT, type=int, help="Bridge port.")
     start.add_argument("--lan", action="store_true", help="Bind to 0.0.0.0 so an iPhone on the same LAN can connect.")
@@ -2161,7 +2161,7 @@ def build_parser() -> argparse.ArgumentParser:
         "settings-preview",
         help="Print a runtime-side Hermes/OpenClaw settings UI contract without starting the bridge.",
     )
-    settings.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    settings.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     settings.add_argument("--bridge-enabled", action="store_true", help="Preview the bridge as enabled in runtime UI.")
     settings.add_argument("--host", default="127.0.0.1", help="Loopback bind host for local development.")
     settings.add_argument("--port", default=DEFAULT_PORT, type=int, help="Bridge port.")
@@ -2195,7 +2195,7 @@ def build_parser() -> argparse.ArgumentParser:
         "connection-qa-preview",
         help="Print a deterministic ordinary-user first-run connection QA report without starting the bridge.",
     )
-    connection_qa.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    connection_qa.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     connection_qa.add_argument("--bridge-enabled", action="store_true", help="Preview the bridge as enabled in runtime UI.")
     connection_qa.add_argument("--host", default="127.0.0.1", help="Loopback bind host for local development.")
     connection_qa.add_argument("--port", default=DEFAULT_PORT, type=int, help="Bridge port.")
@@ -2233,7 +2233,7 @@ def build_parser() -> argparse.ArgumentParser:
         "package-preview",
         help="Print a native Hermes/OpenClaw package shell contract without starting the bridge.",
     )
-    package.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    package.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     package.add_argument("--bridge-enabled", action="store_true", help="Preview the bridge as enabled in runtime UI.")
     package.add_argument("--host", default="127.0.0.1", help="Loopback bind host for local development.")
     package.add_argument("--port", default=DEFAULT_PORT, type=int, help="Bridge port.")
@@ -2267,7 +2267,7 @@ def build_parser() -> argparse.ArgumentParser:
         "host-package-preview",
         help="Print the host-native Hermes/OpenClaw package handoff contract without starting the bridge.",
     )
-    host_package.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    host_package.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     host_package.add_argument("--bridge-enabled", action="store_true", help="Preview the bridge as enabled in runtime UI.")
     host_package.add_argument("--host", default="127.0.0.1", help="Loopback bind host for local development.")
     host_package.add_argument("--port", default=DEFAULT_PORT, type=int, help="Bridge port.")
@@ -2474,7 +2474,7 @@ def build_parser() -> argparse.ArgumentParser:
         "local-renderer-backend-readiness",
         help="Run a read-only local recipe renderer backend readiness probe.",
     )
-    local_renderer_readiness.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    local_renderer_readiness.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     local_renderer_readiness.add_argument("--photo-provider", default=DEFAULT_PHOTO_PROVIDER, choices=PROVIDER_CHOICES)
     local_renderer_readiness.add_argument("--photo-pack-root", default="photo-pack")
     local_renderer_readiness.set_defaults(func=run_local_renderer_backend_readiness)
@@ -2483,7 +2483,7 @@ def build_parser() -> argparse.ArgumentParser:
         "local-renderer-backend-capability-manifest",
         help="Print the read-only local renderer backend capability planning manifest.",
     )
-    local_renderer_capability_manifest.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    local_renderer_capability_manifest.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     local_renderer_capability_manifest.add_argument("--photo-pack-root", default="photo-pack")
     local_renderer_capability_manifest.set_defaults(func=run_local_renderer_backend_capability_manifest)
 
@@ -2545,7 +2545,7 @@ def build_parser() -> argparse.ArgumentParser:
         "host-adapter-run",
         help="Run a Runtime Kit host adapter action and print its structured result.",
     )
-    host_adapter.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    host_adapter.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     host_adapter.add_argument("--bridge-enabled", action="store_true", help="Preview the bridge as enabled in runtime UI.")
     host_adapter.add_argument("--host", default="127.0.0.1", help="Loopback bind host for local development.")
     host_adapter.add_argument("--port", default=DEFAULT_PORT, type=int, help="Bridge port.")
@@ -2597,7 +2597,7 @@ def build_parser() -> argparse.ArgumentParser:
         "host-private-adapter-conformance",
         help="Run host-owned private adapter conformance checks and print a structured report.",
     )
-    host_private_conformance.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    host_private_conformance.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     host_private_conformance.add_argument(
         "--bridge-enabled",
         action="store_true",
@@ -2655,7 +2655,7 @@ def build_parser() -> argparse.ArgumentParser:
         "host-shell-pilot-report",
         help="Print a P3.4 external host-shell pilot readiness receipt.",
     )
-    host_shell_pilot.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    host_shell_pilot.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     host_shell_pilot.add_argument(
         "--bridge-enabled",
         action="store_true",
@@ -2724,7 +2724,7 @@ def build_parser() -> argparse.ArgumentParser:
         "host-shell-pilot-handoff",
         help="Print a P3.4 external host-shell pilot handoff bundle.",
     )
-    host_shell_handoff.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    host_shell_handoff.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     host_shell_handoff.add_argument(
         "--bridge-enabled",
         action="store_true",
@@ -2793,7 +2793,7 @@ def build_parser() -> argparse.ArgumentParser:
         "host-shell-pilot-preflight",
         help="Print a read-only P3.4 host-shell pilot preflight report.",
     )
-    host_shell_preflight.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    host_shell_preflight.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     host_shell_preflight.add_argument(
         "--bridge-enabled",
         action="store_true",
@@ -2855,7 +2855,7 @@ def build_parser() -> argparse.ArgumentParser:
         "host-shell-pilot-runbook",
         help="Print a read-only P3.4 host-shell pilot runbook.",
     )
-    host_shell_runbook.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    host_shell_runbook.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     host_shell_runbook.add_argument(
         "--bridge-enabled",
         action="store_true",
@@ -2933,7 +2933,7 @@ def build_parser() -> argparse.ArgumentParser:
         "host-shell-pilot-request",
         help="Print a read-only P3.4 host-shell pilot materials request.",
     )
-    host_shell_request.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    host_shell_request.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     host_shell_request.add_argument(
         "--runtime",
         default="hermes",
@@ -3071,7 +3071,7 @@ def build_parser() -> argparse.ArgumentParser:
         "process-preview",
         help="Print the runtime-side process ownership contract without starting the bridge.",
     )
-    process.add_argument("--repo-root", default=".", help="Kaka repository root.")
+    process.add_argument("--repo-root", default=".", help="Pocket Agent repository root.")
     process.add_argument("--bridge-enabled", action="store_true", help="Preview the bridge as enabled in runtime UI.")
     process.add_argument("--host", default="127.0.0.1", help="Loopback bind host for local development.")
     process.add_argument("--port", default=DEFAULT_PORT, type=int, help="Bridge port.")

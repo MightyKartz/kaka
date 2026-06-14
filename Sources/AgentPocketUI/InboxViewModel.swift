@@ -128,7 +128,7 @@ public final class InboxViewModel: ObservableObject {
         let item = KakaInboxItem(
             kind: .text,
             receivedAt: receivedAt,
-            sourceApp: "Kaka Voice",
+            sourceApp: "Pocket Agent Voice",
             sourceSurface: "voice",
             locale: locale,
             text: text,
@@ -483,7 +483,7 @@ public final class InboxViewModel: ObservableObject {
             case .exceedsMaxUploadSize:
                 return "PDF is too large. Share a PDF under 25 MB."
             case .missingRelativePath, .unsafeRelativePath:
-                return "The shared PDF file is no longer available. Share it to Kaka again."
+                return "The shared PDF file is no longer available. Share it to Pocket Agent again."
             case .unsupportedKind, .unsupportedMimeType:
                 return "This inbox item is not a supported PDF."
             }

@@ -353,7 +353,7 @@ def test_bonjour_advertisement_publishes_discoverable_pairing_metadata():
         return process
 
     advertisement = BonjourAdvertisement(
-        name="Agent Pocket Mock Hermes",
+        name="Pocket Agent Mock Hermes",
         host="192.168.1.42",
         port=8765,
         pairing_code="pair_dev",
@@ -367,11 +367,11 @@ def test_bonjour_advertisement_publishes_discoverable_pairing_metadata():
         [
             "dns-sd",
             "-R",
-            "Agent Pocket Mock Hermes",
+            "Pocket Agent Mock Hermes",
             "_agent-pocket._tcp",
             "local",
             "8765",
-            "display_name=Agent Pocket Mock Hermes",
+            "display_name=Pocket Agent Mock Hermes",
             "runtime=hermes",
             "scheme=http",
             "endpoint=http://192.168.1.42:8765",
@@ -593,7 +593,7 @@ def test_server_parser_accepts_production_pairing_security_flags():
             "--tls-trust-state",
             "configured",
             "--tls-certificate-label",
-            "Kaka Local Runtime",
+            "Pocket Agent Local Runtime",
             "--tls-public-key-sha256",
             "c" * 64,
         ]
@@ -604,7 +604,7 @@ def test_server_parser_accepts_production_pairing_security_flags():
     assert args.token_ttl_seconds == 3600
     assert args.trusted_local_tls is True
     assert args.tls_trust_state == "configured"
-    assert args.tls_certificate_label == "Kaka Local Runtime"
+    assert args.tls_certificate_label == "Pocket Agent Local Runtime"
     assert args.tls_public_key_sha256 == "c" * 64
 
 
@@ -633,7 +633,7 @@ def test_build_app_for_production_pairing_passes_runtime_name_and_http_scheme():
             "--runtime",
             "openclaw",
             "--bonjour-name",
-            "Agent Pocket Mock OpenClaw",
+            "Pocket Agent Mock OpenClaw",
         ]
     )
 
@@ -645,7 +645,7 @@ def test_build_app_for_production_pairing_passes_runtime_name_and_http_scheme():
 
     assert payload["endpoint"] == "http://127.0.0.1:8765"
     assert payload["runtime"] == "openclaw"
-    assert payload["display_name"] == "Agent Pocket Mock OpenClaw"
+    assert payload["display_name"] == "Pocket Agent Mock OpenClaw"
 
 
 def test_create_http_server_wraps_socket_when_tls_paths_are_supplied(monkeypatch):
@@ -682,7 +682,7 @@ def test_create_http_server_wraps_socket_when_tls_paths_are_supplied(monkeypatch
 
 def test_production_bonjour_advertisement_uses_https_scheme_without_static_pair_dev():
     command = BonjourAdvertisement(
-        name="Kaka Mobile Bridge",
+        name="Pocket Agent Mobile Bridge",
         host="192.168.1.10",
         port=8765,
         pairing_code="",

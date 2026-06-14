@@ -130,7 +130,7 @@ final class ResultGalleryViewModelTests: XCTestCase {
         let viewModel = ResultGalleryViewModel(status: try completedLocalRecipeStatus())
 
         XCTAssertEqual(viewModel.explanation, "Balanced exposure while preserving the original frame.")
-        XCTAssertEqual(viewModel.shareCaptionForSelectedVariant, "Shot polished locally with Kaka.")
+        XCTAssertEqual(viewModel.shareCaptionForSelectedVariant, "Shot polished locally with Pocket Agent.")
         XCTAssertEqual(viewModel.selectedVariant?.label, "Master")
     }
 
@@ -168,7 +168,7 @@ final class ResultGalleryViewModelTests: XCTestCase {
         let viewModel = ResultGalleryViewModel(status: try completedLocalRecipeStatus())
 
         XCTAssertEqual(viewModel.explanation, "Balanced exposure while preserving the original frame.")
-        XCTAssertEqual(viewModel.shareCaptionForSelectedVariant, "Shot polished locally with Kaka.")
+        XCTAssertEqual(viewModel.shareCaptionForSelectedVariant, "Shot polished locally with Pocket Agent.")
     }
 
     private func completedStatus() throws -> TaskStatusResponse {
@@ -201,7 +201,7 @@ final class ResultGalleryViewModelTests: XCTestCase {
             "social_difference_score": 0.31
           },
           "recipe_summary": "Balanced exposure while preserving the original frame.",
-          "share_caption": "Shot polished locally with Kaka."
+          "share_caption": "Shot polished locally with Pocket Agent."
         }
         """.data(using: .utf8)!
 

@@ -1,6 +1,6 @@
-# Kaka Runtime Packaging Contract
+# Pocket Agent Runtime Packaging Contract
 
-This directory defines the runtime-side packaging shell for Kaka Mobile Bridge.
+This directory defines the runtime-side packaging shell for Pocket Agent Mobile Bridge.
 It is a machine-readable scaffold for Hermes/OpenClaw adapters, not a production
 installer.
 
@@ -65,7 +65,7 @@ phone `/mobile/v1`, or mark P3.4 complete.
 
 P3.5 adds the installable Host Extension layer. Runtime Kit exposes a
 `host-extension-preview` contract for Hermes Plugin and OpenClaw Skill/sidecar
-packaging so ordinary users install one host extension, enable Kaka Mobile
+packaging so ordinary users install one host extension, enable Pocket Agent Mobile
 Bridge, and pair by QR or Bonjour. The private adapter command remains
 host-owned but becomes extension-internal; explicit command paths and
 `HERMES_KAKA_HOST_API` / `OPENCLAW_KAKA_HOST_API` are developer or pilot fallback
@@ -206,7 +206,7 @@ startup, no private adapter invocation, no Codex user-home writes, and no
   `python3 -m kaka_mobile_runtime_kit host-shell-pilot-evidence-manifest`.
 - `HOST_PRIVATE_ADAPTER_IMPLEMENTATION.md` is the host-team author guide for
   implementing a real external `hermes-kaka-host-api` or
-  `openclaw-kaka-host-api` command without moving proprietary APIs into Kaka.
+  `openclaw-kaka-host-api` command without moving proprietary APIs into Pocket Agent.
 - `examples/` contains schema-checked golden request, response, invalid
   response, and pilot receipt JSON for external adapter authors.
 - `../hermes-plugin/kaka-mobile-bridge.package.json` is the Hermes shell
@@ -303,7 +303,7 @@ PYTHONPATH=runtime-kit python3 -m kaka_mobile_runtime_kit host-adapter-run \
   --approved
 ```
 
-The phone still connects only through Kaka Mobile Bridge `/mobile/v1`; host
+The phone still connects only through Pocket Agent Mobile Bridge `/mobile/v1`; host
 adapter result JSON is runtime-side only and must not become phone settings. The
 `mock` adapter is for conformance and local QA and must not mutate the actual
 host OS.
@@ -389,7 +389,7 @@ The conformance runner invokes the configured command only through the P3.1
 `host-adapter-run --adapter private` behavior and reports on install,
 login-item, update, uninstall, logs, health, port repair, and supervision cases.
 It is not a phone settings API, not a distribution channel, and not proof that
-Kaka owns or distributes Hermes/OpenClaw proprietary binaries. Real package
+Pocket Agent owns or distributes Hermes/OpenClaw proprietary binaries. Real package
 distribution and command binary ownership stay in the Hermes/OpenClaw host
 manifest and installer flow.
 
@@ -449,7 +449,7 @@ the host shell must satisfy before stable distribution:
 - mobile boundary: `phone_api_path: /mobile/v1` and `phone_api_unchanged: true`
 
 This is metadata for Hermes/OpenClaw release flows, not a bundled private API
-implementation. Kaka does not own, distribute, or bundle proprietary
+implementation. Pocket Agent does not own, distribute, or bundle proprietary
 Hermes/OpenClaw private API binaries.
 
 ## P3.4a External Host Shell Pilot Receipt

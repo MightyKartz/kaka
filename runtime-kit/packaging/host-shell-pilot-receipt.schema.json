@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/host-shell-pilot-receipt.schema.json",
-  "title": "Kaka Host Shell Pilot Receipt",
+  "title": "Pocket Agent Host Shell Pilot Receipt",
   "type": "object",
   "additionalProperties": false,
   "required": [

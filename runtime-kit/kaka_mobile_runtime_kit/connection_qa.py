@@ -166,7 +166,7 @@ def _build_first_run_steps(
         },
         {
             "id": "install_runtime_package",
-            "title": "Install Kaka Mobile Bridge package",
+            "title": "Install Pocket Agent Mobile Bridge package",
             "status": "complete" if config.installed else "requires_user_approval",
             "owner": "host_runtime",
             "requires_user_action": not config.installed,
@@ -182,7 +182,7 @@ def _build_first_run_steps(
         },
         {
             "id": "start_bridge",
-            "title": "Start Kaka Mobile Bridge explicitly",
+            "title": "Start Pocket Agent Mobile Bridge explicitly",
             "status": "running_preview" if bridge_enabled else "requires_user_action",
             "owner": "host_runtime",
             "requires_user_action": not bridge_enabled,
@@ -258,7 +258,7 @@ def _build_failure_fixtures(
         {
             "id": "bridge_unavailable",
             "source": "mobile_bridge_process",
-            "user_message": "Kaka Mobile Bridge is not reachable. Start it from the host runtime.",
+            "user_message": "Pocket Agent Mobile Bridge is not reachable. Start it from the host runtime.",
             "recommended_action": "start_bridge_on_host",
             "phone_state_hint": "offline",
         },

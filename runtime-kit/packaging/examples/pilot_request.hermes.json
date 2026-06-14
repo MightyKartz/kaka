@@ -59,7 +59,7 @@
       "required": true,
       "status": "requested",
       "requested_value": "~/Library/Application Support/Hermes/Kaka/hermes-kaka-host-api",
-      "description": "Host-owned executable command outside the Kaka repository.",
+      "description": "Host-owned executable command outside the Pocket Agent repository.",
       "blocking_reason": "missing_private_adapter_command"
     },
     {

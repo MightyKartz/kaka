@@ -1,0 +1,64 @@
+{
+  "artifacts": {
+    "asset_id": "asset_7648c085788bb030",
+    "filename": "kaka-smoke-real-provider.png",
+    "image_file": "/tmp/kaka-smoke-real-provider.png",
+    "image_source": "generated_file",
+    "mime_type": "image/png"
+  },
+  "base_url": "http://127.0.0.1:8765",
+  "error": {
+    "code": "missing_result",
+    "message": "Image intake result is missing."
+  },
+  "mode": "hermes",
+  "ok": false,
+  "provider": "hermes",
+  "recall": {},
+  "schema_version": "kaka.smoke_real_provider.v1",
+  "steps": [
+    {
+      "duration_ms": 7,
+      "name": "health",
+      "status": "passed"
+    },
+    {
+      "duration_ms": 1,
+      "name": "capabilities",
+      "status": "passed"
+    },
+    {
+      "duration_ms": 11,
+      "name": "asset_upload",
+      "status": "passed"
+    },
+    {
+      "duration_ms": 27971,
+      "name": "image_intake_create",
+      "status": "passed"
+    },
+    {
+      "duration_ms": 2,
+      "name": "image_intake_status",
+      "status": "passed"
+    },
+    {
+      "duration_ms": 0,
+      "error": {
+        "code": "missing_result",
+        "message": "Image intake result is missing."
+      },
+      "name": "image_intake_result",
+      "status": "failed"
+    }
+  ],
+  "surface": "mock_bridge_server_smoke",
+  "tasks": {
+    "image_intake": {
+      "provider": "hermes",
+      "result_type": "image_intake",
+      "status": "completed",
+      "task_id": "task_0001"
+    }
+  }
+}

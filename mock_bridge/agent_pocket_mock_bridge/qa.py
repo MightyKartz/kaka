@@ -1530,7 +1530,7 @@ def run_smoke_real_provider(
                 payload={
                     "type": "text",
                     "text": "M1 smoke test note: remember this only for QA and then forget it.",
-                    "source_app": "Kaka QA",
+                    "source_app": "Pocket Agent QA",
                     "locale": "en",
                 },
                 timeout=timeout_seconds,
@@ -1940,7 +1940,7 @@ def build_physical_qa_commands(
             f"--host 0.0.0.0 --port {port} --bonjour --bonjour-host {host}"
         ),
         "",
-        "# 2. Relaunch Agent Pocket on the physical iPhone",
+        "# 2. Relaunch Pocket Agent on the physical iPhone",
         (
             "xcrun devicectl device process launch "
             f"--device {device_id} --terminate-existing {bundle_id}"
@@ -1952,7 +1952,7 @@ def build_physical_qa_commands(
             f"--base-url {base_url}"
         ),
         "",
-        "# 4. On iPhone: choose/take a photo, Send to Kaka, Review Results, Download Selected",
+        "# 4. On iPhone: choose/take a photo, Send to Pocket Agent, Review Results, Download Selected",
         (
             "PYTHONPATH=mock_bridge python3 -m agent_pocket_mock_bridge.qa wait-photo-flow "
             f"--base-url {base_url} --timeout 180"
@@ -3046,7 +3046,7 @@ def _gate_f_start_blockers(
                 "scope": "Hermes/mock bridge server process",
                 "iphone_required": False,
                 "message": (
-                    "Agent Pocket on iPhone never stores or calls OPENAI_API_KEY; "
+                    "Pocket Agent on iPhone never stores or calls OPENAI_API_KEY; "
                     "the runtime that performs the photo edit must prove it can read the key."
                 ),
                 "next_action": next_action,
@@ -3740,7 +3740,7 @@ def build_readiness_markdown(report: Mapping[str, Any]) -> str:
         physical_launch_status = str(physical_preflight_report.get("status", "unknown"))
 
     lines = [
-        "# Agent Pocket MVP Readiness",
+        "# Pocket Agent MVP Readiness",
         "",
         "## Executive Status",
         f"- Simulator evidence: {'passed' if summary.get('simulator_evidence_ok') else 'not passed'}",
@@ -4531,7 +4531,7 @@ def run_lan_qa_session(
 
     if connection_only and not launch_app:
         base_url = f"http://{host}:{port}"
-        print("Using an already running Kaka Mobile Bridge.", file=out_stream, flush=True)
+        print("Using an already running Pocket Agent Mobile Bridge.", file=out_stream, flush=True)
         print(f"iPhone endpoint: {base_url}", file=out_stream, flush=True)
         return _wait_for_status(
             base_url=base_url,
@@ -4558,12 +4558,12 @@ def run_lan_qa_session(
 
     try:
         thread.start()
-        print(f"Agent Pocket mock bridge listening on http://0.0.0.0:{actual_port}", file=out_stream, flush=True)
+        print(f"Pocket Agent mock bridge listening on http://0.0.0.0:{actual_port}", file=out_stream, flush=True)
         print(f"iPhone endpoint: {base_url}", file=out_stream, flush=True)
 
         if advertise_bonjour:
             bonjour = BonjourAdvertisement(
-                name="Agent Pocket Mock Hermes",
+                name="Pocket Agent Mock Hermes",
                 host=host,
                 port=actual_port,
                 pairing_code="pair_dev",
@@ -4571,7 +4571,7 @@ def run_lan_qa_session(
             )
             try:
                 bonjour.start()
-                print(f"Bonjour advertising Agent Pocket Mock Hermes at {base_url}", file=out_stream, flush=True)
+                print(f"Bonjour advertising Pocket Agent Mock Hermes at {base_url}", file=out_stream, flush=True)
             except OSError as error:
                 print(f"Bonjour advertisement did not start: {error}", file=err_stream, flush=True)
 
@@ -4583,7 +4583,7 @@ def run_lan_qa_session(
                 print(f"Unable to launch iPhone app: {error}", file=err_stream, flush=True)
                 return 1
         else:
-            print("App launch skipped; open Agent Pocket on the iPhone manually.", file=out_stream, flush=True)
+            print("App launch skipped; open Pocket Agent on the iPhone manually.", file=out_stream, flush=True)
 
         print("Waiting for saved Hermes connection restore...", file=out_stream, flush=True)
         connection_result = _wait_for_status(
@@ -4602,7 +4602,7 @@ def run_lan_qa_session(
             return connection_result
 
         print(
-            "On iPhone: choose/take a photo, Send to Kaka, Review Results, Download Selected.",
+            "On iPhone: choose/take a photo, Send to Pocket Agent, Review Results, Download Selected.",
             file=out_stream,
             flush=True,
         )
@@ -4657,12 +4657,12 @@ def run_simulator_connection_session(
 
     try:
         thread.start()
-        print(f"Agent Pocket mock bridge listening on http://0.0.0.0:{actual_port}", file=out_stream, flush=True)
+        print(f"Pocket Agent mock bridge listening on http://0.0.0.0:{actual_port}", file=out_stream, flush=True)
         print(f"Simulator endpoint: {base_url}", file=out_stream, flush=True)
 
         if advertise_bonjour:
             bonjour = BonjourAdvertisement(
-                name="Agent Pocket Mock Hermes",
+                name="Pocket Agent Mock Hermes",
                 host=host,
                 port=actual_port,
                 pairing_code="pair_dev",
@@ -4670,7 +4670,7 @@ def run_simulator_connection_session(
             )
             try:
                 bonjour.start()
-                print(f"Bonjour advertising Agent Pocket Mock Hermes at {base_url}", file=out_stream, flush=True)
+                print(f"Bonjour advertising Pocket Agent Mock Hermes at {base_url}", file=out_stream, flush=True)
             except OSError as error:
                 print(f"Bonjour advertisement did not start: {error}", file=err_stream, flush=True)
 
@@ -4682,7 +4682,7 @@ def run_simulator_connection_session(
                 print(f"Unable to launch Simulator app: {error}", file=err_stream, flush=True)
                 return 1
         else:
-            print("Simulator launch skipped; launch Agent Pocket manually.", file=out_stream, flush=True)
+            print("Simulator launch skipped; launch Pocket Agent manually.", file=out_stream, flush=True)
 
         return _wait_for_status(
             base_url=base_url,
@@ -4734,7 +4734,7 @@ def run_simulator_discovery_refresh_session(
 
     try:
         thread.start()
-        print(f"Agent Pocket mock bridge listening on http://0.0.0.0:{actual_port}", file=out_stream, flush=True)
+        print(f"Pocket Agent mock bridge listening on http://0.0.0.0:{actual_port}", file=out_stream, flush=True)
         print(f"Simulator endpoint without Bonjour payload: {base_url}", file=out_stream, flush=True)
 
         if launch_app:
@@ -4823,7 +4823,7 @@ def run_openai_compatible_simulator_session(
         base_url = f"http://{host}:{actual_bridge_port}"
         bridge_thread = threading.Thread(target=bridge.serve_forever, daemon=True)
         bridge_thread.start()
-        print(f"Agent Pocket mock bridge listening on http://0.0.0.0:{actual_bridge_port}", file=out_stream, flush=True)
+        print(f"Pocket Agent mock bridge listening on http://0.0.0.0:{actual_bridge_port}", file=out_stream, flush=True)
         print(f"Simulator endpoint: {base_url}", file=out_stream, flush=True)
 
         if launch_app:
@@ -4916,7 +4916,7 @@ def run_local_recipe_simulator_session(
 
     try:
         bridge_thread.start()
-        print(f"Agent Pocket mock bridge listening on http://0.0.0.0:{actual_bridge_port}", file=out_stream, flush=True)
+        print(f"Pocket Agent mock bridge listening on http://0.0.0.0:{actual_bridge_port}", file=out_stream, flush=True)
         print(f"Simulator local recipe endpoint: {base_url}", file=out_stream, flush=True)
 
         if launch_app:
@@ -5060,7 +5060,7 @@ def _capture_ready_receipt_is_ready(receipt: Mapping[str, Any]) -> bool:
         and _capture_ready_send_enabled(receipt) is True
         and receipt.get("selection_source") == "library_fixture"
         and receipt.get("preprocessing_path") == "CaptureFlowViewModel.prepareSelectedImage"
-        and receipt.get("primary_action") in {"Send to Kaka", "Send to Local Agent", "Send to Hermes"}
+        and receipt.get("primary_action") in {"Send to Pocket Agent", "Send to Local Agent", "Send to Hermes"}
     )
 
 
@@ -6466,7 +6466,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Inspect Agent Pocket mock bridge QA status.")
+    parser = argparse.ArgumentParser(description="Inspect Pocket Agent mock bridge QA status.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     def add_hermes_provider_args(command_parser) -> None:
@@ -6488,14 +6488,14 @@ def build_parser() -> argparse.ArgumentParser:
     commands.add_argument("--host", required=True, help="Mac LAN or Tailscale IP reachable from the iPhone.")
     commands.add_argument("--port", type=int, default=8765, help="Mock bridge port.")
     commands.add_argument("--device-id", required=True, help="CoreDevice id from xcrun devicectl list devices.")
-    commands.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    commands.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
 
     preflight = subparsers.add_parser(
         "preflight",
         help="Print LAN, Tailscale, CoreDevice, and tool readiness for physical iPhone QA.",
     )
     preflight.add_argument("--port", type=int, default=8765, help="Mock bridge port.")
-    preflight.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    preflight.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
 
     physical_device_preflight = subparsers.add_parser(
         "physical-device-preflight",
@@ -6544,10 +6544,10 @@ def build_parser() -> argparse.ArgumentParser:
     simulator_preflight.add_argument(
         "--app-path",
         default="ios/build/Debug-iphonesimulator/AgentPocket.app",
-        help="Built simulator Agent Pocket app bundle path.",
+        help="Built simulator Pocket Agent app bundle path.",
     )
     simulator_preflight.add_argument("--port", type=int, default=8766, help="Local mock bridge port.")
-    simulator_preflight.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_preflight.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_preflight.add_argument(
         "--gate-f-host",
         default="",
@@ -6573,7 +6573,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="AgentPocketPickerUITests",
         help="UI test target to build and run.",
     )
-    simulator_ui_test_preflight.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_ui_test_preflight.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_ui_test_preflight.add_argument(
         "--receipt-file",
         default="",
@@ -6585,7 +6585,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run the local Simulator evidence suite without using a physical iPhone.",
     )
     simulator_suite.add_argument("--host", default="127.0.0.1", help="Host the Simulator can reach.")
-    simulator_suite.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_suite.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_suite.add_argument("--token", default=DEFAULT_TOKEN, help="Bearer token for /mobile/v1/qa/status.")
     simulator_suite.add_argument("--connection-port", type=int, default=8766, help="Local connection smoke bridge port.")
     simulator_suite.add_argument("--discovery-refresh-port", type=int, default=8767, help="No-payload discovery refresh smoke bridge port.")
@@ -6700,7 +6700,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Project root for resolving relative evidence paths.",
     )
     simulator_only_resume.add_argument("--host", default="127.0.0.1", help="Host the Simulator can reach.")
-    simulator_only_resume.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_only_resume.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_only_resume.add_argument("--token", default=DEFAULT_TOKEN, help="Bearer token for /mobile/v1/qa/status.")
     simulator_only_resume.add_argument("--connection-port", type=int, default=8766, help="Local connection smoke bridge port.")
     simulator_only_resume.add_argument("--discovery-refresh-port", type=int, default=8767, help="No-payload discovery refresh smoke bridge port.")
@@ -6976,12 +6976,12 @@ def build_parser() -> argparse.ArgumentParser:
     gate_audit.add_argument(
         "--capture-ready-screenshot-file",
         default="/tmp/agent-pocket-simulator-capture-ready.png",
-        help="Simulator screenshot evidence that selected-photo ready state shows Send to Kaka.",
+        help="Simulator screenshot evidence that selected-photo ready state shows Send to Pocket Agent.",
     )
     gate_audit.add_argument(
         "--capture-ready-receipt-file",
         default=DEFAULT_SIMULATOR_CAPTURE_READY_RECEIPT,
-        help="App-authored receipt proving selected-photo ready state enables Send to Kaka.",
+        help="App-authored receipt proving selected-photo ready state enables Send to Pocket Agent.",
     )
     gate_audit.add_argument(
         "--capture-completed-screenshot-file",
@@ -7034,7 +7034,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Explicit Mac IP/host reachable from the iPhone. Counts as endpoint evidence without Tailscale CLI.",
     )
     gate_f_provider_check.add_argument("--port", type=int, default=8765, help="Mock bridge port for the real-device run command.")
-    gate_f_provider_check.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    gate_f_provider_check.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     gate_f_provider_check.add_argument(
         "--photo-pack-root",
         default="photo-pack",
@@ -7092,7 +7092,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Explicit Mac IP/host reachable from the iPhone. Counts as endpoint evidence without Tailscale CLI.",
     )
     gate_f_preflight.add_argument("--port", type=int, default=8765, help="Mock bridge port for the real-device run command.")
-    gate_f_preflight.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    gate_f_preflight.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     gate_f_preflight.add_argument(
         "--photo-pack-root",
         default="photo-pack",
@@ -7171,7 +7171,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     gate_f_resume.add_argument("--port", type=int, default=8765, help="Mock bridge port for the real-device run.")
     gate_f_resume.add_argument("--device-id", required=True, help="CoreDevice id from xcrun devicectl list devices.")
-    gate_f_resume.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    gate_f_resume.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     gate_f_resume.add_argument("--token", default=DEFAULT_TOKEN, help="Bearer token for /mobile/v1/qa/status.")
     gate_f_resume.add_argument("--connection-timeout", type=float, default=45, help="Seconds to wait for saved connection restore.")
     gate_f_resume.add_argument("--photo-timeout", type=float, default=180, help="Seconds to wait for the real iPhone photo flow.")
@@ -7315,12 +7315,12 @@ def build_parser() -> argparse.ArgumentParser:
     readiness_report.add_argument(
         "--capture-ready-screenshot-file",
         default="/tmp/agent-pocket-simulator-capture-ready.png",
-        help="Simulator screenshot evidence that selected-photo ready state shows Send to Kaka.",
+        help="Simulator screenshot evidence that selected-photo ready state shows Send to Pocket Agent.",
     )
     readiness_report.add_argument(
         "--capture-ready-receipt-file",
         default=DEFAULT_SIMULATOR_CAPTURE_READY_RECEIPT,
-        help="App-authored receipt proving selected-photo ready state enables Send to Kaka.",
+        help="App-authored receipt proving selected-photo ready state enables Send to Pocket Agent.",
     )
     readiness_report.add_argument(
         "--capture-completed-screenshot-file",
@@ -7393,12 +7393,12 @@ def build_parser() -> argparse.ArgumentParser:
     run_lan.add_argument("--host", required=True, help="Mac LAN or Tailscale IP reachable from the iPhone.")
     run_lan.add_argument("--port", type=int, default=8765, help="Mock bridge port.")
     run_lan.add_argument("--device-id", default="", help="CoreDevice id from xcrun devicectl list devices.")
-    run_lan.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    run_lan.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     run_lan.add_argument("--token", default=DEFAULT_TOKEN, help="Bearer token for /mobile/v1/qa/status.")
     run_lan.add_argument("--connection-timeout", type=float, default=60, help="Seconds to wait for saved restore.")
     run_lan.add_argument("--photo-timeout", type=float, default=180, help="Seconds to wait for the manual photo flow.")
     run_lan.add_argument("--interval", type=float, default=2.0, help="Polling interval in seconds.")
-    run_lan.add_argument("--no-launch", action="store_true", help="Do not relaunch Agent Pocket through devicectl.")
+    run_lan.add_argument("--no-launch", action="store_true", help="Do not relaunch Pocket Agent through devicectl.")
     run_lan.add_argument("--connection-only", action="store_true", help="Stop after saved connection restore is proven.")
     run_lan.add_argument("--no-bonjour", action="store_true", help="Do not publish a Bonjour discovery advertisement.")
     run_lan.add_argument(
@@ -7426,7 +7426,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     simulator_connection_smoke.add_argument("--host", default="127.0.0.1", help="Host the Simulator can reach.")
     simulator_connection_smoke.add_argument("--port", type=int, default=8766, help="Mock bridge port.")
-    simulator_connection_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_connection_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_connection_smoke.add_argument("--token", default=DEFAULT_TOKEN, help="Bearer token for /mobile/v1/qa/status.")
     simulator_connection_smoke.add_argument("--connection-timeout", type=float, default=45, help="Seconds to wait for connection.")
     simulator_connection_smoke.add_argument("--interval", type=float, default=1.0, help="Polling interval in seconds.")
@@ -7444,7 +7444,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     simulator_discovery_refresh_smoke.add_argument("--host", default="127.0.0.1", help="Host the Simulator can reach.")
     simulator_discovery_refresh_smoke.add_argument("--port", type=int, default=8767, help="Mock bridge port.")
-    simulator_discovery_refresh_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_discovery_refresh_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_discovery_refresh_smoke.add_argument("--token", default=DEFAULT_TOKEN, help="Bearer token for /mobile/v1/qa/status.")
     simulator_discovery_refresh_smoke.add_argument("--connection-timeout", type=float, default=45, help="Seconds to wait for connection.")
     simulator_discovery_refresh_smoke.add_argument("--interval", type=float, default=1.0, help="Polling interval in seconds.")
@@ -7472,7 +7472,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=8781,
         help="Local fake OpenAI Images Edits API port.",
     )
-    simulator_openai_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_openai_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_openai_smoke.add_argument("--token", default=DEFAULT_TOKEN, help="Bearer token for /mobile/v1/qa/status.")
     simulator_openai_smoke.add_argument("--connection-timeout", type=float, default=45, help="Seconds to wait for bridge restore.")
     simulator_openai_smoke.add_argument("--photo-timeout", type=float, default=90, help="Seconds to wait for photo flow completion.")
@@ -7511,7 +7511,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     simulator_local_recipe_smoke.add_argument("--host", default="127.0.0.1", help="Host the Simulator can reach.")
     simulator_local_recipe_smoke.add_argument("--port", type=int, default=8769, help="Mock bridge port.")
-    simulator_local_recipe_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_local_recipe_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_local_recipe_smoke.add_argument("--token", default=DEFAULT_TOKEN, help="Bearer token for /mobile/v1/qa/status.")
     simulator_local_recipe_smoke.add_argument("--connection-timeout", type=float, default=45, help="Seconds to wait for bridge restore.")
     simulator_local_recipe_smoke.add_argument("--photo-timeout", type=float, default=90, help="Seconds to wait for photo flow completion.")
@@ -7537,7 +7537,7 @@ def build_parser() -> argparse.ArgumentParser:
         "simulator-capture-ready-smoke",
         help="Launch the Debug-only Simulator view with a prepared selected photo and capture a screenshot.",
     )
-    simulator_capture_ready_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_capture_ready_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_capture_ready_smoke.add_argument("--no-launch", action="store_true", help="Do not launch the Simulator app.")
     simulator_capture_ready_smoke.add_argument(
         "--settle-seconds",
@@ -7560,7 +7560,7 @@ def build_parser() -> argparse.ArgumentParser:
         "simulator-capture-completed-smoke",
         help="Launch the Debug-only Simulator view with a completed capture and capture a screenshot.",
     )
-    simulator_capture_completed_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_capture_completed_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_capture_completed_smoke.add_argument("--no-launch", action="store_true", help="Do not launch the Simulator app.")
     simulator_capture_completed_smoke.add_argument(
         "--settle-seconds",
@@ -7583,7 +7583,7 @@ def build_parser() -> argparse.ArgumentParser:
         "simulator-result-gallery-smoke",
         help="Launch the Debug-only result gallery view and capture a screenshot.",
     )
-    simulator_result_gallery_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_result_gallery_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_result_gallery_smoke.add_argument("--no-launch", action="store_true", help="Do not launch the Simulator app.")
     simulator_result_gallery_smoke.add_argument(
         "--settle-seconds",
@@ -7606,7 +7606,7 @@ def build_parser() -> argparse.ArgumentParser:
         "simulator-result-gallery-downloaded-smoke",
         help="Launch the Debug-only downloaded result gallery view and capture a screenshot.",
     )
-    simulator_result_gallery_downloaded_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_result_gallery_downloaded_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_result_gallery_downloaded_smoke.add_argument("--no-launch", action="store_true", help="Do not launch the Simulator app.")
     simulator_result_gallery_downloaded_smoke.add_argument(
         "--settle-seconds",
@@ -7629,7 +7629,7 @@ def build_parser() -> argparse.ArgumentParser:
         "simulator-share-sheet-smoke",
         help="Launch the Debug-only share-sheet handoff view and capture a screenshot.",
     )
-    simulator_share_sheet_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_share_sheet_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_share_sheet_smoke.add_argument("--no-launch", action="store_true", help="Do not launch the Simulator app.")
     simulator_share_sheet_smoke.add_argument(
         "--settle-seconds",
@@ -7652,7 +7652,7 @@ def build_parser() -> argparse.ArgumentParser:
         "simulator-picker-ui-smoke",
         help="Launch the Debug-only connected PhotosPicker UI view and capture a screenshot.",
     )
-    simulator_picker_ui_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Agent Pocket app bundle id.")
+    simulator_picker_ui_smoke.add_argument("--bundle-id", default=DEFAULT_BUNDLE_ID, help="Pocket Agent app bundle id.")
     simulator_picker_ui_smoke.add_argument("--no-launch", action="store_true", help="Do not launch the Simulator app.")
     simulator_picker_ui_smoke.add_argument(
         "--settle-seconds",
@@ -8241,7 +8241,7 @@ def _audit_capture_ready_receipt(root: str, path: str) -> dict[str, Any]:
         missing.append("prepared upload")
     send_enabled = _capture_ready_send_enabled(receipt)
     if send_enabled is not True:
-        missing.append("Send to Kaka enabled")
+        missing.append("Send to Pocket Agent enabled")
     if not str(receipt.get("file_name", "")):
         missing.append("selected file name")
     if not str(receipt.get("intent_title", "")):
@@ -8250,12 +8250,12 @@ def _audit_capture_ready_receipt(root: str, path: str) -> dict[str, Any]:
         missing.append("library selection source")
     if receipt.get("preprocessing_path") != "CaptureFlowViewModel.prepareSelectedImage":
         missing.append("prepareSelectedImage preprocessing path")
-    if receipt.get("primary_action") not in {"Send to Kaka", "Send to Local Agent", "Send to Hermes"}:
-        missing.append("Send to Kaka primary action")
+    if receipt.get("primary_action") not in {"Send to Pocket Agent", "Send to Local Agent", "Send to Hermes"}:
+        missing.append("Send to Pocket Agent primary action")
     if receipt.get("ready_status_accessibility_identifier") != "selectedPhotoReadyStatus":
         missing.append("selected photo ready accessibility identifier")
     if receipt.get("send_button_accessibility_identifier") not in {"sendToKakaButton", "sendToLocalAgentButton", "sendToHermesButton"}:
-        missing.append("Send to Kaka accessibility identifier")
+        missing.append("Send to Pocket Agent accessibility identifier")
 
     return {
         "path": path,
@@ -8450,7 +8450,7 @@ def _capture_completed_receipt_missing(receipt: Mapping[str, Any]) -> list[str]:
     if send_enabled is None:
         send_enabled = receipt.get("send_to_hermes_enabled")
     if send_enabled is not False:
-        missing.append("Send to Kaka no longer primary")
+        missing.append("Send to Pocket Agent no longer primary")
     return missing
 
 

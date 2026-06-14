@@ -2,8 +2,8 @@
   "schema_version": "kaka.runtime_shell_manifest.v1",
   "id": "kaka-mobile-bridge",
   "runtime": "hermes",
-  "display_name": "Kaka Mobile Bridge",
-  "description": "Runtime-side shell for explicitly starting, stopping, pairing, and configuring the local Kaka Mobile Bridge from Hermes.",
+  "display_name": "Pocket Agent Mobile Bridge",
+  "description": "Runtime-side shell for explicitly starting, stopping, pairing, and configuring the local Pocket Agent Mobile Bridge from Hermes.",
   "install": {
     "enabled_by_default": false,
     "auto_start_on_install": false,

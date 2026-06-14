@@ -27,7 +27,7 @@ public struct VideoIntakePickerView: View {
         ContentUnavailableView(
             "Video Intake Unavailable",
             systemImage: "video",
-            description: Text("Open Kaka on iPhone to choose or record a short video.")
+            description: Text("Open Pocket Agent on iPhone to choose or record a short video.")
         )
         #endif
     }
@@ -65,7 +65,7 @@ private struct VideoIntakePickerContent: View {
                         sourceCard
                         promptEditor
                         sendButton
-                        Text("Max 100 MB")
+                        Text(copy.limitText)
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.48))
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -75,11 +75,11 @@ private struct VideoIntakePickerContent: View {
                     .frame(maxWidth: .infinity)
                 }
             }
-            .navigationTitle("Video")
+            .navigationTitle(copy.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close", action: onCancel)
+                    Button(copy.closeTitle, action: onCancel)
                 }
             }
             .onChange(of: selectedVideo) { _, item in
@@ -111,7 +111,7 @@ private struct VideoIntakePickerContent: View {
                 Image(systemName: "video.badge.plus")
                     .font(.system(size: 36, weight: .semibold))
                     .foregroundStyle(AgentPocketDesignTokens.accent)
-                Text("Choose or record a short video before sending it to your local agent.")
+                Text(copy.emptyPrompt)
                     .font(.callout)
                     .foregroundStyle(.white.opacity(0.72))
                     .multilineTextAlignment(.center)
@@ -138,7 +138,7 @@ private struct VideoIntakePickerContent: View {
                         .foregroundStyle(.white)
                         .lineLimit(1)
                         .minimumScaleFactor(0.78)
-                    Text(sourceURL == nil ? "No video selected" : "\(mimeType) ready for Inbox review")
+                    Text(sourceURL == nil ? copy.noSelection : copy.readyForReview(mimeType: mimeType))
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.58))
                         .lineLimit(2)
@@ -152,7 +152,7 @@ private struct VideoIntakePickerContent: View {
 
             HStack(spacing: 10) {
                 PhotosPicker(selection: $selectedVideo, matching: .videos) {
-                    Label("Choose Video", systemImage: "photo.on.rectangle")
+                    Label(copy.chooseVideoTitle, systemImage: "photo.on.rectangle")
                         .font(.callout.weight(.semibold))
                         .frame(minHeight: 38)
                         .padding(.horizontal, 12)
@@ -162,7 +162,7 @@ private struct VideoIntakePickerContent: View {
                 Button {
                     isShowingCamera = true
                 } label: {
-                    Label("Record", systemImage: "video")
+                    Label(copy.recordTitle, systemImage: "video")
                         .font(.callout.weight(.semibold))
                         .frame(minHeight: 38)
                         .padding(.horizontal, 12)
@@ -172,7 +172,7 @@ private struct VideoIntakePickerContent: View {
             }
 
             if isLoading {
-                ProgressView("Preparing video")
+                ProgressView(copy.preparingTitle)
                     .tint(AgentPocketDesignTokens.accent)
             }
 
@@ -192,29 +192,39 @@ private struct VideoIntakePickerContent: View {
     }
 
     private var promptEditor: some View {
-        TextField("Add a prompt (optional)", text: $prompt, axis: .vertical)
-            .lineLimit(3, reservesSpace: true)
-            .font(.callout)
-            .padding(12)
-            .foregroundStyle(.white)
-            .background(AgentPocketDesignTokens.darkPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
-                    .stroke(AgentPocketDesignTokens.darkStroke, lineWidth: 1)
-            )
+        ZStack(alignment: .topLeading) {
+            if prompt.isEmpty {
+                Text(copy.promptPlaceholder)
+                    .font(.callout)
+                    .foregroundStyle(.white.opacity(0.58))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 13)
+                    .allowsHitTesting(false)
+            }
+
+            TextField("", text: $prompt, axis: .vertical)
+                .lineLimit(3, reservesSpace: true)
+                .font(.callout)
+                .padding(12)
+                .foregroundStyle(.white)
+        }
+        .background(AgentPocketDesignTokens.darkPanelStrong, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
+                .stroke(AgentPocketDesignTokens.darkStroke, lineWidth: 1)
+        )
     }
 
     private var sendButton: some View {
         Button {
             makeDraft()
         } label: {
-            Label("Send to Local Agent", systemImage: "paperplane.fill")
+            Label(copy.sendTitle, systemImage: "paperplane.fill")
                 .font(.callout.weight(.semibold))
                 .frame(maxWidth: .infinity, minHeight: 46)
         }
         .buttonStyle(AgentPocketDarkPrimaryButtonStyle())
         .disabled(sourceURL == nil || isLoading)
-        .opacity(sourceURL == nil || isLoading ? 0.54 : 1)
     }
 
     private func loadSelectedVideo(_ item: PhotosPickerItem?) async {
@@ -227,7 +237,7 @@ private struct VideoIntakePickerContent: View {
 
         do {
             guard let data = try await item.loadTransferable(type: Data.self) else {
-                errorMessage = "Could not read that video."
+                errorMessage = copy.couldNotRead
                 return
             }
             let type = item.supportedContentTypes.first(where: { $0.conforms(to: .movie) })
@@ -243,7 +253,7 @@ private struct VideoIntakePickerContent: View {
                 mimeType: type.preferredMIMEType ?? "video/quicktime"
             )
         } catch {
-            errorMessage = "Could not prepare that video."
+            errorMessage = copy.couldNotPrepare
         }
     }
 
@@ -288,10 +298,80 @@ private struct VideoIntakePickerContent: View {
                 )
             }
         } catch VideoIntakePolicy.ValidationError.exceedsFirstReleaseLimit {
-            errorMessage = "Choose a video under 100 MB for this first release."
+            errorMessage = copy.tooLarge
         } catch {
-            errorMessage = "Could not create a video Inbox draft."
+            errorMessage = copy.couldNotCreateDraft
         }
+    }
+
+    private var copy: VideoIntakeCopy {
+        VideoIntakeCopy(language: AppLanguage.resolved(storedValue: nil))
+    }
+}
+
+private struct VideoIntakeCopy {
+    let language: AppLanguage
+
+    var navigationTitle: String {
+        language == .chinese ? "视频" : "Video"
+    }
+
+    var closeTitle: String {
+        language == .chinese ? "关闭" : "Close"
+    }
+
+    var emptyPrompt: String {
+        language == .chinese
+            ? "选择或录制一段短视频，审核后再发送给本机智能体。"
+            : "Choose or record a short video before sending it to your local agent."
+    }
+
+    var noSelection: String {
+        language == .chinese ? "尚未选择视频" : "No video selected"
+    }
+
+    var chooseVideoTitle: String {
+        language == .chinese ? "选择视频" : "Choose Video"
+    }
+
+    var recordTitle: String {
+        language == .chinese ? "录制" : "Record"
+    }
+
+    var preparingTitle: String {
+        language == .chinese ? "正在准备视频" : "Preparing video"
+    }
+
+    var promptPlaceholder: String {
+        language == .chinese ? "添加说明（可选）" : "Add a prompt (optional)"
+    }
+
+    var sendTitle: String {
+        language == .chinese ? "发送给本机智能体" : "Send to Local Agent"
+    }
+
+    var limitText: String {
+        language == .chinese ? "最大 100 MB" : "Max 100 MB"
+    }
+
+    var couldNotRead: String {
+        language == .chinese ? "无法读取这个视频。" : "Could not read that video."
+    }
+
+    var couldNotPrepare: String {
+        language == .chinese ? "无法准备这个视频。" : "Could not prepare that video."
+    }
+
+    var tooLarge: String {
+        language == .chinese ? "请选择 100 MB 以下的视频。" : "Choose a video under 100 MB for this first release."
+    }
+
+    var couldNotCreateDraft: String {
+        language == .chinese ? "无法创建视频收件箱草稿。" : "Could not create a video Inbox draft."
+    }
+
+    func readyForReview(mimeType: String) -> String {
+        language == .chinese ? "\(mimeType) 已准备好进入收件箱审核" : "\(mimeType) ready for Inbox review"
     }
 }
 

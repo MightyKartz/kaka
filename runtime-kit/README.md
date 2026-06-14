@@ -1,6 +1,6 @@
-# Kaka Mobile Runtime Kit
+# Pocket Agent Mobile Runtime Kit
 
-Kaka Mobile Runtime Kit is the local bridge scaffold for connecting the iPhone app to a user-owned runtime such as Hermes, OpenClaw, or a compatible sidecar.
+Pocket Agent Mobile Runtime Kit is the local bridge scaffold for connecting the iPhone app to a user-owned runtime such as Hermes, OpenClaw, or a compatible sidecar.
 
 The important product decision is safety first: installing a skill or plugin must not silently start a LAN listener. The bridge starts only after an explicit user action, and LAN plus Bonjour exposure are opt-in.
 
@@ -21,7 +21,7 @@ The follow-up plugin/skill productization roadmap lives in
 - It can run a P3.2 `host-private-adapter-conformance` report against a host-owned private adapter command without changing the phone API or bundling proprietary Hermes/OpenClaw binaries.
 - It can embed P3.3 `private_adapter_package` metadata in `host-package-preview` so host shells can discover, distribute, sign, update, and release-gate their own private adapter command binaries.
 - P3.4a adds `host-shell-pilot-report`, a Runtime Kit receipt for the first external Hermes/OpenClaw host-shell pilot. P3.4b lets that report discover the host-owned command in order from an explicit CLI argument, runtime env var, manifest entrypoint, then well-known path. It can validate local synthetic readiness, but missing discovery still reports `not_ready`, and P3.4 release completion still requires a real host-owned `hermes-kaka-host-api` or `openclaw-kaka-host-api` binary outside this repository.
-- P3.4c adds `packaging/HOST_PRIVATE_ADAPTER_IMPLEMENTATION.md` and schema-checked `packaging/examples/` JSON so external host teams can implement the real private adapter command without copying proprietary APIs into Kaka.
+- P3.4c adds `packaging/HOST_PRIVATE_ADAPTER_IMPLEMENTATION.md` and schema-checked `packaging/examples/` JSON so external host teams can implement the real private adapter command without copying proprietary APIs into Pocket Agent.
 - P3.4d keeps the `host-shell-pilot-report` verified boolean gate unchanged while allowing optional host-supplied evidence refs for distribution and drill artifacts.
 - P3.4e adds `host-shell-pilot-handoff`, a machine-readable external pilot handoff package that wraps the `host-shell-pilot-report` receipt with release handoff metadata, deliverables, audit-ref completeness, and safety flags. It can report `handoff_status: "ready_to_submit"` only when all P3.4d audit refs are present, but it always keeps `p3_4_complete: false` because final P3.4 completion remains owned by the external host shell.
 - P3.4f adds `host-shell-pilot-preflight`, a read-only local-input check that tells the host shell what is missing before conformance, pilot report, or handoff. It emits `kaka.host_shell_pilot_preflight.v1` on `hermes_openclaw_host_shell_pilot_preflight`, does not invoke the private adapter command, and always keeps `p3_4_complete: false`.
@@ -239,7 +239,7 @@ PYTHONPATH=runtime-kit python3 -m kaka_mobile_runtime_kit host-extension-readine
   --install-command "hermes plugin install kaka-mobile-bridge" \
   --update-channel stable \
   --adapter-command-location '$EXTENSION_ROOT/bin/hermes-kaka-host-api' \
-  --host-ui-entrypoint "Settings > Plugins > Kaka Mobile Bridge" \
+  --host-ui-entrypoint "Settings > Plugins > Pocket Agent Mobile Bridge" \
   --signed-package-ref "hermes-plugin://kaka-mobile-bridge/1.0.0" \
   --signature-ref "notarization-team:HERMES-KAKA" \
   --conformance-report-ref "artifacts/hermes/conformance.json" \
@@ -271,7 +271,7 @@ a sanitized host package candidate bundle rather than another Runtime Kit
 wrapper. That bundle should contain the real Plugin/Skill package ref, host UI
 entrypoint, disabled-by-default evidence, extension-internal adapter command
 location, install/pairing/update/uninstall drill receipts, P3.2 conformance ref,
-P3.4 evidence manifest ref, and release notes confirming that Kaka iPhone stays
+P3.4 evidence manifest ref, and release notes confirming that Pocket Agent iPhone stays
 on `/mobile/v1`. Review the bundle with `host-extension-material-intake` before
 writing or executing P3.7.
 
@@ -306,7 +306,7 @@ writes a safe starter tree with README, manifest, extension-internal adapter
 command README, runtime contract command files, and release-gate metadata. It
 does not install a plugin/skill, start the bridge, bind LAN, advertise Bonjour,
 create login items, mint tokens, invoke private adapter commands, or expose
-private host APIs to Kaka iPhone.
+private host APIs to Pocket Agent iPhone.
 
 Generate package-shaped Host Extension handoff materials without installing or
 invoking anything:
@@ -326,7 +326,7 @@ contract, install-drill runbook, release-gate commands, and an
 extension-internal adapter command README. It does not sign, publish, install,
 start the bridge, bind LAN, advertise Bonjour, create login items, mint tokens,
 run conformance, invoke private adapter commands, or expose private host APIs to
-Kaka iPhone.
+Pocket Agent iPhone.
 
 Generate a Host Plugin/Skill devkit without installing or invoking anything:
 
@@ -347,7 +347,7 @@ manifest, a real Codex `SKILL.md`, host Plugin/Skill install manifests, or
 `bin` adapter stubs. It does not sign, publish, install, start the bridge, bind
 LAN, advertise Bonjour, create login items, mint tokens, run conformance,
 invoke private adapter commands, update Codex marketplaces, or expose private
-host APIs to Kaka iPhone.
+host APIs to Pocket Agent iPhone.
 
 P3.18 turns the template-only Codex automation into a real Codex developer
 plugin source tree for host engineers:
@@ -377,7 +377,7 @@ keys or modifying the host trust store:
 PYTHONPATH=runtime-kit python3 -m kaka_mobile_runtime_kit local-tls-readiness \
   --runtime hermes \
   --tls-trust-state configured \
-  --tls-certificate-label "Kaka Local Runtime" \
+  --tls-certificate-label "Pocket Agent Local Runtime" \
   --tls-certificate-ref "keychain://login/kaka-local-runtime" \
   --tls-public-key-sha256 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
   --tls-expires-at "2036-12-31T23:59:59Z" \
@@ -403,7 +403,7 @@ PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
   --pairing-mode production \
   --trusted-local-tls \
   --tls-trust-state configured \
-  --tls-certificate-label "Kaka Local Runtime" \
+  --tls-certificate-label "Pocket Agent Local Runtime" \
   --tls-public-key-sha256 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
   --tls-certificate-chain-path /path/to/kaka-local-runtime.crt \
   --tls-private-key-path /path/to/kaka-local-runtime.key
@@ -542,7 +542,7 @@ install, login-item, update, uninstall, logs, health, port repair, and
 supervision lifecycle matrix. The report is evidence for the configured host
 command; distribution, command discovery, and package ownership remain the
 Hermes/OpenClaw host shell's responsibility. Passing conformance does not mean
-Kaka owns, ships, or bundles proprietary Hermes/OpenClaw binaries.
+Pocket Agent owns, ships, or bundles proprietary Hermes/OpenClaw binaries.
 External host teams should use
 `runtime-kit/packaging/HOST_PRIVATE_ADAPTER_IMPLEMENTATION.md` and the
 schema-checked JSON examples under `runtime-kit/packaging/examples/` as the
@@ -701,7 +701,7 @@ PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit connection
 
 Keep the three API surfaces separate:
 
-- Phone-to-agent connection: Kaka iPhone uses the local Mobile Bridge `/mobile/v1` API.
+- Phone-to-agent connection: Pocket Agent iPhone uses the local Mobile Bridge `/mobile/v1` API.
 - Host shell rendering and flow setup: Hermes/OpenClaw shells use Runtime Kit preview JSON and CLI contracts such as `settings-preview`, `package-preview`, and `host-package-preview`.
 - Host-side action execution: Hermes/OpenClaw shells call P2.9 `host-adapter-run` from the Mac/runtime side.
 - Host-private adapter conformance: Runtime Kit `host-private-adapter-conformance` runs on the Mac/runtime side against a host-owned command and produces report evidence only.
@@ -761,7 +761,7 @@ PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit start \
 
 `--runtime-store-path` is a Runtime Kit launcher/server option, not a Mobile Bridge field. The path belongs to the Mac/runtime side and holds runtime-owned Recall records, retrieval-index deletion receipts, runtime task records, and task events. The iPhone continues to call the same `/mobile/v1` endpoints and does not learn the SQLite path.
 
-For now this flag is an opt-in development setting. Runtime Kit's `consumer_ui` model exposes it as a visible runtime-side setting such as "Use local Kaka Recall and task store", not a hidden phone-side behavior. The bridge also exposes `/mobile/v1/runtime/settings` so Kaka can display whether the runtime-owned store and semantic Recall search are available, while leaving the actual setting on the Mac/runtime side.
+For now this flag is an opt-in development setting. Runtime Kit's `consumer_ui` model exposes it as a visible runtime-side setting such as "Use local Pocket Agent Recall and task store", not a hidden phone-side behavior. The bridge also exposes `/mobile/v1/runtime/settings` so Pocket Agent can display whether the runtime-owned store and semantic Recall search are available, while leaving the actual setting on the Mac/runtime side.
 
 Semantic Recall search starts with deterministic local token-overlap scoring so contract tests are stable. Runtime Kit also supports an explicit provider-backed development boundary:
 
@@ -857,7 +857,7 @@ PYTHONPATH=runtime-kit python3 -m kaka_mobile_runtime_kit.vision_server \
   --port 8787
 ```
 
-Then start the bridge with `--vision-endpoint http://127.0.0.1:8787/kaka/vision`. In this configuration, Kaka's image conversation can execute OCR from a suggestion or typed request and show extracted text from the uploaded photo rather than placeholder endpoint status.
+Then start the bridge with `--vision-endpoint http://127.0.0.1:8787/kaka/vision`. In this configuration, Pocket Agent's image conversation can execute OCR from a suggestion or typed request and show extracted text from the uploaded photo rather than placeholder endpoint status.
 
 The default `fixture_vision` provider is intentionally limited: it proves UI flow and response shape, but it does not read the uploaded image. A production Hermes/OpenClaw integration should expose a local endpoint that accepts:
 
@@ -869,7 +869,7 @@ The default `fixture_vision` provider is intentionally limited: it proves UI flo
 
 and returns either a root `vision` object or `{ "vision": { ... } }` using the schema in `docs/mobile-bridge-api.md`.
 
-The iPhone no longer asks the user to choose scan/identify/translate/food before shooting. The bridge first returns an `image_intake` task result with suggested skills, then Kaka routes suggestion taps or typed requests to these bottom-layer vision modes.
+The iPhone no longer asks the user to choose scan/identify/translate/food before shooting. The bridge first returns an `image_intake` task result with suggested skills, then Pocket Agent routes suggestion taps or typed requests to these bottom-layer vision modes.
 
 For OpenClaw, the same bridge contract should use `--runtime openclaw` and an OpenClaw-owned recipe endpoint or sidecar configuration once that adapter exists.
 
@@ -893,11 +893,11 @@ For OpenClaw, the same bridge contract should use `--runtime openclaw` and an Op
 
 The target first-run UX is:
 
-1. User installs the Hermes Plugin or OpenClaw Skill/sidecar for Kaka Mobile
+1. User installs the Hermes Plugin or OpenClaw Skill/sidecar for Pocket Agent Mobile
    Bridge.
-2. User opens the runtime UI and enables **Kaka Mobile Bridge**.
+2. User opens the runtime UI and enables **Pocket Agent Mobile Bridge**.
 3. The runtime shows a QR code and optionally advertises Bonjour.
-4. Kaka iPhone app discovers or scans the bridge.
+4. Pocket Agent iPhone app discovers or scans the bridge.
 5. iPhone stores only the endpoint and mobile token in Keychain.
 
 The user should not write adapter code, export an environment variable, or paste

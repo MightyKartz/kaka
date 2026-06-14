@@ -202,7 +202,7 @@ def build_app_for_provider(
     vision_provider: str = "fixture",
     vision_endpoint: str = "",
     runtime_id: str = "hermes",
-    runtime_display_name: str = "Agent Pocket Mock Hermes",
+    runtime_display_name: str = "Pocket Agent Mock Hermes",
     pairing_scheme: str = "http",
     recall_search_provider: str = "local",
     recall_search_endpoint: str = "",
@@ -347,11 +347,11 @@ def _provider_env_overlay(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the Agent Pocket mock Mobile Bridge HTTP server.")
+    parser = argparse.ArgumentParser(description="Run the Pocket Agent mock Mobile Bridge HTTP server.")
     parser.add_argument("--host", default="127.0.0.1", help="Bind host. Use 0.0.0.0 for device LAN testing.")
     parser.add_argument("--port", default=8765, type=int, help="Bind port.")
     parser.add_argument("--bonjour", action="store_true", help="Advertise the mock bridge through Bonjour.")
-    parser.add_argument("--bonjour-name", default="Agent Pocket Mock Hermes", help="Bonjour service display name.")
+    parser.add_argument("--bonjour-name", default="Pocket Agent Mock Hermes", help="Bonjour service display name.")
     parser.add_argument("--bonjour-host", default=None, help="Host or LAN IP to publish in the Bonjour endpoint TXT record.")
     parser.add_argument("--pairing-code", default="pair_dev", help="Development pairing code to publish through Bonjour.")
     parser.add_argument("--pairing-mode", default="development", choices=["development", "production"])
@@ -486,7 +486,7 @@ def main(argv=None) -> int:
                 )
             except OSError as error:
                 print(f"Bonjour advertisement did not start: {error}", flush=True)
-        print(f"Agent Pocket mock bridge listening on {scheme}://{args.host}:{actual_port}", flush=True)
+        print(f"Pocket Agent mock bridge listening on {scheme}://{args.host}:{actual_port}", flush=True)
         try:
             server.serve_forever()
         except KeyboardInterrupt:
@@ -578,8 +578,8 @@ def _build_app_with_optional_vision(args: argparse.Namespace) -> MockBridgeApp:
     pairing_kwargs = {"pairing_manager": pairing_manager} if pairing_manager is not None else {}
     runtime_kwargs = {
         "runtime_id": str(getattr(args, "runtime", "hermes")).strip() or "hermes",
-        "runtime_display_name": str(getattr(args, "bonjour_name", "Agent Pocket Mock Hermes")).strip()
-        or "Agent Pocket Mock Hermes",
+        "runtime_display_name": str(getattr(args, "bonjour_name", "Pocket Agent Mock Hermes")).strip()
+        or "Pocket Agent Mock Hermes",
         "pairing_scheme": "https" if bool(getattr(args, "trusted_local_tls", False)) else "http",
         "trusted_local_tls_required": bool(getattr(args, "trusted_local_tls", False)),
         "tls_certificate_label": str(getattr(args, "tls_certificate_label", "")),

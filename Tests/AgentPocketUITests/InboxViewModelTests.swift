@@ -196,7 +196,7 @@ final class InboxViewModelTests: XCTestCase {
     func testDismissResultClearsCompletedSubmissionContext() async throws {
         let item = KakaInboxItem(
             kind: .text,
-            sourceApp: "Kaka Voice",
+            sourceApp: "Pocket Agent Voice",
             sourceSurface: "voice",
             text: "Draft",
             route: .universalIntake
@@ -326,7 +326,7 @@ final class InboxViewModelTests: XCTestCase {
 
         XCTAssertEqual(item.kind, .text)
         XCTAssertEqual(item.text, "Summarize this receipt before I send it.")
-        XCTAssertEqual(item.sourceApp, "Kaka Voice")
+        XCTAssertEqual(item.sourceApp, "Pocket Agent Voice")
         XCTAssertEqual(item.sourceSurface, "voice")
         XCTAssertEqual(item.locale, "en-US")
         XCTAssertEqual(item.route, .universalIntake)
@@ -816,7 +816,7 @@ private func completedUniversalIntakeStatus(kind: UniversalIntakeKind) throws ->
       "intake":{
         "kind":"\(kind.rawValue)",
         "title":"Shared item ready",
-        "summary":"Kaka received the shared item.",
+        "summary":"Pocket Agent received the shared item.",
         "suggestions":[
           {"id":"summarize","label":"Summarize","requires_confirmation":false,"is_available":true}
         ]

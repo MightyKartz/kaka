@@ -1,4 +1,4 @@
-# Kaka Agent Guide
+# Pocket Agent Guide
 
 This file is the first stop for Codex, Claude, and other agentic workers in this repository.
 
@@ -13,7 +13,7 @@ If older docs conflict with the charter, follow the charter. If the Mobile Bridg
 
 ## Current Product Direction
 
-Kaka is a local-first iPhone front end for user-owned agent runtimes such as Hermes and OpenClaw.
+Pocket Agent is a local-first iPhone front end for user-owned agent runtimes such as Hermes and OpenClaw.
 
 The current main line is **Local Agent Lens**:
 
@@ -22,7 +22,7 @@ The current main line is **Local Agent Lens**:
 - phone-native actions: capture, scan, document scan, short video intake, voice, Share, Paste, Files, Inbox, Recall controls, task approvals, Live Activities, and Dynamic Island status;
 - Hermes/OpenClaw/runtime owns model credentials, routing, tools, memory, task state, and retention.
 
-Do not turn Kaka into a generic chat client, a cloud relay, or a public-internet remote desktop path unless the user explicitly changes the product direction.
+Do not turn Pocket Agent into a generic chat client, a cloud relay, or a public-internet remote desktop path unless the user explicitly changes the product direction.
 
 ## Hard Confirmation Lines
 
@@ -42,14 +42,14 @@ You may proceed without extra confirmation when the action is local, reversible,
 - edit code, tests, and docs on the current branch;
 - run local tests, lint, SwiftPM, pytest, Xcode local builds, and mock/runtime-kit smoke tests;
 - start local development bridges for verification;
-- install and launch the current Kaka dev app on the already connected test iPhone when the user asks for real-device testing;
+- install and launch the current Pocket Agent dev app on the already connected test iPhone when the user asks for real-device testing;
 - update `docs/PROGRESS.md` after meaningful decisions, implementation slices, and QA.
 
 ## Development Discipline
 
 - Keep changes scoped to the current user request and the current charter milestone.
 - Prefer small, testable slices over broad refactors.
-- Do not ask ordinary users to paste long `runtime-kit` commands, export env vars, write adapter code, or install Codex skills/plugins as the normal Kaka setup path.
+- Do not ask ordinary users to paste long `runtime-kit` commands, export env vars, write adapter code, or install Codex skills/plugins as the normal Pocket Agent setup path.
 - Keep Share, Paste, Files, Voice, Scanner, Document, Video, Recall, and Context Snapshot flows visible and user-confirmed before runtime submission.
 - Do not silently upload content, poll the pasteboard, record in the background, or write Recall automatically.
 - Host Extension work and Local Agent Lens work should remain separate slices.

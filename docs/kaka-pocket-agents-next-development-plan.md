@@ -1,8 +1,8 @@
-# Kaka Pocket Agents Post-E0 Development Plan
+# Kaka Pocket Agent Post-E0 Development Plan
 
 Updated: 2026-06-11
 
-This document records the next development direction after the current Pocket Agents foundation work. It is based on code-first analysis of the working tree, not only on earlier roadmap text.
+This document records the next development direction after the current Pocket Agent foundation work. It is based on code-first analysis of the working tree, not only on earlier roadmap text.
 
 Most recent follow-up plan referenced by this document:
 
@@ -69,7 +69,7 @@ Future plugin/skill development gate:
    under an explicit output directory, and prove no marketplace update,
    `~/plugins`, `~/.codex/skills`, `~/.agents/plugins`, bridge start, private
    adapter invocation, or ordinary-user install surface.
-4. Kaka iPhone remains unchanged by installation packaging work: no private
+4. Pocket Agent iPhone remains unchanged by installation packaging work: no private
    Hermes/OpenClaw API client, no new `/mobile/v1` endpoint, no hidden adapter
    setup UI, and no provider/runtime secrets on the phone.
 
@@ -218,7 +218,7 @@ existing Recall action contract.
 Post-P3.37 development decision: if real Hermes/OpenClaw package facts are not
 available, stop adding repository-only installation wrappers. The ordinary-user
 install answer is now stable enough for this repository: install the
-host-native Hermes Plugin or OpenClaw Skill, enable Kaka Mobile Bridge in the
+host-native Hermes Plugin or OpenClaw Skill, enable Pocket Agent Mobile Bridge in the
 host UI, then pair by QR or Bonjour through `/mobile/v1`. The next in-repo work
 should either execute P3.7 with real host-owned materials, or move to another
 small product-facing slice that preserves visible review and existing Mobile
@@ -288,7 +288,7 @@ Next development tracks:
    ordinary-user install surface.
 2. External Host Extension productization that should remain the user-install
    direction:
-   Kaka should be installed into Hermes as a Hermes Plugin and into OpenClaw as
+   Pocket Agent should be installed into Hermes as a Hermes Plugin and into OpenClaw as
    an OpenClaw Skill or sidecar. The private adapter command is a host-owned
    implementation detail inside that extension, not a normal user setup step.
    External P3.7 cannot proceed until real host-owned
@@ -432,8 +432,8 @@ Next development tracks:
 
 Completed P3.12 Host Extension Starter Kit is the product-shape correction for
 Hermes/OpenClaw onboarding: ordinary users should install a Hermes Plugin or
-OpenClaw Skill/sidecar, open the host Kaka Mobile Bridge panel, explicitly
-enable the bridge, show QR or opt into Bonjour, and pair Kaka iPhone through
+OpenClaw Skill/sidecar, open the host Pocket Agent Mobile Bridge panel, explicitly
+enable the bridge, show QR or opt into Bonjour, and pair Pocket Agent iPhone through
 `/mobile/v1`. They should not write adapter code, export
 `HERMES_KAKA_HOST_API` / `OPENCLAW_KAKA_HOST_API`, or paste Runtime Kit command
 chains.
@@ -441,7 +441,7 @@ chains.
 Current product decision for future work: yes, the Hermes/OpenClaw integration
 should be packaged as an installable Host Extension. Runtime Kit may generate
 starter-kit and install-package handoff artifacts for host teams, but ordinary
-users should see a native host install surface and a Kaka Mobile Bridge panel,
+users should see a native host install surface and a Pocket Agent Mobile Bridge panel,
 not terminal setup. Any future plan that asks users to edit adapter code, expose
 private host APIs to the iPhone, or configure `--private-adapter-command` as the
 default onboarding path is off direction.
@@ -817,7 +817,7 @@ only restate existing request/runbook/review/evidence-manifest outputs. P3.4 is
 now in external host execution state: Hermes/OpenClaw must provide a real
 host-owned command binary or discovery source plus native distribution,
 signature/update, drill, release-note, conformance, handoff, artifact-review,
-and evidence-manifest outputs before Kaka can truthfully advance the release
+and evidence-manifest outputs before Pocket Agent can truthfully advance the release
 pilot.
 
 Current P3.4 preflight finding from the 2026-06-06 multi-agent check: this
@@ -852,7 +852,7 @@ evidence. The product path is an installable Host Extension: Hermes ships a
 Hermes Plugin and OpenClaw ships an OpenClaw Skill or sidecar package. That
 extension bundles or internally discovers the private adapter command, renders
 Runtime Kit's `consumer_ui`, `process_ownership`, `private_adapter_package`, and
-pairing contracts, and lets users enable Kaka Mobile Bridge, show QR, optionally
+pairing contracts, and lets users enable Pocket Agent Mobile Bridge, show QR, optionally
 advertise Bonjour, run health checks, revoke iPhone tokens, update, uninstall,
 and open logs from the host UI. The command binary remains host-owned, but it
 must be an extension-internal implementation detail rather than a manual setup
@@ -961,7 +961,7 @@ turning the phone into a runtime settings owner.
 
 The P3.11 agent plan is recorded at
 `docs/superpowers/plans/2026-06-07-kaka-pocket-agents-native-connection-recovery-ui.md`.
-The implemented boundary is that Kaka iPhone renders phone-safe guidance for
+The implemented boundary is that Pocket Agent iPhone renders phone-safe guidance for
 expired QR, already-used QR, revoked saved connections, bridge unavailable,
 Bonjour/local network fallback, host-owned port conflict, disabled host action,
 host extension unavailable, and TLS/certificate failure; it does not expose
@@ -1034,7 +1034,7 @@ port-conflict repair, a P2.8 `host-package-preview` JSON handoff contract for
 host packaging/distribution adapters, and P2.9 `host-adapter-run` for
 Mac/runtime-side host action execution.
 
-P2.9 deliberately keeps the phone connection on Kaka Mobile Bridge `/mobile/v1`
+P2.9 deliberately keeps the phone connection on Pocket Agent Mobile Bridge `/mobile/v1`
 and does not expose private host APIs to iPhone. `host-adapter-run` is a
 Mac/runtime-side action result surface. Its `mock` adapter is for conformance and
 local QA. P3.1 now narrows `private` mode to a command bridge: without
@@ -1131,7 +1131,7 @@ workspace, so this tracked document is the durable project-level roadmap.
 
 ## Current Implementation Truth
 
-Kaka is no longer only an image-intake MVP. The working tree now contains:
+Pocket Agent is no longer only an image-intake MVP. The working tree now contains:
 
 - Swift Mobile Bridge support for generic asset uploads and universal intake.
 - `KakaShareExtension` with App Group inbox capture for text, URL, image, and PDF payloads.
@@ -1207,7 +1207,7 @@ Implemented behavior:
 | Completed | P2.7 | Runtime process ownership | The renderer contract existed, but the runtime host needed an explicit process lifecycle contract rather than asking users to manage commands. | Runtime Kit exposes `runtime_side_ui.process_ownership` from `settings-preview` and `package-preview` for install/start-at-login/update/uninstall/logs/health/port-conflict repair without auto-starting, creating login items, implementing host APIs, or moving settings to iPhone. |
 | Completed | P2.8 | Consumer-ready host packaging handoff | The runtime-side contracts existed; host adapters needed one stable package handoff surface before binding private APIs. | Runtime Kit exposes `host-package-preview`, host package schema/static manifest declarations, safe command artifacts, distribution metadata, disabled install defaults, and host-owned action metadata without mutating host state or requiring private Hermes/OpenClaw APIs. |
 | Completed | P2.9 | Hermes/OpenClaw host adapter binding | P2.8 defines the handoff; host shells need a testable action execution surface before the host-private command bridge lands. | Runtime Kit exposes `host-adapter-run` as a Mac/runtime-side action surface; `mock` is conformance/local QA, unconfigured `private` returns unavailable, mutating actions require explicit approval, install does not auto-start or create login items, the action-result schema is hardened, and the phone still connects only through Mobile Bridge `/mobile/v1`. |
-| Completed | P3.0 | Ordinary-user connection QA and host adapter readiness | P2.9 provided the binding surface; P3.0 verified the real first-run user journey before wiring unknown private APIs. | `connection-qa-preview` and the checklist prove a normal user can install or enable the safe scaffold, explicitly start Kaka Mobile Bridge, pair iPhone by production QR or Bonjour/LAN, run health checks, verify saved-token reconnect, revoke tokens, reconnect with a new QR, and recover from expected failures without changing the phone API or requiring private Hermes/OpenClaw APIs. |
+| Completed | P3.0 | Ordinary-user connection QA and host adapter readiness | P2.9 provided the binding surface; P3.0 verified the real first-run user journey before wiring unknown private APIs. | `connection-qa-preview` and the checklist prove a normal user can install or enable the safe scaffold, explicitly start Pocket Agent Mobile Bridge, pair iPhone by production QR or Bonjour/LAN, run health checks, verify saved-token reconnect, revoke tokens, reconnect with a new QR, and recover from expected failures without changing the phone API or requiring private Hermes/OpenClaw APIs. |
 | Completed | P3.1 | Host-private command bridge contract | P3.0 produced the user journey and API readiness evidence; Runtime Kit needed the safe adapter contract behind the existing `host-adapter-run --adapter private` surface. | Private mode accepts `--private-adapter-command`, invokes it with `shell=False`, exchanges stdin/stdout JSON, returns structured safe failures for missing/failed/invalid/timeout commands, blocks disabled/unapproved actions before command execution, preserves approval gates/no-autostart defaults/schema validation, and keeps the iPhone isolated to `/mobile/v1`. Proprietary Hermes/OpenClaw APIs plug in behind the host command and are not bundled here. |
 | Completed | P3.2 | Host-owned adapter dogfood and conformance | P3.1 created the contract; the next risk was whether real Hermes/OpenClaw host shells can supply a command that satisfies it across the full lifecycle matrix without moving ownership into Kaka. | Runtime Kit `host-private-adapter-conformance` validates a host-owned command through P3.1 private adapter behavior for install/login item/update/uninstall/logs/health/port repair/supervision, keeps distribution host-owned, preserves first-run QA and no-autostart safety, and leaves iPhone traffic on `/mobile/v1` only. |
 | Completed | P3.3 | Real host packaging/distribution integration | P3.2 proves command behavior; the remaining user risk is turning command evidence into host-owned binary discovery, distribution, update, signature, and release gating. | Runtime Kit extends `host-package-preview` with `private_adapter_package` metadata, schemas, static manifests, docs, and tests for host-owned command naming, discovery sources, distribution/update policy, signature policy, and required conformance evidence while keeping iPhone traffic on `/mobile/v1`. |
@@ -1441,7 +1441,7 @@ Boundaries:
 - P2.7 does not auto-start the bridge on install.
 - P2.7 does not implement real Hermes/OpenClaw native install, update, uninstall, log, health, repair, or supervision APIs.
 - Install defaults stay disabled and `start_with_runtime` defaults false.
-- Lifecycle state and diagnostics stay runtime-side and are not copied into Kaka iPhone settings.
+- Lifecycle state and diagnostics stay runtime-side and are not copied into Pocket Agent iPhone settings.
 
 Completion evidence:
 
@@ -1494,7 +1494,7 @@ Implemented scope:
 
 Boundaries:
 
-- P2.9 does not change the phone API. Kaka iPhone still connects to agents only through Kaka Mobile Bridge `/mobile/v1`.
+- P2.9 does not change the phone API. Pocket Agent iPhone still connects to agents only through Pocket Agent Mobile Bridge `/mobile/v1`.
 - `host-adapter-run` is a Mac/runtime-side action surface, not a private host API exposed to the phone.
 - Host adapter result JSON is runtime-side only and must not include provider keys, mobile tokens, TLS private key paths, host log paths, process IDs, runtime SQLite paths, raw embeddings, index rows, hidden prompts, or task logs.
 - `mock` is conformance/local QA; in P2.9 `private` returns unavailable until a later host-private bridge is supplied.
@@ -1656,7 +1656,7 @@ Implemented scope:
 5. Added `host-private-adapter-conformance.schema.json` plus static
    Hermes/OpenClaw manifest declarations.
 6. Updated Runtime Kit, packaging, Hermes/OpenClaw, README, and roadmap docs to
-   document conformance without implying Kaka owns proprietary command binaries.
+   document conformance without implying Pocket Agent owns proprietary command binaries.
 
 Completion evidence:
 
@@ -1734,7 +1734,7 @@ P3.3 exit criteria:
 - Generated metadata names the host-owned binary, discovery sources, update
   policy, signature policy, conformance command, and `/mobile/v1` phone
   boundary.
-- Docs clearly state that Kaka does not own or distribute proprietary command
+- Docs clearly state that Pocket Agent does not own or distribute proprietary command
   binaries.
 - P3.4 is queued as an external host-shell dogfood/release pilot with a real
   Hermes/OpenClaw command binary outside this repository.
@@ -1746,7 +1746,7 @@ Completion evidence:
 - Static Hermes/OpenClaw manifests declare `host_private_adapter_package`
   metadata sourced from `host_package.private_adapter_package`.
 - Docs now describe the P3.3 package contract and host shell checklist without
-  claiming Kaka owns or distributes proprietary Hermes/OpenClaw command
+  claiming Pocket Agent owns or distributes proprietary Hermes/OpenClaw command
   binaries.
 - Focused P3.3 Runtime Kit tests passed: `41 passed`.
 - Expanded packaging/CLI focused tests passed: `65 passed`.
@@ -1826,7 +1826,7 @@ P3.4a exit criteria:
   conformance passes and native distribution, signature, update-feed,
   install/update/failure drills, and release notes are verified.
 - Docs and roadmap continue to state that P3.4 completion requires a real
-  host-owned binary outside the Kaka repository.
+  host-owned binary outside the Pocket Agent repository.
 
 Executed P3.4a multi-agent split:
 

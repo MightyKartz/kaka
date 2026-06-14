@@ -111,7 +111,7 @@ def test_build_iphone_credential_boundary_report_allows_hermes_bearer_only(tmp_p
     app_root.mkdir(parents=True)
     core_root.mkdir(parents=True)
     (app_root / "AgentPocketApp.swift").write_text(
-        'let displayName = "Agent Pocket"\n',
+        'let displayName = "Pocket Agent"\n',
         encoding="utf-8",
     )
     (core_root / "MobileBridgeClient.swift").write_text(
@@ -491,7 +491,7 @@ def _write_result_gallery_downloaded_receipt(path, ok=True):
         "downloaded_asset_bytes": 68 if ok else 0,
         "downloaded_mime_type": "image/png" if ok else "",
         "recipe_summary": "Balanced exposure while preserving the original frame." if ok else "",
-        "share_caption": "Shot polished locally with Kaka." if ok else "",
+        "share_caption": "Shot polished locally with Pocket Agent." if ok else "",
         "download_selected_enabled": False,
         "save_enabled": ok,
         "share_enabled": ok,
@@ -2144,7 +2144,7 @@ def test_run_simulator_result_gallery_downloaded_session_launches_debug_download
         "downloaded_asset_bytes": 68,
         "downloaded_mime_type": "image/png",
         "recipe_summary": "Balanced exposure while preserving the original frame.",
-        "share_caption": "Shot polished locally with Kaka.",
+        "share_caption": "Shot polished locally with Pocket Agent.",
         "download_selected_enabled": False,
         "save_enabled": True,
         "share_enabled": True,
@@ -2219,7 +2219,7 @@ def test_run_simulator_share_sheet_session_launches_debug_share_sheet_and_writes
         "downloaded_asset_bytes": 68,
         "downloaded_mime_type": "image/png",
         "share_items_count": 2,
-        "share_caption": "Shot polished locally with Kaka.",
+        "share_caption": "Shot polished locally with Pocket Agent.",
         "handoff_attempted": True,
         "share_sheet_presented": True,
         "presenter": "UIActivityViewController",
@@ -2261,7 +2261,7 @@ def test_run_simulator_share_sheet_session_requires_presented_share_sheet(tmp_pa
         "downloaded_asset_bytes": 68,
         "downloaded_mime_type": "image/png",
         "share_items_count": 2,
-        "share_caption": "Shot polished locally with Kaka.",
+        "share_caption": "Shot polished locally with Pocket Agent.",
         "handoff_attempted": True,
         "share_sheet_presented": False,
     }
@@ -4118,7 +4118,7 @@ def test_audit_capture_ready_receipt_requires_library_selection_preprocessing_pa
     assert report["ok"] is False
     assert "library selection source" in report["missing"]
     assert "prepareSelectedImage preprocessing path" in report["missing"]
-    assert "Send to Kaka primary action" in report["missing"]
+    assert "Send to Pocket Agent primary action" in report["missing"]
 
 
 def test_audit_capture_ready_receipt_reports_selection_source_and_action(tmp_path):
@@ -4460,7 +4460,7 @@ def test_build_readiness_markdown_summarizes_gates_skills_and_next_commands():
 
     markdown = build_readiness_markdown(report)
 
-    assert "# Agent Pocket MVP Readiness" in markdown
+    assert "# Pocket Agent MVP Readiness" in markdown
     assert "- Gate F remains open until required external evidence is available: real iPhone OpenAI photo-flow receipt, server-side OpenAI key proof (Hermes/provider runtime), and Tailscale endpoint evidence." in markdown
     assert "@superpowers" in markdown
     assert "@build-ios-apps: unavailable in this session; Xcode/SwiftPM fallback used" in markdown
@@ -4835,7 +4835,7 @@ def test_build_readiness_markdown_shows_explicit_gate_f_endpoint_evidence():
                         "scope": "Hermes/mock bridge server process",
                         "iphone_required": False,
                         "message": (
-                            "Agent Pocket on iPhone never stores or calls OPENAI_API_KEY; "
+                            "Pocket Agent on iPhone never stores or calls OPENAI_API_KEY; "
                             "the runtime that performs the photo edit must prove it can read the key."
                         ),
                         "remediation_command": (
@@ -5623,7 +5623,7 @@ def test_cli_readiness_report_prints_and_writes_markdown(monkeypatch, tmp_path, 
     printed = capsys.readouterr().out
     written = output_file.read_text()
     assert exit_code == 0
-    assert "# Agent Pocket MVP Readiness" in printed
+    assert "# Pocket Agent MVP Readiness" in printed
     assert "simulator_picker_ui_smoke" in printed
     assert printed == written
     assert "| C | passed | Swift core tests and connection parsing |  |" in written

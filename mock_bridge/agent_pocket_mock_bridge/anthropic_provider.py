@@ -261,7 +261,7 @@ def _document_block(source_bytes: bytes, mime_type: str) -> Mapping[str, Any]:
 
 def _image_intake_instruction(locale: Optional[str]) -> str:
     return (
-        "Analyze the image for Kaka image_intake. Return JSON with keys: "
+        "Analyze the image for Pocket Agent image_intake. Return JSON with keys: "
         "image_type, title, summary, confidence, suggestions. suggestions must be an array of "
         "objects with skill, title, reason, confidence, and optional is_available. Prefer skills "
         "from: ocr, translate_text, identify_subject, nutrition_estimate, photo_enhance. "
@@ -277,7 +277,7 @@ def _vision_instruction(mode: str, user_instruction: str, locale: Optional[str])
         "food": "Estimate visible food, calories, nutrition, portions, and assumptions.",
     }.get(mode, "Analyze the image.")
     return (
-        f"Perform Kaka vision mode `{mode}`. {mode_guidance} "
+        f"Perform Pocket Agent vision mode `{mode}`. {mode_guidance} "
         "Return JSON with keys: mode, title, summary, text, language, confidence, sections, items. "
         "sections is an array with title, kind, summary, items. items is an array with title, value, "
         "subtitle, kind, label, confidence. "
@@ -288,7 +288,7 @@ def _vision_instruction(mode: str, user_instruction: str, locale: Optional[str])
 def _universal_intake_instruction(intake_type: str, payload: Mapping[str, Any]) -> str:
     visible_payload = _visible_payload(payload)
     return (
-        f"Summarize a Kaka universal intake item of type `{intake_type}`. "
+        f"Summarize a Pocket Agent universal intake item of type `{intake_type}`. "
         "Return JSON with keys: title, summary, suggestions. suggestions must be an array of objects "
         "with id, label, optional requires_confirmation, and optional is_available. "
         "For image intake you may also include image_intake with the image_intake schema. "

@@ -15,7 +15,7 @@ final class RuntimeTaskActivityTests: XCTestCase {
         let snapshot = RuntimeTaskActivitySnapshot(task: task)
 
         XCTAssertEqual(snapshot.taskID, "task_approval_1")
-        XCTAssertEqual(snapshot.title, "Review task in Kaka")
+        XCTAssertEqual(snapshot.title, "Review task in Pocket Agent")
         XCTAssertEqual(snapshot.phase, .needsApproval)
         XCTAssertTrue(snapshot.approvalNeeded)
         XCTAssertEqual(RuntimeTaskActivitySnapshot.phoneSafeFieldNames, ["task_id", "title", "phase", "approval_needed", "progress", "message"])
@@ -52,7 +52,7 @@ final class RuntimeTaskActivityTests: XCTestCase {
 
         let snapshot = RuntimeTaskActivitySnapshot(task: task)
 
-        XCTAssertEqual(snapshot.title, "Kaka task")
+        XCTAssertEqual(snapshot.title, "Pocket Agent task")
         XCTAssertFalse(snapshot.title.contains("sk-live-secret"))
         XCTAssertFalse(snapshot.title.contains("calendar"))
     }

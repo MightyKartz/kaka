@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/host-extension-material-intake.schema.json",
-  "title": "Kaka Host Extension Material Intake Report",
+  "title": "Pocket Agent Host Extension Material Intake Report",
   "type": "object",
   "additionalProperties": false,
   "required": [

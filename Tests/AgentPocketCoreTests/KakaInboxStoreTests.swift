@@ -96,7 +96,7 @@ final class KakaInboxStoreTests: XCTestCase {
           "received_at": "2027-01-15T08:00:00Z",
           "source": {
             "surface": "voice",
-            "host_app": "Kaka Voice"
+            "host_app": "Pocket Agent Voice"
           },
           "text": "Summarize my last meeting notes."
         }
@@ -109,7 +109,7 @@ final class KakaInboxStoreTests: XCTestCase {
         )
 
         XCTAssertEqual(item.sourceSurface, "voice")
-        XCTAssertEqual(item.sourceApp, "Kaka Voice")
+        XCTAssertEqual(item.sourceApp, "Pocket Agent Voice")
         XCTAssertEqual(encodedObject["source_surface"] as? String, "voice")
         XCTAssertNil(encodedObject["source"])
     }

@@ -174,7 +174,7 @@ public final class ConnectionViewModel: ObservableObject {
         showsNoResultsFailure: Bool = true,
         fallbackStateWhenNoResults: ConnectionState? = nil,
         now: Date = Date(),
-        deviceName: String = "Agent Pocket",
+        deviceName: String = "Pocket Agent",
         devicePublicID: String = "agent-pocket-device"
     ) async {
         beginDiscovery()
@@ -462,7 +462,7 @@ public final class ConnectionViewModel: ObservableObject {
     public func restoreSavedConnectionOrDiscoverNearby(
         timeout: TimeInterval = 2.5,
         now: Date = Date(),
-        deviceName: String = "Agent Pocket",
+        deviceName: String = "Pocket Agent",
         devicePublicID: String = "agent-pocket-device"
     ) async {
         _ = now

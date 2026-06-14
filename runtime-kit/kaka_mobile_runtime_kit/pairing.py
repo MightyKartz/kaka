@@ -251,7 +251,7 @@ class PairingManager:
         token_ttl = self.config.normalized_token_ttl_seconds()
         token = MobileTokenRecord(
             token=f"mobile_{secrets.token_urlsafe(32)}",
-            device_name=device_name.strip() or "Kaka iPhone",
+            device_name=device_name.strip() or "Pocket Agent iPhone",
             device_public_id=device_public_id.strip() or "device_unknown",
             runtime=used.runtime,
             issued_at=now,

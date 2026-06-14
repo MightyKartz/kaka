@@ -61,8 +61,8 @@ struct RuntimeTaskActivityWidget: Widget {
             }
             .keylineTint(context.state.approvalNeeded ? .orange : .accentColor)
         }
-        .configurationDisplayName("Kaka Task")
-        .description("Shows phone-safe Kaka task status.")
+        .configurationDisplayName("Pocket Agent Task")
+        .description("Shows phone-safe Pocket Agent task status.")
     }
 }
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/host-shell-pilot-handoff.schema.json",
-  "title": "Kaka Host Shell Pilot Handoff",
+  "title": "Pocket Agent Host Shell Pilot Handoff",
   "type": "object",
   "additionalProperties": false,
   "required": [

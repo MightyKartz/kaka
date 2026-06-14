@@ -43,7 +43,7 @@ public struct RecallBrowseView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .background(AgentPocketDesignTokens.darkBackground.ignoresSafeArea())
+        .background(AgentPocketDesignTokens.lightCanvas.ignoresSafeArea())
         .tint(AgentPocketDesignTokens.accent)
         .navigationTitle(language == .chinese ? "记忆" : "Recall")
         .searchable(text: $viewModel.query, prompt: language == .chinese ? "搜索记忆" : "Search Recall")
@@ -102,7 +102,7 @@ public struct RecallBrowseView: View {
             Section {
                 Label(exportedMessage(count: export.items.count), systemImage: "checkmark.circle.fill")
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(AgentPocketDesignTokens.accent)
+                    .foregroundStyle(AgentPocketDesignTokens.accentStrong)
                     .recallStateRow()
             }
             .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
@@ -112,7 +112,7 @@ public struct RecallBrowseView: View {
             Section {
                 Label(language == .chinese ? "正在删除记忆" : "Deleting Recall item", systemImage: "trash")
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.76))
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                     .recallStateRow()
             }
             .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
@@ -125,7 +125,7 @@ public struct RecallBrowseView: View {
                         .tint(AgentPocketDesignTokens.accent)
                     Text(language == .chinese ? "正在导出记忆" : "Exporting Recall")
                         .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.76))
+                        .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                 }
                 .recallStateRow()
             }
@@ -147,19 +147,19 @@ public struct RecallBrowseView: View {
 
                 Text(language == .chinese ? "还没有记忆" : "No Recall Items")
                     .font(.headline)
-                    .foregroundStyle(.white.opacity(0.92))
+                    .foregroundStyle(AgentPocketDesignTokens.ink)
 
                 Text(language == .chinese ? "完成任务后保存的要点会出现在这里，之后可以搜索或导出。" : "Search or refresh after saving Recall items from completed tasks.")
                     .font(.footnote)
-                    .foregroundStyle(.white.opacity(0.66))
+                    .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, minHeight: 220)
-            .background(AgentPocketDesignTokens.darkPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+            .background(AgentPocketDesignTokens.lightPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
-                    .stroke(AgentPocketDesignTokens.darkStroke, lineWidth: 1)
+                    .stroke(AgentPocketDesignTokens.lightBorder, lineWidth: 1)
             )
         }
         .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
@@ -171,7 +171,7 @@ public struct RecallBrowseView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(item.summary)
                 .font(.body.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(AgentPocketDesignTokens.ink)
                 .lineLimit(4)
                 .textSelection(.enabled)
 
@@ -183,14 +183,14 @@ public struct RecallBrowseView: View {
                 }
             }
             .font(.caption)
-            .foregroundStyle(.white.opacity(0.66))
+            .foregroundStyle(AgentPocketDesignTokens.inkMuted)
             .lineLimit(2)
         }
         .padding(14)
-        .background(AgentPocketDesignTokens.darkPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+        .background(AgentPocketDesignTokens.lightPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
-                .stroke(AgentPocketDesignTokens.darkStroke, lineWidth: 1)
+                .stroke(AgentPocketDesignTokens.lightBorder, lineWidth: 1)
         )
     }
 
@@ -240,10 +240,10 @@ private extension View {
         self
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AgentPocketDesignTokens.darkPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
+            .background(AgentPocketDesignTokens.lightPanel, in: RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: AgentPocketDesignTokens.controlRadius, style: .continuous)
-                    .stroke(AgentPocketDesignTokens.darkStroke, lineWidth: 1)
+                    .stroke(AgentPocketDesignTokens.lightBorder, lineWidth: 1)
             )
     }
 }

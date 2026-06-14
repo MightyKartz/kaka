@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/host-extension-starter-kit.schema.json",
-  "title": "Kaka Host Extension Starter Kit",
+  "title": "Pocket Agent Host Extension Starter Kit",
   "type": "object",
   "required": [
     "schema_version",

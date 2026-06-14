@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/host-plugin-skill-devkit.schema.json",
-  "title": "Kaka Host Plugin Skill Devkit",
+  "title": "Pocket Agent Host Plugin Skill Devkit",
   "type": "object",
   "additionalProperties": false,
   "required": [

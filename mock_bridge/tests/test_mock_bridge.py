@@ -654,7 +654,7 @@ def test_runtime_settings_advertise_store_and_semantic_recall_status(tmp_path):
     assert response.status_code == 200
     assert payload["recall_store"]["enabled"] is True
     assert payload["recall_store"]["owner"] == "runtime"
-    assert payload["recall_store"]["label"] == "Local Kaka Recall and task store"
+    assert payload["recall_store"]["label"] == "Local Pocket Agent Recall and task store"
     assert payload["recall_store"]["phone_can_change"] is False
     assert payload["semantic_recall"]["available"] is True
     assert payload["semantic_recall"]["mode"] == "local_deterministic"
@@ -970,7 +970,7 @@ def test_development_pairing_payload_uses_request_host():
         "version": 1,
         "endpoint": "http://192.168.1.42:8765",
         "runtime": "hermes",
-        "display_name": "Agent Pocket Mock Hermes",
+        "display_name": "Pocket Agent Mock Hermes",
         "pairing_code": "pair_dev",
         "expires_at": "2099-01-01T00:00:00Z",
     }
@@ -993,7 +993,7 @@ def test_development_pairing_payload_includes_configured_tls_pin_metadata():
     client = create_app(
         advertised_endpoint="https://macbook-pro.local:8765",
         trusted_local_tls_required=True,
-        tls_certificate_label="Kaka Local Runtime",
+        tls_certificate_label="Pocket Agent Local Runtime",
         tls_public_key_sha256="a" * 64,
     ).test_client()
 
@@ -1002,7 +1002,7 @@ def test_development_pairing_payload_includes_configured_tls_pin_metadata():
 
     assert payload["endpoint"] == "https://macbook-pro.local:8765"
     assert payload["trusted_local_tls_required"] is True
-    assert payload["tls_certificate_label"] == "Kaka Local Runtime"
+    assert payload["tls_certificate_label"] == "Pocket Agent Local Runtime"
     assert payload["tls_public_key_sha256"] == "a" * 64
     assert "private_key" not in rendered
 
@@ -1049,7 +1049,7 @@ def test_development_pairing_payload_refreshes_after_default_code_is_used():
     assert second["pairing_code"] != "pair_dev"
     assert second["pairing_code"].startswith("pair_dev_")
     assert second_exchange.status_code == 200
-    assert second_exchange.get_json()["display_name"] == "Agent Pocket Mock Hermes"
+    assert second_exchange.get_json()["display_name"] == "Pocket Agent Mock Hermes"
     assert replay.status_code == 409
     assert replay.get_json()["error"]["code"] == "pairing_already_used"
 
@@ -1066,7 +1066,7 @@ def test_development_pairing_page_shows_copyable_payload_and_commands():
     visible_text = html_lib.unescape(html)
     assert response.status_code == 200
     assert response.content_type == "text/html; charset=utf-8"
-    assert "<title>Agent Pocket Mock Hermes Pairing</title>" in html
+    assert "<title>Pocket Agent Mock Hermes Pairing</title>" in html
     assert "http://192.168.1.42:8765" in visible_text
     assert '"pairing_code": "pair_dev"' in visible_text
     assert "curl http://192.168.1.42:8765/mobile/v1/health" in visible_text
@@ -1110,7 +1110,7 @@ def test_development_pairing_page_embeds_scannable_qr_without_external_service()
     assert response.status_code == 200
     assert '<img class="pairing-qr"' in html
     assert 'src="data:image/png;base64,' in html
-    assert 'alt="Pairing QR code for Agent Pocket"' in html
+    assert 'alt="Pairing QR code for Pocket Agent"' in html
     assert 'data-pairing-payload=' in html
     assert '"endpoint": "http://192.168.1.42:8765"' in visible_text
     assert "api.qrserver.com" not in html
@@ -1171,7 +1171,7 @@ def test_production_pairing_payload_includes_configured_tls_pin_metadata():
         code_ttl_seconds=120,
         trusted_local_tls_required=True,
         tls_trust_state="configured",
-        tls_certificate_label="Kaka Local Runtime",
+        tls_certificate_label="Pocket Agent Local Runtime",
         tls_public_key_sha256="b" * 64,
         tls_private_key_path="/Users/kartz/.kaka/private/key.pem",
     )
@@ -1181,7 +1181,7 @@ def test_production_pairing_payload_includes_configured_tls_pin_metadata():
     rendered = str(payload)
 
     assert payload["trusted_local_tls_required"] is True
-    assert payload["tls_certificate_label"] == "Kaka Local Runtime"
+    assert payload["tls_certificate_label"] == "Pocket Agent Local Runtime"
     assert payload["tls_public_key_sha256"] == "b" * 64
     assert "key.pem" not in rendered
 
@@ -1191,7 +1191,7 @@ def test_production_pairing_payload_uses_configured_runtime_display_name_and_sch
     client = create_app(
         pairing_manager=manager,
         runtime_id="openclaw",
-        runtime_display_name="Agent Pocket Mock OpenClaw",
+        runtime_display_name="Pocket Agent Mock OpenClaw",
         pairing_scheme="http",
     ).test_client()
 
@@ -1202,7 +1202,7 @@ def test_production_pairing_payload_uses_configured_runtime_display_name_and_sch
 
     assert payload["endpoint"] == "http://192.168.1.10:8765"
     assert payload["runtime"] == "openclaw"
-    assert payload["display_name"] == "Agent Pocket Mock OpenClaw"
+    assert payload["display_name"] == "Pocket Agent Mock OpenClaw"
 
 
 def test_production_pairing_rejects_expired_code():
@@ -1263,7 +1263,7 @@ def test_runtime_settings_security_summary_does_not_expose_raw_tokens_or_private
         code_ttl_seconds=120,
         trusted_local_tls_required=True,
         tls_trust_state="configured",
-        tls_certificate_label="Kaka Local Runtime",
+        tls_certificate_label="Pocket Agent Local Runtime",
         tls_private_key_path="/Users/kartz/.kaka/private/key.pem",
     )
     client = create_app(pairing_manager=manager, advertised_endpoint="https://macbook-pro.local:8765").test_client()
@@ -1289,7 +1289,7 @@ def test_runtime_settings_security_summary_does_not_expose_raw_tokens_or_private
     assert body["connection_security"]["mobile_token_revocation_supported"] is True
     assert body["connection_security"]["trusted_local_tls_required"] is True
     assert body["connection_security"]["tls_trust_state"] == "configured"
-    assert body["connection_security"]["tls_certificate_label"] == "Kaka Local Runtime"
+    assert body["connection_security"]["tls_certificate_label"] == "Pocket Agent Local Runtime"
     assert token not in rendered
     assert "key.pem" not in rendered
 

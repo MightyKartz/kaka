@@ -1,4 +1,4 @@
-# Agent Pocket Troubleshooting
+# Pocket Agent Troubleshooting
 
 ## Cannot Connect To Runtime
 
@@ -18,9 +18,9 @@ PYTHONPATH=mock_bridge python3 -m agent_pocket_mock_bridge.server \
   --bonjour-host "$(ipconfig getifaddr en0)"
 ```
 
-If Agent Pocket shows **Certificate Problem**, the endpoint is reachable but iOS rejected the TLS setup. Use a trusted HTTPS certificate, Tailscale HTTPS/MagicDNS, or a local-development HTTP URL that the app explicitly allows.
+If Pocket Agent shows **Certificate Problem**, the endpoint is reachable but iOS rejected the TLS setup. Use a trusted HTTPS certificate, Tailscale HTTPS/MagicDNS, or a local-development HTTP URL that the app explicitly allows.
 
-If **Discover Local Runtime** asks for Local Network access, tap **Open Settings** in Agent Pocket, enable **Local Network**, return to the app, then try discovery again.
+If **Discover Local Runtime** asks for Local Network access, tap **Open Settings** in Pocket Agent, enable **Local Network**, return to the app, then try discovery again.
 
 If **Discover Local Runtime** finds nothing, confirm macOS allows incoming local network traffic for Python, the iPhone is on the same Wi-Fi/VPN segment, and the printed Bonjour endpoint uses the Mac LAN IP rather than `127.0.0.1`.
 
@@ -101,11 +101,11 @@ Do not solve this by switching to generative image replacement first. The produc
 
 ## Save Fails On iPhone
 
-If Photos permission is denied, tap **Open Settings** from the result screen and allow Photos access for Agent Pocket. The app should still allow reviewing and sharing the downloaded result.
+If Photos permission is denied, tap **Open Settings** from the result screen and allow Photos access for Pocket Agent. The app should still allow reviewing and sharing the downloaded result.
 
 ## Share Is Disabled
 
-Download the selected variant first. Save and Share stay disabled until Agent Pocket has the edited bytes locally.
+Download the selected variant first. Save and Share stay disabled until Pocket Agent has the edited bytes locally.
 
 Phase 1 sharing should use the iOS system share sheet with the selected image and generated caption. Direct WeChat, WeChat Moments, Xiaohongshu, and X SDK/API posting is a later enhancement.
 

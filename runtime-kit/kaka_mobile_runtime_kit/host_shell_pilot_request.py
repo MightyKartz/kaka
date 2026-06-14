@@ -111,7 +111,7 @@ def _required_host_deliverables(command_path: str) -> list[Mapping[str, object]]
             "private_adapter_command_binary",
             "host_shell",
             command_path,
-            "Host-owned executable command outside the Kaka repository.",
+            "Host-owned executable command outside the Pocket Agent repository.",
             "missing_private_adapter_command",
         ),
         _deliverable(

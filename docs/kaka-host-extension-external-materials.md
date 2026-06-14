@@ -88,7 +88,7 @@ host-native Hermes Plugin / OpenClaw Skill install drill.
 
 Product decision for follow-up development: keep this as a plugin/skill
 installation path. A normal user should install one host extension, open one
-host UI panel, enable Kaka Mobile Bridge, then pair the iPhone by QR or Bonjour.
+host UI panel, enable Pocket Agent Mobile Bridge, then pair the iPhone by QR or Bonjour.
 Manual adapter command authoring, environment variables, and Runtime Kit command
 chains are development or external-pilot tools only. If a future slice improves
 installation, it should improve the Hermes Plugin / OpenClaw Skill package,
@@ -102,7 +102,7 @@ blueprint, not a public Codex plugin or Codex skill. That blueprint makes the
 future package easier for Hermes/OpenClaw teams to build by specifying:
 
 - package manifest fields and disabled-by-default install policy;
-- host UI entry point and ordinary-user copy for enabling Kaka Mobile Bridge;
+- host UI entry point and ordinary-user copy for enabling Pocket Agent Mobile Bridge;
 - explicit bridge start/stop, QR, Bonjour, local TLS, health, revoke/re-pair,
   update, logs, repair, and uninstall controls;
 - extension-internal private adapter command location requirements;
@@ -218,9 +218,9 @@ P3.18 must not:
 - write into `~/plugins`, `~/.codex/skills`, or `~/.agents/plugins`;
 - install or enable a Codex plugin for ordinary users;
 - install, sign, publish, update, or uninstall Hermes/OpenClaw packages;
-- start Kaka Mobile Bridge, bind LAN, advertise Bonjour, mint tokens, invoke
+- start Pocket Agent Mobile Bridge, bind LAN, advertise Bonjour, mint tokens, invoke
   private adapter commands, or run conformance;
-- expose Hermes/OpenClaw private host APIs to Kaka iPhone.
+- expose Hermes/OpenClaw private host APIs to Pocket Agent iPhone.
 
 After P3.19/P3.20/P3.21/P3.22/P3.24/P3.25/P3.26/P3.27/P3.28, the next
 installation-focused work should be P3.7 with real host-owned package facts.
@@ -239,7 +239,7 @@ that runtime.
 | `install_command` | Hermes/OpenClaw host team | The host-owned install action or native channel action that installs the Plugin/Skill package; CLI text is only a runtime-specific ref, not a Kaka user setup requirement. |
 | `update_channel` | Hermes/OpenClaw host team | The host-owned update channel name, such as development, beta, or stable. |
 | `adapter_command_location` | Hermes/OpenClaw host team | The extension-internal location of `hermes-kaka-host-api` or `openclaw-kaka-host-api`. This is not a normal user setup step. |
-| `host_ui_entrypoint` | Hermes/OpenClaw host team | The UI path where users enable Kaka Mobile Bridge, show QR, run health, revoke iPhone, update, uninstall, and open logs. |
+| `host_ui_entrypoint` | Hermes/OpenClaw host team | The UI path where users enable Pocket Agent Mobile Bridge, show QR, run health, revoke iPhone, update, uninstall, and open logs. |
 | `signed_package_ref` | Hermes/OpenClaw host team | A signed Plugin/Skill package reference or native distribution pointer. |
 | `signature_ref` | Hermes/OpenClaw host team | Signature, notarization, or equivalent host trust evidence. |
 | `conformance_report_ref` | Kaka + host team | A P3.2 `host-private-adapter-conformance` report for the real host-owned command. |
@@ -253,7 +253,7 @@ Preferred material format:
 - A checked-in or archived signed package ref for the Hermes Plugin or OpenClaw
   Skill/sidecar.
 - A short host UI path that a normal user can follow, such as
-  `Settings > Plugins > Kaka Mobile Bridge`.
+  `Settings > Plugins > Pocket Agent Mobile Bridge`.
 - JSON artifacts produced by Runtime Kit commands for readiness, P3.2
   conformance, P3.4 pilot handoff, artifact review, and evidence manifest.
 - Receipt refs for install, update, failure recovery, revoke/re-pair, logs, and
@@ -274,7 +274,7 @@ can review without fetching refs or mutating host state:
     "install_command": "hermes plugins install example/kaka-mobile --no-enable",
     "update_channel": "Hermes stable plugin channel ref 2026-06-11",
     "adapter_command_location": "extension-internal:kaka-mobile-bridge/hermes-kaka-host-api",
-    "host_ui_entrypoint": "Settings > Plugins > Kaka Mobile Bridge",
+    "host_ui_entrypoint": "Settings > Plugins > Pocket Agent Mobile Bridge",
     "signed_package_ref": "artifact://hermes/kaka-mobile-bridge/1.0.0/package",
     "signature_ref": "artifact://hermes/kaka-mobile-bridge/1.0.0/signature",
     "conformance_report_ref": "artifact://hermes/kaka/p3.2/conformance.json",
@@ -295,7 +295,7 @@ can review without fetching refs or mutating host state:
 
 The P3.28 intake command embeds `host-extension-readiness`, rejects missing or
 secret-like values, and outputs a review receipt. It does not install the
-package, validate signatures, fetch refs, run drills, start Kaka Mobile Bridge,
+package, validate signatures, fetch refs, run drills, start Pocket Agent Mobile Bridge,
 invoke the private adapter, or change `/mobile/v1`.
 
 ## Readiness Command With Materials
@@ -311,7 +311,7 @@ PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit host-exten
   --install-command "hermes plugin install kaka-mobile-bridge" \
   --update-channel beta \
   --adapter-command-location '$EXTENSION_ROOT/bin/hermes-kaka-host-api' \
-  --host-ui-entrypoint "Settings > Plugins > Kaka Mobile Bridge" \
+  --host-ui-entrypoint "Settings > Plugins > Pocket Agent Mobile Bridge" \
   --signed-package-ref "hermes-plugin://kaka-mobile-bridge/1.0.0" \
   --signature-ref "notarization-team:HERMES-KAKA" \
   --conformance-report-ref "artifacts/hermes/conformance.json" \
@@ -326,9 +326,9 @@ PYTHONPATH=runtime-kit:mock_bridge python3 -m kaka_mobile_runtime_kit host-exten
   --install-command "openclaw skill install kaka-mobile-bridge" \
   --update-channel beta \
   --adapter-command-location '$EXTENSION_ROOT/bin/openclaw-kaka-host-api' \
-  --host-ui-entrypoint "Settings > Skills > Kaka Mobile Bridge" \
+  --host-ui-entrypoint "Settings > Skills > Pocket Agent Mobile Bridge" \
   --signed-package-ref "openclaw-skill://kaka-mobile-bridge/1.0.0" \
-  --signature-ref "signature-subject:OpenClaw Kaka Mobile Bridge" \
+  --signature-ref "signature-subject:OpenClaw Pocket Agent Mobile Bridge" \
   --conformance-report-ref "artifacts/openclaw/conformance.json" \
   --evidence-manifest-ref "artifacts/openclaw/evidence-manifest.json"
 ```
@@ -353,9 +353,9 @@ Run this only after readiness is `ready_for_external_install_drill`.
 2. Confirm install does not auto-start the bridge, bind LAN, advertise Bonjour,
    mint credentials, or create login items.
 3. Open the declared host UI entry point.
-4. Enable **Kaka Mobile Bridge** explicitly.
+4. Enable **Pocket Agent Mobile Bridge** explicitly.
 5. Show a short-lived QR code or opt into Bonjour on a trusted LAN.
-6. Pair Kaka iPhone through Mobile Bridge `/mobile/v1`.
+6. Pair Pocket Agent iPhone through Mobile Bridge `/mobile/v1`.
 7. Run host UI health check and confirm the private adapter command remains
    extension-internal.
 8. Revoke the iPhone token, confirm the old token fails, and pair again with a
@@ -410,7 +410,7 @@ Expected P3.13 output:
 
 - schema `kaka.host_extension_install_package.v1`
 - host-owned Plugin/Skill manifest files
-- host UI contract for the Kaka Mobile Bridge panel
+- host UI contract for the Pocket Agent Mobile Bridge panel
 - install-drill runbook for install, explicit enable, QR/Bonjour, health,
   revoke/re-pair, update, failure recovery, logs, and uninstall
 - release-gate commands for readiness and conformance
@@ -434,7 +434,7 @@ Do not ask ordinary users to write adapter code, export
 chains.
 
 Do not add phone-side private host APIs. The iPhone continues to connect only to
-Kaka Mobile Bridge `/mobile/v1`.
+Pocket Agent Mobile Bridge `/mobile/v1`.
 
 Do not add another repository-only pilot wrapper unless it consumes real
 host-owned package materials. Runtime Kit already has request, preflight,
@@ -462,7 +462,7 @@ repo-only install wrapper would not prove user installation.
 If the next blocked-period slice is retrieval-focused, start from
 `recall-retrieval-readiness` and keep provider package, endpoint, keys,
 embeddings, and fallback drill evidence host/runtime-owned rather than moving
-them into Kaka iPhone.
+them into Pocket Agent iPhone.
 Codex developer automation must remain source-only, explicit-output-dir-only,
 and schema-checked. It may help host engineers create or review Host Extension
 materials, but the release proof remains the host-native Hermes Plugin /

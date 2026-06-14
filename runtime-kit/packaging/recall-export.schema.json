@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/recall-export.schema.json",
-  "title": "Kaka Recall Export",
+  "title": "Pocket Agent Recall Export",
   "type": "object",
   "additionalProperties": false,
   "required": [

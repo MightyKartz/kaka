@@ -541,7 +541,7 @@ public struct InboxView: View {
 
     private var discardConfirmationMessage: String {
         language == .chinese
-            ? "这只会移除 Kaka 本地收件箱中的待发送项目。已经发送的任务和 Recall 不会改变。"
+            ? "这只会移除 Pocket Agent 本地收件箱中的待发送项目。已经发送的任务和 Recall 不会改变。"
             : "This removes only the pending local Inbox item. Sent tasks and Recall stay unchanged."
     }
 

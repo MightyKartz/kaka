@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/local-tls-readiness.schema.json",
-  "title": "Kaka Local TLS Readiness",
+  "title": "Pocket Agent Local TLS Readiness",
   "type": "object",
   "additionalProperties": false,
   "required": [

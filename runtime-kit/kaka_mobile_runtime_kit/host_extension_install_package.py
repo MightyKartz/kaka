@@ -17,8 +17,8 @@ SUPPORTED_RUNTIMES = ("hermes", "openclaw")
 DISPLAY_NAMES = {"hermes": "Hermes", "openclaw": "OpenClaw"}
 INSTALL_SHAPES = {"hermes": "hermes_plugin", "openclaw": "openclaw_skill"}
 ENTRYPOINT_LABELS = {
-    "hermes": "Hermes Plugin: Kaka Mobile Bridge",
-    "openclaw": "OpenClaw Skill: Kaka Mobile Bridge",
+    "hermes": "Hermes Plugin: Pocket Agent Mobile Bridge",
+    "openclaw": "OpenClaw Skill: Pocket Agent Mobile Bridge",
 }
 HOST_UI_FORBIDDEN_PHONE_FIELDS = [
     "provider_keys",
@@ -259,14 +259,14 @@ def build_host_extension_install_package(
             "phone_api_path": "/mobile/v1",
             "steps": list(ORDINARY_USER_QUICKSTART_STEPS),
             "user_copy": [
-                f"Install Kaka Mobile Bridge from the {DISPLAY_NAMES[runtime]} extension channel.",
+                f"Install Pocket Agent Mobile Bridge from the {DISPLAY_NAMES[runtime]} extension channel.",
                 f"Open {ENTRYPOINT_LABELS[runtime]}.",
                 "Confirm the bridge is installed but disabled after install.",
-                "Enable Kaka Mobile Bridge when you are ready to pair.",
-                "Scan the short-lived QR code with Kaka iPhone.",
+                "Enable Pocket Agent Mobile Bridge when you are ready to pair.",
+                "Scan the short-lived QR code with Pocket Agent iPhone.",
                 "Use Bonjour only after opting into trusted LAN discovery.",
                 "Run the host health check if pairing does not complete.",
-                "Kaka iPhone connects through /mobile/v1 only.",
+                "Pocket Agent iPhone connects through /mobile/v1 only.",
             ],
             "never_ask_user_to": list(ORDINARY_USER_NEVER_ASK),
         },
@@ -452,10 +452,10 @@ def _host_manifest(package: Mapping[str, object]) -> Mapping[str, object]:
 
 def _operator_readme(runtime_name: str) -> str:
     return (
-        f"# Kaka Mobile Bridge For {runtime_name}\n\n"
+        f"# Pocket Agent Mobile Bridge For {runtime_name}\n\n"
         "This package handoff is for the host team. It is not a signed public release.\n\n"
-        "Ordinary users install the host extension, open the Kaka Mobile Bridge panel, "
-        "enable the bridge explicitly, show QR or opt into Bonjour, and pair Kaka iPhone "
+        "Ordinary users install the host extension, open the Pocket Agent Mobile Bridge panel, "
+        "enable the bridge explicitly, show QR or opt into Bonjour, and pair Pocket Agent iPhone "
         "through `/mobile/v1`.\n\n"
         "Host teams own signing, update channels, release notes, conformance evidence, "
         "and the extension-internal private adapter implementation.\n"
@@ -466,12 +466,12 @@ def _openclaw_skill(command_name: str) -> str:
     return (
         "---\n"
         "name: kaka-mobile-bridge\n"
-        "description: Connect Kaka iPhone to OpenClaw through a local Mobile Bridge "
+        "description: Connect Pocket Agent iPhone to OpenClaw through a local Mobile Bridge "
         "after explicit user approval.\n"
         "---\n\n"
-        "# Kaka Mobile Bridge\n\n"
-        "Use this skill when the user asks OpenClaw to connect Kaka, show a pairing QR, "
-        "or start the local Kaka Mobile Bridge.\n\n"
+        "# Pocket Agent Mobile Bridge\n\n"
+        "Use this skill when the user asks OpenClaw to connect Pocket Agent, show a pairing QR, "
+        "or start the local Pocket Agent Mobile Bridge.\n\n"
         "Safety rules:\n\n"
         "- Do not start a listener during skill installation.\n"
         "- Require explicit approval for LAN bind and Bonjour advertisement.\n"
@@ -479,7 +479,7 @@ def _openclaw_skill(command_name: str) -> str:
         "- Use a short-lived pairing QR and revocable mobile token.\n"
         "- Keep host lifecycle actions in the OpenClaw UI.\n"
         f"- Treat `{command_name}` as an extension-internal host-owned command.\n"
-        "- Keep Kaka iPhone on `/mobile/v1` only.\n"
+        "- Keep Pocket Agent iPhone on `/mobile/v1` only.\n"
     )
 
 
@@ -494,9 +494,9 @@ def _adapter_readme(runtime_name: str, command_name: str) -> str:
 
 def _user_quickstart_markdown(quickstart: Mapping[str, object]) -> str:
     lines = [
-        f"# Kaka Mobile Bridge {quickstart['runtime_label']} Quickstart",
+        f"# Pocket Agent Mobile Bridge {quickstart['runtime_label']} Quickstart",
         "",
-        "This quickstart is for ordinary users installing the host-native Kaka Mobile Bridge extension.",
+        "This quickstart is for ordinary users installing the host-native Pocket Agent Mobile Bridge extension.",
         "",
         "## Steps",
         "",

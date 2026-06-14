@@ -21,7 +21,7 @@ final class CaptureScreenPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.primaryAction.title, "拍摄")
         XCTAssertEqual(presentation.primaryAction.systemImage, "camera.fill")
         XCTAssertTrue(presentation.primaryAction.isEnabled)
-        XCTAssertEqual(presentation.statusText, "拍一张照片，让 Kaka 判断可以做什么。")
+        XCTAssertEqual(presentation.statusText, "拍一张照片，让 Pocket Agent 判断可以做什么。")
         XCTAssertEqual(presentation.galleryTitle, "相册")
         XCTAssertEqual(presentation.cameraTitle, "拍照")
     }
@@ -50,7 +50,7 @@ final class CaptureScreenPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.connectedBadge, "未连接 · 本机智能体")
     }
 
-    func testReadyPresentationEnablesSendActionForKaka() throws {
+    func testReadyPresentationEnablesSendActionForPocketAgent() throws {
         let viewModel = CaptureFlowViewModel()
         viewModel.selectedIntent = .portraitPolish
         try viewModel.prepareImage(
@@ -72,13 +72,13 @@ final class CaptureScreenPresentationTests: XCTestCase {
 
         XCTAssertEqual(presentation.title, "Smart Camera")
         XCTAssertEqual(presentation.connectedBadge, "Connected · Kartz Mac")
-        XCTAssertEqual(presentation.primaryAction.title, "Send to Kaka")
+        XCTAssertEqual(presentation.primaryAction.title, "Send to Pocket Agent")
         XCTAssertEqual(presentation.primaryAction.systemImage, "paperplane.fill")
         XCTAssertTrue(presentation.primaryAction.isEnabled)
-        XCTAssertEqual(presentation.statusText, "The photo is ready. Kaka will decide what it can do first.")
+        XCTAssertEqual(presentation.statusText, "The photo is ready. Pocket Agent will decide what it can do first.")
     }
 
-    func testReadyPresentationPromptsSendToKaka() throws {
+    func testReadyPresentationPromptsSendToPocketAgent() throws {
         let presentation = CaptureScreenPresentation(
             state: .ready(fileName: "camera.jpg", intentTitle: "Natural Enhance"),
             selectedCameraMode: .masterShot,
@@ -88,9 +88,9 @@ final class CaptureScreenPresentationTests: XCTestCase {
             hasPreparedUpload: true
         )
 
-        XCTAssertEqual(presentation.primaryAction.title, "发送给 Kaka")
+        XCTAssertEqual(presentation.primaryAction.title, "发送给 Pocket Agent")
         XCTAssertEqual(presentation.primaryAction.systemImage, "paperplane.fill")
-        XCTAssertEqual(presentation.statusText, "照片已准备好，Kaka 会先判断适合做什么。")
+        XCTAssertEqual(presentation.statusText, "照片已准备好，Pocket Agent 会先判断适合做什么。")
     }
 
     func testCompletedPresentationUsesImageUnderstandingCopy() throws {
@@ -161,9 +161,9 @@ final class CaptureScreenPresentationTests: XCTestCase {
         )
 
         XCTAssertTrue(presentation.modeTabs.isEmpty)
-        XCTAssertEqual(presentation.primaryAction.title, "发送给 Kaka")
+        XCTAssertEqual(presentation.primaryAction.title, "发送给 Pocket Agent")
         XCTAssertEqual(presentation.primaryAction.systemImage, "paperplane.fill")
-        XCTAssertEqual(presentation.statusText, "照片已准备好，Kaka 会先判断适合做什么。")
+        XCTAssertEqual(presentation.statusText, "照片已准备好，Pocket Agent 会先判断适合做什么。")
     }
 
     func testChineseUnavailableSmartCameraModeMessageIsLocalized() {

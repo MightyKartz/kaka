@@ -13,7 +13,7 @@ READY_INPUTS = {
     "install_command": "openclaw skill install kaka-mobile-bridge",
     "update_channel": "stable",
     "adapter_command_location": "$EXTENSION_ROOT/bin/openclaw-kaka-host-api",
-    "host_ui_entrypoint": "Settings > Skills > Kaka Mobile Bridge",
+    "host_ui_entrypoint": "Settings > Skills > Pocket Agent Mobile Bridge",
     "signed_package_ref": "openclaw-store://skills/kaka-mobile-bridge/1.0.0",
     "signature_ref": "notarization-team:OPENCLAW-KAKA",
     "conformance_report_ref": "artifacts/openclaw/conformance.json",

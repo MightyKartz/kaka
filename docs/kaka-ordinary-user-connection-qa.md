@@ -4,7 +4,7 @@ Status: P3.0 ordinary-user connection QA and host adapter readiness checklist.
 
 This document is for validating the first-run connection journey before or
 alongside wiring host-private adapter commands. It keeps the product boundary
-narrow: the iPhone connects only to Kaka Mobile Bridge `/mobile/v1` with an
+narrow: the iPhone connects only to Pocket Agent Mobile Bridge `/mobile/v1` with an
 endpoint and paired mobile token. Host setup, package previews, adapter actions,
 health checks, logs, port repair, and QA reports all belong on the Mac/runtime
 side.
@@ -69,7 +69,7 @@ external pilot fallback.
 | Step | Owner | Expected pass signal |
 | --- | --- | --- |
 | Install or enable the Kaka Runtime Kit scaffold in the Hermes/OpenClaw shell. | Host runtime | The package or skill is present, disabled by default, and did not auto-start a bridge listener. |
-| Enable Kaka Mobile Bridge in the host shell. | Host runtime | The runtime UI shows the bridge as enabled and still requires an explicit start action. |
+| Enable Pocket Agent Mobile Bridge in the host shell. | Host runtime | The runtime UI shows the bridge as enabled and still requires an explicit start action. |
 | Explicitly start the bridge from the host shell or local Runtime Kit command. | Host runtime | The bridge binds only to the selected loopback/LAN address and uses the selected Bonjour setting. |
 | Show a production pairing QR code. | Host runtime | The QR is short-lived, single-use, and represents a Mobile Bridge pairing exchange, not a private host API call. |
 | Pair the iPhone by scanning the QR code or using trusted LAN/Bonjour discovery. | Phone + host runtime | Kaka stores only the endpoint and mobile token, then communicates through `/mobile/v1`. |
@@ -84,7 +84,7 @@ external pilot fallback.
 | --- | --- | --- |
 | Expired QR | Wait until the production QR expires before scanning or exchange. | The phone asks the user to refresh or scan a new QR; the host shell generates a new short-lived QR. |
 | Revoked token | Revoke the saved iPhone token and then reconnect or call a protected endpoint. | Kaka treats the session as unauthorized and asks for a new mobile pairing code, not a phone-side token editor. |
-| Bridge unavailable | Stop the bridge or point the phone to an unavailable endpoint. | Kaka shows an offline/bridge unavailable state; the host shell action is to start Kaka Mobile Bridge. |
+| Bridge unavailable | Stop the bridge or point the phone to an unavailable endpoint. | Kaka shows an offline/bridge unavailable state; the host shell action is to start Pocket Agent Mobile Bridge. |
 | Missing Bonjour or Local Network permission | Disable Bonjour, use a missing Bonjour host, or deny iOS Local Network permission. | Kaka falls back to QR/manual endpoint recovery; the host shell explains Bonjour/LAN requirements. |
 | Port conflict | Bind the expected bridge port with another process or use a conflicting host setting. | The host shell offers port check/repair guidance; the phone does not own port settings. |
 | Disabled host action | Try an install/update/repair/log action when the runtime state does not permit it. | The runtime shell explains why the action is disabled and what state must change first. |
@@ -125,7 +125,7 @@ implementation.
 For follow-up development, keep this command bridge behind the host-native
 Plugin/Skill. A future P3.35 installation blueprint may define the host UI,
 manifest, and receipt expectations around it, but ordinary-user QA should still
-start from "install the plugin or skill, enable Kaka Mobile Bridge, scan QR" and
+start from "install the plugin or skill, enable Pocket Agent Mobile Bridge, scan QR" and
 never from "write a command wrapper."
 
 Example private adapter health check:

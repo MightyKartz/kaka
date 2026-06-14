@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/host-private-adapter-package.schema.json",
-  "title": "Kaka Host Private Adapter Package Contract",
+  "title": "Pocket Agent Host Private Adapter Package Contract",
   "type": "object",
   "additionalProperties": false,
   "required": [

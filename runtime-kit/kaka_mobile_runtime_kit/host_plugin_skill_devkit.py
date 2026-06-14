@@ -18,8 +18,8 @@ SUPPORTED_RUNTIMES = ("hermes", "openclaw")
 DISPLAY_NAMES = {"hermes": "Hermes", "openclaw": "OpenClaw"}
 INSTALL_SHAPES = {"hermes": "hermes_plugin", "openclaw": "openclaw_skill"}
 ENTRYPOINT_LABELS = {
-    "hermes": "Hermes Plugin: Kaka Mobile Bridge",
-    "openclaw": "OpenClaw Skill: Kaka Mobile Bridge",
+    "hermes": "Hermes Plugin: Pocket Agent Mobile Bridge",
+    "openclaw": "OpenClaw Skill: Pocket Agent Mobile Bridge",
 }
 COMMANDS = [
     "host-extension-starter-kit",
@@ -183,12 +183,12 @@ def _command(args: list[str]) -> Mapping[str, object]:
 
 def _developer_readme(runtime_name: str) -> str:
     return (
-        f"# Kaka Mobile Bridge {runtime_name} Devkit\n\n"
+        f"# Pocket Agent Mobile Bridge {runtime_name} Devkit\n\n"
         "This devkit is for the host team building the native Plugin/Skill package. "
         "It is not a signed public package, not a Codex marketplace package, and it "
         "does not perform installation.\n\n"
-        "Ordinary users install the finished host extension, open the Kaka Mobile "
-        "Bridge panel, enable it explicitly, then pair Kaka iPhone through `/mobile/v1`.\n\n"
+        "Ordinary users install the finished host extension, open the Pocket Agent Mobile "
+        "Bridge panel, enable it explicitly, then pair Pocket Agent iPhone through `/mobile/v1`.\n\n"
         "Host teams own signing, update channels, release notes, conformance evidence, "
         "install-drill receipts, and extension-internal adapter implementation.\n"
     )
@@ -206,7 +206,7 @@ def _adapter_template_readme(runtime_name: str, command_name: str) -> str:
 def _adapter_template(runtime: str, command_name: str) -> str:
     return (
         "#!/usr/bin/env python3\n"
-        "\"\"\"Host-owned adapter template for Kaka Mobile Bridge devkit.\n\n"
+        "\"\"\"Host-owned adapter template for Pocket Agent Mobile Bridge devkit.\n\n"
         "Keep this command extension-internal. Replace the unavailable response inside\n"
         "the host extension repository after passing conformance with real host-owned\n"
         "implementation code.\n"
@@ -240,7 +240,7 @@ def _codex_automation_readme(runtime_name: str) -> str:
         f"# Optional Codex Automation For {runtime_name} Host Engineers\n\n"
         "These files are templates for host-team development automation only. They are "
         "not installed by Runtime Kit, not published to a marketplace, and not part of "
-        "the ordinary-user Kaka setup flow.\n"
+        "the ordinary-user Pocket Agent setup flow.\n"
     )
 
 
@@ -248,9 +248,9 @@ def _codex_skill_template(runtime_name: str) -> str:
     return (
         "---\n"
         "name: kaka-host-extension-developer\n"
-        "description: Use when a host engineer is building or validating a Kaka Mobile Bridge host Plugin/Skill package.\n"
+        "description: Use when a host engineer is building or validating a Pocket Agent Mobile Bridge host Plugin/Skill package.\n"
         "---\n\n"
-        "# Kaka Host Extension Developer\n\n"
+        "# Pocket Agent Host Extension Developer\n\n"
         "Use this only for host-team development of the native Plugin/Skill package. "
         "Do not present this as the ordinary-user installation surface.\n\n"
         "Workflow:\n\n"
@@ -258,7 +258,7 @@ def _codex_skill_template(runtime_name: str) -> str:
         "2. Validate release-gate command files.\n"
         "3. Check that the adapter command remains extension-internal.\n"
         "4. Collect install, update, failure recovery, log redaction, and uninstall receipts.\n"
-        "5. Confirm Kaka iPhone still uses `/mobile/v1` only.\n\n"
+        "5. Confirm Pocket Agent iPhone still uses `/mobile/v1` only.\n\n"
         f"{runtime_name} owns signing, publishing, update channels, and proprietary adapter code.\n"
     )
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/runtime-retention-purge-receipt.schema.json",
-  "title": "Kaka Runtime Retention Purge Receipt",
+  "title": "Pocket Agent Runtime Retention Purge Receipt",
   "type": "object",
   "additionalProperties": false,
   "required": [

@@ -26,7 +26,7 @@ def test_install_package_handoff_hermes_is_plugin_shape() -> None:
     assert package["surface"] == "hermes_openclaw_host_extension_install_package"
     assert package["runtime"] == "hermes"
     assert package["package"]["install_shape"] == "hermes_plugin"
-    assert package["package"]["ordinary_user_entrypoint"] == "Hermes Plugin: Kaka Mobile Bridge"
+    assert package["package"]["ordinary_user_entrypoint"] == "Hermes Plugin: Pocket Agent Mobile Bridge"
     assert package["adapter_command"]["default_command_name"] == "hermes-kaka-host-api"
     assert package["adapter_command"]["visibility"] == "extension_internal"
     assert package["phone_api"]["base_path"] == "/mobile/v1"
@@ -42,7 +42,7 @@ def test_install_package_handoff_openclaw_is_skill_shape() -> None:
     package = build_host_extension_install_package(runtime="openclaw")
 
     assert package["package"]["install_shape"] == "openclaw_skill"
-    assert package["package"]["ordinary_user_entrypoint"] == "OpenClaw Skill: Kaka Mobile Bridge"
+    assert package["package"]["ordinary_user_entrypoint"] == "OpenClaw Skill: Pocket Agent Mobile Bridge"
     assert package["adapter_command"]["default_command_name"] == "openclaw-kaka-host-api"
     assert package["adapter_command"]["environment_variable"] == "OPENCLAW_KAKA_HOST_API"
     generated_paths = {entry["path"] for entry in package["generated_files"]}
@@ -122,7 +122,7 @@ def test_install_package_handoff_exposes_ordinary_user_quickstart() -> None:
     assert quickstart["surface"] == "host_native_plugin_or_skill"
     assert quickstart["audience"] == "ordinary_user"
     assert quickstart["runtime_label"] == "Hermes"
-    assert quickstart["entrypoint"] == "Hermes Plugin: Kaka Mobile Bridge"
+    assert quickstart["entrypoint"] == "Hermes Plugin: Pocket Agent Mobile Bridge"
     assert quickstart["phone_api_path"] == "/mobile/v1"
     assert quickstart["steps"] == [
         "install_host_extension_from_host_channel",
@@ -141,11 +141,11 @@ def test_install_package_handoff_exposes_ordinary_user_quickstart() -> None:
     ]
 
     user_copy = "\n".join(quickstart["user_copy"])
-    assert "Install Kaka Mobile Bridge from the Hermes extension channel." in user_copy
-    assert "Open Hermes Plugin: Kaka Mobile Bridge." in user_copy
-    assert "Enable Kaka Mobile Bridge when you are ready to pair." in user_copy
-    assert "Scan the short-lived QR code with Kaka iPhone." in user_copy
-    assert "Kaka iPhone connects through /mobile/v1 only." in user_copy
+    assert "Install Pocket Agent Mobile Bridge from the Hermes extension channel." in user_copy
+    assert "Open Hermes Plugin: Pocket Agent Mobile Bridge." in user_copy
+    assert "Enable Pocket Agent Mobile Bridge when you are ready to pair." in user_copy
+    assert "Scan the short-lived QR code with Pocket Agent iPhone." in user_copy
+    assert "Pocket Agent iPhone connects through /mobile/v1 only." in user_copy
     for forbidden in FORBIDDEN_USER_COPY:
         assert forbidden not in user_copy
 
@@ -162,7 +162,7 @@ def test_install_package_exposes_p3_35_installation_blueprint() -> None:
     assert blueprint["runtime"] == "hermes"
     assert blueprint["package_manifest"]["install_shape"] == "hermes_plugin"
     assert blueprint["package_manifest"]["ordinary_user_entrypoint"] == (
-        "Hermes Plugin: Kaka Mobile Bridge"
+        "Hermes Plugin: Pocket Agent Mobile Bridge"
     )
     assert blueprint["package_manifest"]["disabled_by_default"] is True
     assert blueprint["host_ui"]["default_state_after_install"] == "installed_disabled"
@@ -192,7 +192,7 @@ def test_install_package_installation_blueprint_uses_openclaw_shape() -> None:
     assert blueprint["runtime"] == "openclaw"
     assert blueprint["package_manifest"]["install_shape"] == "openclaw_skill"
     assert blueprint["package_manifest"]["ordinary_user_entrypoint"] == (
-        "OpenClaw Skill: Kaka Mobile Bridge"
+        "OpenClaw Skill: Pocket Agent Mobile Bridge"
     )
     assert blueprint["adapter_command"]["default_command_name"] == "openclaw-kaka-host-api"
     assert blueprint["adapter_command"]["visibility"] == "extension_internal"
@@ -320,10 +320,10 @@ def test_install_package_schema_rejects_user_host_api_drift() -> None:
 
     for forbidden_copy in (
         "Ask the user to export HERMES_KAKA_HOST_API before pairing.",
-        "Configure --private-adapter-command before opening Kaka.",
+        "Configure --private-adapter-command before opening Pocket Agent.",
         "Have the user write adapter code in the terminal.",
-        "Install Codex plugin as the public Kaka package.",
-        "Connect Kaka iPhone to /host/private.",
+        "Install Codex plugin as the public Pocket Agent package.",
+        "Connect Pocket Agent iPhone to /host/private.",
     ):
         unsafe_quickstart_copy = json.loads(json.dumps(package))
         unsafe_quickstart_copy["ordinary_user_quickstart"]["user_copy"].append(forbidden_copy)
@@ -373,8 +373,8 @@ def test_write_install_package_materializes_host_handoff_files(tmp_path: Path) -
     assert "install_codex_plugin_or_skill" in quickstart["never_ask_user_to"]
 
     quickstart_markdown = (root / "host-ui" / "user-quickstart.md").read_text()
-    assert "Install Kaka Mobile Bridge from the OpenClaw extension channel." in quickstart_markdown
-    assert "Kaka iPhone connects through `/mobile/v1` only." in quickstart_markdown
+    assert "Install Pocket Agent Mobile Bridge from the OpenClaw extension channel." in quickstart_markdown
+    assert "Pocket Agent iPhone connects through `/mobile/v1` only." in quickstart_markdown
     for forbidden in FORBIDDEN_USER_COPY:
         assert forbidden not in quickstart_markdown
 

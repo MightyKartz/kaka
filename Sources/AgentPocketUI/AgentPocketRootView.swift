@@ -172,6 +172,8 @@ public struct AgentPocketRootView: View {
         case .agentScanner:
             AgentScannerView { result in
                 lensSheet = .scanActions(result)
+            } onCancel: {
+                lensSheet = nil
             }
         case .scanActions(let result):
             AgentScanActionSheet(result: result) { action in
@@ -189,7 +191,7 @@ public struct AgentPocketRootView: View {
             ContentUnavailableView(
                 "Document Scan Unavailable",
                 systemImage: "doc.viewfinder",
-                description: Text("Open Kaka on iPhone to scan documents.")
+                description: Text("Open Pocket Agent on iPhone to scan documents.")
             )
             #endif
         case .videoIntake:
@@ -296,7 +298,7 @@ public struct AgentPocketRootView: View {
         }
         let item = KakaInboxItem(
             kind: .text,
-            sourceApp: "Kaka Voice",
+            sourceApp: "Pocket Agent Voice",
             sourceSurface: "voice",
             locale: Locale.current.identifier,
             text: text,
@@ -331,9 +333,9 @@ public struct AgentPocketRootView: View {
         #if os(iOS)
         UIDevice.current.name
         #elseif canImport(AppKit)
-        Host.current().localizedName ?? "Agent Pocket Mac"
+        Host.current().localizedName ?? "Pocket Agent Mac"
         #else
-        "Agent Pocket"
+        "Pocket Agent"
         #endif
     }
 

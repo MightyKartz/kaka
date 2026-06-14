@@ -1,7 +1,7 @@
 [project]
 name = "kaka-mobile-runtime-kit"
 version = "0.1.0"
-description = "Explicit local launcher and adapter scaffold for Kaka Mobile Bridge runtimes."
+description = "Explicit local launcher and adapter scaffold for Pocket Agent Mobile Bridge runtimes."
 requires-python = ">=3.11"
 
 [project.scripts]

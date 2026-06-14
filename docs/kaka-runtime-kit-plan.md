@@ -4,11 +4,11 @@ Updated: 2026-06-11
 
 ## Decision
 
-Kaka should not ask normal users to paste a long terminal command for first connection. The product path should be:
+Pocket Agent should not ask normal users to paste a long terminal command for first connection. The product path should be:
 
 1. Install a Hermes/OpenClaw plugin or skill.
-2. Open the runtime UI and enable **Kaka Mobile Bridge**.
-3. Kaka iPhone discovers the bridge through Bonjour or scans the displayed QR.
+2. Open the runtime UI and enable **Pocket Agent Mobile Bridge**.
+3. Pocket Agent iPhone discovers the bridge through Bonjour or scans the displayed QR.
 4. iPhone stores only the Mobile Bridge endpoint and mobile token.
 
 The private adapter command is not a user-facing setup step. In production it
@@ -160,7 +160,7 @@ writing code:
 
 - Ordinary-user Host Extension:
   Hermes Plugin or OpenClaw Skill/sidecar. This is the product users install.
-  It owns the native install/update channel, Kaka Mobile Bridge panel,
+  It owns the native install/update channel, Pocket Agent Mobile Bridge panel,
   extension-internal adapter command, signed package ref, health, revoke,
   repair, logs, and uninstall controls.
 - Runtime Kit generator:
@@ -262,7 +262,7 @@ facts plus install-drill refs, sanitizes secret-like values before calling
 materials.
 
 This is a material review contract, not P3.7 execution. It does not install,
-sign, publish, fetch refs, start Kaka Mobile Bridge, bind LAN, advertise
+sign, publish, fetch refs, start Pocket Agent Mobile Bridge, bind LAN, advertise
 Bonjour, mint mobile tokens, invoke private adapters, write Codex user-home
 install roots, or change `/mobile/v1`.
 
@@ -278,11 +278,11 @@ The iPhone remains a thin client. The Mac runtime owns:
 - local rendering
 - task state and edited asset storage
 
-Kaka Mobile Bridge is the stable boundary between the phone and any compatible runtime.
+Pocket Agent Mobile Bridge is the stable boundary between the phone and any compatible runtime.
 
 ```mermaid
 flowchart LR
-  Phone["Kaka iPhone"] --> Bridge["Kaka Mobile Bridge /mobile/v1"]
+  Phone["Pocket Agent iPhone"] --> Bridge["Pocket Agent Mobile Bridge /mobile/v1"]
   Bridge --> Runtime["Hermes, OpenClaw, or sidecar"]
   Runtime --> Model["Runtime-selected multimodal model"]
   Runtime --> Renderer["Current local renderer: Pillow/recipe_local"]
@@ -302,7 +302,7 @@ flowchart LR
 - Provider API keys never move to iPhone.
 - Doctor/status commands must redact secrets.
 - Runtime-side settings previews may show local paths and provider endpoints to the Mac/runtime user, but phone-bound status must not.
-- The phone connects only through Kaka Mobile Bridge `/mobile/v1`; it does not call private host APIs.
+- The phone connects only through Pocket Agent Mobile Bridge `/mobile/v1`; it does not call private host APIs.
 - Mutating `host-adapter-run` actions require explicit approval.
 - Install must not auto-start the bridge or create a login item.
 - Ordinary users must not be asked to write adapter code, export environment
@@ -330,7 +330,7 @@ Status: implemented in this pass.
 Status: plugin-shell contract, consumer UI renderer model, runtime-side process ownership contract, P2.8 host packaging handoff, P2.9 `host-adapter-run` binding surface, P3.3 private adapter package metadata, P3.5 Host Extension contract, and P3.6 distribution readiness contract implemented. Real private Hermes API implementation remains host-owned and should ship behind the Hermes Plugin command, not inside Kaka.
 
 - Convert the scaffold into an installable Hermes plugin.
-- Add a visible **Kaka Mobile Bridge** toggle.
+- Add a visible **Pocket Agent Mobile Bridge** toggle.
 - Add **Show QR**, **Stop**, **Revoke iPhone**, and optional **Start with Hermes**.
 - Render the Runtime Kit `settings-preview` / `package-preview` / `host-package-preview` / `host-extension-preview` / `consumer_ui` / `process_ownership` contracts for LAN/Bonjour, production pairing, revocation, trusted local TLS, local Recall/task store path, Recall retrieval provider selection, install, start-at-login, update, uninstall, logs, health checks, port-conflict repair, and supervision.
 - Package from Git or registry. No dedicated server is required just to distribute plugin code.
@@ -556,7 +556,7 @@ Status: implemented as P3.11 SwiftUI/AgentPocketUI slice.
 - Covers expired QR, already-used QR, revoked saved connection, bridge offline,
   local network/Bonjour fallback, TLS/certificate failure, and host-owned
   recovery guidance.
-- Renders only phone-safe connection status and user actions in Kaka iPhone; it
+- Renders only phone-safe connection status and user actions in Pocket Agent iPhone; it
   does not move Runtime Kit settings, private adapter details, host package
   controls, command chains, log paths, SQLite paths, bearer-token fields, or
   certificate private-key paths into the phone app.
@@ -579,8 +579,8 @@ Status: implemented as P3.12. Agent-executable plan:
   `host-extension-readiness`, `settings-preview`, `package-preview`, and
   `host-package-preview` so plugin/skill shells do not grow a second settings
   source.
-- The ordinary-user flow remains install extension, open host Kaka Mobile Bridge
-  panel, explicitly enable, show QR or opt into Bonjour, then pair Kaka iPhone
+- The ordinary-user flow remains install extension, open host Pocket Agent Mobile Bridge
+  panel, explicitly enable, show QR or opt into Bonjour, then pair Pocket Agent iPhone
   through `/mobile/v1`.
 - Manual `--private-adapter-command`, `HERMES_KAKA_HOST_API`, and
   `OPENCLAW_KAKA_HOST_API` as developer/pilot fallback only.
@@ -603,8 +603,8 @@ Status: implemented as P3.13. Agent-executable plan:
 - Generated handoff artifacts include host Plugin/Skill manifest files,
   host UI contract files, install-drill runbook, release-gate command files, and
   an extension-internal adapter command README.
-- Keeps the ordinary-user flow as install extension, open host Kaka Mobile Bridge
-  panel, explicitly enable, show QR or opt into Bonjour, then pair Kaka iPhone
+- Keeps the ordinary-user flow as install extension, open host Pocket Agent Mobile Bridge
+  panel, explicitly enable, show QR or opt into Bonjour, then pair Pocket Agent iPhone
   through `/mobile/v1`.
 - Keeps manual `--private-adapter-command`, `HERMES_KAKA_HOST_API`, and
   `OPENCLAW_KAKA_HOST_API` as developer/pilot fallback only.
@@ -662,8 +662,8 @@ Status: implemented as P3.15. Agent-executable plan:
 - Codex automation is template-only for host engineers, not an installed Codex
   plugin/skill and not the ordinary-user installation surface.
 - Keep ordinary-user setup as: install Hermes Plugin or OpenClaw Skill, open the
-  host Kaka Mobile Bridge panel, explicitly enable, scan QR or discover Bonjour,
-  and communicate with Kaka iPhone only through `/mobile/v1`.
+  host Pocket Agent Mobile Bridge panel, explicitly enable, scan QR or discover Bonjour,
+  and communicate with Pocket Agent iPhone only through `/mobile/v1`.
 - Do not sign, publish, install, start listeners, bind LAN, advertise Bonjour,
   mint tokens, modify Keychain, invoke private adapters, run host package
   managers, or expose private host APIs to the iPhone.
@@ -687,7 +687,7 @@ Status: implemented as P3.18. Agent-executable plan:
 - Rejects user-home install roots such as `~/plugins`, `~/.codex/skills`, and
   `~/.agents/plugins`.
 - Does not install Codex plugins, update marketplaces, install Hermes/OpenClaw
-  packages, start Kaka Mobile Bridge, bind LAN, advertise Bonjour, mint tokens,
+  packages, start Pocket Agent Mobile Bridge, bind LAN, advertise Bonjour, mint tokens,
   invoke private adapters, run conformance, or change `/mobile/v1`.
 - Keeps the public user path as host-native Hermes Plugin or OpenClaw
   Skill/sidecar install.

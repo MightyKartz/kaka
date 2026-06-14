@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://kaka.local/schemas/host-package.schema.json",
-  "title": "Kaka Runtime Host Package Handoff Contract",
+  "title": "Pocket Agent Runtime Host Package Handoff Contract",
   "type": "object",
   "additionalProperties": false,
   "required": [

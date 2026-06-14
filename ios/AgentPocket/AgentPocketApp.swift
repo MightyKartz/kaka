@@ -218,11 +218,11 @@ private struct SimulatorNoPayloadRuntimeDiscoverer: RuntimeDiscovering {
         let endpoint = try AgentEndpoint(
             rawURL: baseURL,
             runtime: "hermes",
-            displayName: "Agent Pocket Mock Agent"
+            displayName: "Pocket Agent Mock Agent"
         )
         return [
             DiscoveredRuntime(
-                displayName: "Agent Pocket Mock Agent",
+                displayName: "Pocket Agent Mock Agent",
                 endpoint: endpoint,
                 pairingPayload: nil
             )
@@ -406,7 +406,7 @@ private struct SimulatorCaptureReadySmokeView: View {
             "send_to_hermes_enabled": isSendToHermesEnabled,
             "selection_source": "library_fixture",
             "preprocessing_path": "CaptureFlowViewModel.prepareSelectedImage",
-            "primary_action": "Send to Kaka",
+            "primary_action": "Send to Pocket Agent",
             "ready_status_accessibility_identifier": "selectedPhotoReadyStatus",
             "send_button_accessibility_identifier": "sendToKakaButton"
         ]
@@ -960,7 +960,7 @@ private enum SimulatorInboxFixtures {
             id: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!,
             kind: .text,
             receivedAt: Date(timeIntervalSince1970: 1_781_265_600),
-            sourceApp: "Kaka Voice",
+            sourceApp: "Pocket Agent Voice",
             sourceSurface: "voice",
             note: "整理成三条可执行建议",
             locale: "zh-Hans",
@@ -998,7 +998,7 @@ private enum SimulatorRecallFixtures {
     static let items: [RecallItem] = [
         RecallItem(
             itemID: "recall-style-001",
-            summary: "Kaka 的图片结果页采用暗色工作区、薄荷主按钮和 8pt 控件半径，适合保持为全局视觉基线。",
+            summary: "Pocket Agent 的图片结果页采用暗色工作区、薄荷主按钮和 8pt 控件半径，适合保持为全局视觉基线。",
             createdAt: "2026-06-12T11:48:00Z",
             provenance: RecallItem.Provenance(sourceTaskID: "task_result_polish")
         ),
@@ -1024,7 +1024,7 @@ private enum SimulatorActivityFixtures {
             title: "需要确认是否把成片加入社交封面比例",
             status: .waitingForApproval,
             progress: 0.58,
-            message: "Kaka 已完成主体识别，等待你批准裁切方向。",
+            message: "Pocket Agent 已完成主体识别，等待你批准裁切方向。",
             updatedAt: "2026-06-12T12:04:00Z"
         ),
         RuntimeTaskSummary(
@@ -1049,7 +1049,7 @@ private enum SimulatorActivityFixtures {
 private enum SimulatorResultGallerySmokeFixtures {
     static let completedStatus: TaskStatusResponse = {
         let data = """
-        {"task_id":"task_simulator_result","status":"completed","progress":1.0,"message":"Done.","variants":[{"id":"variant_clean_pro","label":"Master","asset_id":"asset_1","download_url":"/mobile/v1/assets/asset_1/download"},{"id":"variant_social_pop","label":"Social","asset_id":"asset_2","download_url":"/mobile/v1/assets/asset_2/download"}],"explanation":"Balanced exposure and warmer highlights while preserving skin tone.","renderer":"local_parametric","composition":{"selected_aspect_ratio":"original","crop":{"x":0.0,"y":0.0,"width":1.0,"height":1.0}},"qa":{"master_difference_score":0.18,"social_difference_score":0.31},"recipe_summary":"Balanced exposure while preserving the original frame.","share_caption":"Shot polished locally with Kaka."}
+        {"task_id":"task_simulator_result","status":"completed","progress":1.0,"message":"Done.","variants":[{"id":"variant_clean_pro","label":"Master","asset_id":"asset_1","download_url":"/mobile/v1/assets/asset_1/download"},{"id":"variant_social_pop","label":"Social","asset_id":"asset_2","download_url":"/mobile/v1/assets/asset_2/download"}],"explanation":"Balanced exposure and warmer highlights while preserving skin tone.","renderer":"local_parametric","composition":{"selected_aspect_ratio":"original","crop":{"x":0.0,"y":0.0,"width":1.0,"height":1.0}},"qa":{"master_difference_score":0.18,"social_difference_score":0.31},"recipe_summary":"Balanced exposure while preserving the original frame.","share_caption":"Shot polished locally with Pocket Agent."}
         """.data(using: .utf8)!
         return try! JSONDecoder.mobileBridge.decode(TaskStatusResponse.self, from: data)
     }()
@@ -1069,7 +1069,7 @@ private struct SimulatorResultGallerySmokeDownloader: ResultAssetDownloading {
 
 private enum SimulatorSmokeFixtures {
     static let runtime = ConnectedRuntime(
-        displayName: "Agent Pocket Mock Agent",
+        displayName: "Pocket Agent Mock Agent",
         runtime: "hermes",
         runtimeVersion: "simulator"
     )
@@ -1080,7 +1080,7 @@ private enum SimulatorSmokeFixtures {
         }
         return StoredConnection(
             endpoint: endpoint,
-            displayName: "Agent Pocket Mock Agent",
+            displayName: "Pocket Agent Mock Agent",
             runtime: "hermes",
             runtimeVersion: "simulator",
             mobileToken: "dev-mobile-token",

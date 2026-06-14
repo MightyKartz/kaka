@@ -137,20 +137,20 @@ def _plugin_json(runtime_name: str, plugin_name: str) -> Mapping[str, object]:
     return {
         "name": plugin_name,
         "version": "0.1.0",
-        "description": "Host-team Codex developer plugin source for Kaka Mobile Bridge extensions.",
-        "author": {"name": "Kaka Runtime Kit"},
+        "description": "Host-team Codex developer plugin source for Pocket Agent Mobile Bridge extensions.",
+        "author": {"name": "Pocket Agent Runtime Kit"},
         "skills": "./skills/",
         "interface": {
-            "displayName": "Kaka Host Extension Developer",
-            "shortDescription": "Validate Kaka Mobile Bridge host extension materials.",
+            "displayName": "Pocket Agent Host Extension Developer",
+            "shortDescription": "Validate Pocket Agent Mobile Bridge host extension materials.",
             "longDescription": (
                 "Developer-only Codex plugin source for host engineers building "
-                f"{runtime_name} Kaka Mobile Bridge extension materials."
+                f"{runtime_name} Pocket Agent Mobile Bridge extension materials."
             ),
-            "developerName": "Kaka Runtime Kit",
+            "developerName": "Pocket Agent Runtime Kit",
             "category": "Productivity",
             "capabilities": [],
-            "defaultPrompt": "Help validate Kaka Mobile Bridge host extension materials.",
+            "defaultPrompt": "Help validate Pocket Agent Mobile Bridge host extension materials.",
         },
     }
 
@@ -159,23 +159,23 @@ def _skill_md(runtime_name: str, runtime: str) -> str:
     return (
         "---\n"
         f"name: {SKILL_NAME}\n"
-        "description: Use when a host engineer is scaffolding, validating, or reviewing Kaka Mobile Bridge Host Extension materials.\n"
+        "description: Use when a host engineer is scaffolding, validating, or reviewing Pocket Agent Mobile Bridge Host Extension materials.\n"
         "---\n\n"
-        "# Kaka Host Extension Developer\n\n"
+        "# Pocket Agent Host Extension Developer\n\n"
         "Use this skill only for host-team development of the native Hermes Plugin or "
         "OpenClaw Skill/sidecar package. It is not the ordinary-user installation surface.\n\n"
         "Safety rules:\n\n"
         "- Do not install Hermes/OpenClaw packages.\n"
-        "- Do not start Kaka Mobile Bridge, bind LAN, advertise Bonjour, or mint mobile tokens.\n"
+        "- Do not start Pocket Agent Mobile Bridge, bind LAN, advertise Bonjour, or mint mobile tokens.\n"
         "- Do not invoke private host adapter commands or run conformance without explicit host-team approval.\n"
         "- Do not update Codex marketplaces or write user-home plugin directories.\n"
-        "- Keep Kaka iPhone on `/mobile/v1`; do not expose private host APIs to the phone.\n\n"
+        "- Keep Pocket Agent iPhone on `/mobile/v1`; do not expose private host APIs to the phone.\n\n"
         "Workflow:\n\n"
         "1. Generate or inspect Runtime Kit `host-plugin-skill-devkit` output for the target runtime.\n"
         "2. Check host UI contract files and release-gate command files.\n"
         "3. Verify the private adapter command remains extension-internal.\n"
         "4. Confirm install, update, failure recovery, log redaction, uninstall, conformance, and evidence-manifest refs are present before external install drills.\n"
-        "5. Keep ordinary-user instructions focused on installing the host-native Plugin/Skill and pairing Kaka iPhone by QR or Bonjour.\n\n"
+        "5. Keep ordinary-user instructions focused on installing the host-native Plugin/Skill and pairing Pocket Agent iPhone by QR or Bonjour.\n\n"
         f"Default runtime context for this generated source: `{runtime}` ({runtime_name}).\n\n"
         "For command details, read `references/runtime-kit-commands.md`.\n"
     )
@@ -184,7 +184,7 @@ def _skill_md(runtime_name: str, runtime: str) -> str:
 def _runtime_kit_commands_reference(runtime: str) -> str:
     return (
         "# Runtime Kit Commands\n\n"
-        "Run these from the Kaka repository root with `PYTHONPATH=runtime-kit:mock_bridge`.\n\n"
+        "Run these from the Pocket Agent repository root with `PYTHONPATH=runtime-kit:mock_bridge`.\n\n"
         "```bash\n"
         f"python3 -m kaka_mobile_runtime_kit host-plugin-skill-devkit --runtime {runtime}\n"
         f"python3 -m kaka_mobile_runtime_kit host-extension-install-package --runtime {runtime}\n"
@@ -192,7 +192,7 @@ def _runtime_kit_commands_reference(runtime: str) -> str:
         f"python3 -m kaka_mobile_runtime_kit host-private-adapter-conformance --runtime {runtime} --private-adapter-command /path/to/host-owned-command\n"
         f"python3 -m kaka_mobile_runtime_kit host-shell-pilot-evidence-manifest --runtime {runtime} --artifact-root artifacts/{runtime}\n"
         "```\n\n"
-        "These commands are host-team development and release gates. They are not ordinary-user Kaka setup steps.\n"
+        "These commands are host-team development and release gates. They are not ordinary-user Pocket Agent setup steps.\n"
     )
 
 

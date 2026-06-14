@@ -126,7 +126,7 @@ def test_phone_safe_security_summary_excludes_tokens_and_tls_private_paths():
             token_ttl_seconds=3600,
             trusted_local_tls_required=True,
             tls_trust_state="configured",
-            tls_certificate_label="Kaka Local Runtime",
+            tls_certificate_label="Pocket Agent Local Runtime",
             tls_private_key_path="/Users/kartz/.kaka/private/key.pem",
         ),
     )
@@ -140,7 +140,7 @@ def test_phone_safe_security_summary_excludes_tokens_and_tls_private_paths():
         "mobile_token_revocation_supported": True,
         "trusted_local_tls_required": True,
         "tls_trust_state": "configured",
-        "tls_certificate_label": "Kaka Local Runtime",
+        "tls_certificate_label": "Pocket Agent Local Runtime",
     }
     assert "key.pem" not in rendered
     assert "tls_private_key_path" not in rendered
@@ -155,7 +155,7 @@ def test_pairing_payload_includes_non_secret_tls_pin_metadata_when_configured():
             code_ttl_seconds=120,
             trusted_local_tls_required=True,
             tls_trust_state="configured",
-            tls_certificate_label="Kaka Local Runtime",
+            tls_certificate_label="Pocket Agent Local Runtime",
             tls_public_key_sha256="a" * 64,
             tls_private_key_path="/Users/kartz/.kaka/private/key.pem",
         ),
@@ -170,7 +170,7 @@ def test_pairing_payload_includes_non_secret_tls_pin_metadata_when_configured():
     rendered = str(payload)
 
     assert payload["trusted_local_tls_required"] is True
-    assert payload["tls_certificate_label"] == "Kaka Local Runtime"
+    assert payload["tls_certificate_label"] == "Pocket Agent Local Runtime"
     assert payload["tls_public_key_sha256"] == "a" * 64
     assert "key.pem" not in rendered
     assert "tls_private_key_path" not in rendered

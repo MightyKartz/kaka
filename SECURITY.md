@@ -1,6 +1,6 @@
 # Security Policy
 
-Kaka is an early-stage local-first photo agent client. Please treat all security and privacy behavior as under active development until a stable release is tagged.
+Pocket Agent is an early-stage local-first photo agent client. Please treat all security and privacy behavior as under active development until a stable release is tagged.
 
 ## Supported Versions
 
@@ -8,7 +8,7 @@ Only the current `main` branch is supported during the MVP phase.
 
 ## Credential Boundary
 
-Kaka is designed so the iPhone app does not store model-provider API keys.
+Pocket Agent is designed so the iPhone app does not store model-provider API keys.
 
 - The iPhone stores only a Mobile Bridge endpoint and mobile bearer token.
 - Hermes, OpenClaw, or a compatible runtime owns model choice and provider credentials.

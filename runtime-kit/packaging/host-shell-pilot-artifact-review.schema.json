@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kaka.local/schemas/host-shell-pilot-artifact-review.schema.json",
-  "title": "Kaka Host Shell Pilot Artifact Review",
+  "title": "Pocket Agent Host Shell Pilot Artifact Review",
   "type": "object",
   "additionalProperties": false,
   "required": [

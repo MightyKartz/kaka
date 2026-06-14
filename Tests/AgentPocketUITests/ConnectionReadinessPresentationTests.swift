@@ -34,7 +34,7 @@ final class ConnectionReadinessPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.compatibleConnectionState, .offline)
         XCTAssertEqual(presentation.title, offlineCopy.title)
         XCTAssertEqual(presentation.message, offlineCopy.message)
-        XCTAssertVisibleCopy(presentation, contains: ["Start Kaka Mobile Bridge"])
+        XCTAssertVisibleCopy(presentation, contains: ["Start Pocket Agent Mobile Bridge"])
     }
 
     func testSavedRuntimeUnavailableExplainsMacActionAndPreservesPairing() {
@@ -85,7 +85,7 @@ final class ConnectionReadinessPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.recoveryOwner, .hostRuntime)
         XCTAssertEqual(presentation.recoveryAction, .checkHostExtension)
         XCTAssertNil(presentation.compatibleConnectionState)
-        XCTAssertVisibleCopy(presentation, contains: ["Host Extension", "Kaka Mobile Bridge", "Mac"])
+        XCTAssertVisibleCopy(presentation, contains: ["Host Extension", "Pocket Agent Mobile Bridge", "Mac"])
         XCTAssertVisibleCopy(presentation, doesNotContain: [
             "P3.1",
             "private host API",
@@ -136,7 +136,7 @@ final class ConnectionReadinessPresentationTests: XCTestCase {
 
     func testStateDerivedRecoveryOmitsBusyAndConnectedStates() {
         let runtime = ConnectedRuntime(
-            displayName: "Kaka Runtime",
+            displayName: "Pocket Agent Runtime",
             runtime: "hermes",
             runtimeVersion: "2026.6"
         )
