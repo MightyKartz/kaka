@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-06-14 · Local Agent Lens · Context Snapshot source preview copy
+
+- 优化 Context Snapshot 预览的 Source 行:Local Agent Lens 的 `agent_scanner`、`document_scanner`、`video_capture` 显示为 Scanner、Document Scan、Video。
+- 新增 TDD 覆盖 `testPreviewRowsUseUserFacingLocalAgentLensSources`;清理 SwiftPM `.build` 后红测确认旧预览未包含用户可读来源名。
+- QA receipt:`docs/qa-receipts/context-snapshot-lens-source-copy-20260614/`,含 focused/full Swift 测试与 `git diff --check` 日志。
+- 验证:`swift test --filter ContextSnapshotViewModelTests` 15 passed; `swift test` 459 passed; `git diff --check`。
+- 遗留:本轮为 presentation-copy 单测切片,未跑模拟器截图或真机硬件路径。
+
+---
+
 ## 2026-06-14 · Local Agent Lens · Inbox source review copy
 
 - 优化 Inbox pending item `Review Details` 来源展示:Local Agent Lens 的 `agent_scanner`、`document_scanner`、`video_capture` 不再显示 raw source surface。

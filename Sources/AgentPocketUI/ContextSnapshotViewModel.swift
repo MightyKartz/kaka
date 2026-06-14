@@ -109,6 +109,12 @@ private extension ContextSnapshotViewModel {
             return "Voice"
         case "inbox":
             return "Inbox"
+        case AgentLensSourceSurface.agentScanner.rawValue:
+            return "Scanner"
+        case AgentLensSourceSurface.documentScanner.rawValue:
+            return "Document Scan"
+        case AgentLensSourceSurface.videoCapture.rawValue:
+            return "Video"
         default:
             return prettified(value)
         }
