@@ -94,12 +94,12 @@ public struct TaskInboxView: View {
     private func taskRow(_ task: RuntimeTaskSummary) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Text(task.title)
+                Text(TaskInboxPresentation.taskTitle(task.title, language: language))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AgentPocketDesignTokens.ink)
                     .lineLimit(2)
                 Spacer()
-                Text(statusTitle(task.status.rawValue))
+                Text(TaskInboxPresentation.statusTitle(task.status.rawValue, language: language))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AgentPocketDesignTokens.inkMuted)
             }
@@ -108,7 +108,7 @@ public struct TaskInboxView: View {
                 .tint(task.requiresUserAction ? Color.orange : AgentPocketDesignTokens.accentStrong)
 
             if let message = task.message, message.isEmpty == false {
-                Text(localizedTaskMessage(message))
+                Text(TaskInboxPresentation.taskMessage(message, language: language))
                     .font(.footnote)
                     .foregroundStyle(AgentPocketDesignTokens.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -156,47 +156,4 @@ public struct TaskInboxView: View {
         AppLanguage.resolved(storedValue: nil)
     }
 
-    private func statusTitle(_ rawValue: String) -> String {
-        guard language == .chinese else {
-            return rawValue.replacingOccurrences(of: "_", with: " ")
-        }
-
-        switch rawValue {
-        case "queued":
-            return "排队中"
-        case "running":
-            return "运行中"
-        case "completed":
-            return "已完成"
-        case "failed":
-            return "失败"
-        case "cancelled", "canceled":
-            return "已取消"
-        case "requires_user_action":
-            return "等待确认"
-        case "waiting_for_approval":
-            return "等待确认"
-        default:
-            return rawValue.replacingOccurrences(of: "_", with: " ")
-        }
-    }
-
-    private func localizedTaskMessage(_ message: String) -> String {
-        guard language == .chinese else {
-            return message
-        }
-
-        switch message {
-        case "Completed.":
-            return "已完成。"
-        case "Cancelled.", "Canceled.":
-            return "已取消。"
-        case "Waiting for approval.":
-            return "等待确认。"
-        case "Running.":
-            return "运行中。"
-        default:
-            return message
-        }
-    }
 }

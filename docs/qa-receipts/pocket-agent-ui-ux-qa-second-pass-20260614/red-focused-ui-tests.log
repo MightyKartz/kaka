@@ -1,0 +1,62 @@
+[0/1] Planning build
+Building for debugging...
+[0/6] Write sources
+[1/6] Write swift-version--58304C5D6DBC2206.txt
+[3/7] Emitting module AgentPocketUITests
+[4/7] Compiling AgentPocketUITests TaskInboxPresentationTests.swift
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/TaskInboxPresentationTests.swift:7:13: error: cannot find 'TaskInboxPresentation' in scope
+ 5 |     func testChineseActivityTitleLocalizesRuntimeFallback() {
+ 6 |         XCTAssertEqual(
+ 7 |             TaskInboxPresentation.taskTitle("Runtime task", language: .chinese),
+   |             `- error: cannot find 'TaskInboxPresentation' in scope
+ 8 |             "运行时任务"
+ 9 |         )
+
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/TaskInboxPresentationTests.swift:7:72: error: cannot infer contextual base in reference to member 'chinese'
+ 5 |     func testChineseActivityTitleLocalizesRuntimeFallback() {
+ 6 |         XCTAssertEqual(
+ 7 |             TaskInboxPresentation.taskTitle("Runtime task", language: .chinese),
+   |                                                                        `- error: cannot infer contextual base in reference to member 'chinese'
+ 8 |             "运行时任务"
+ 9 |         )
+
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/TaskInboxPresentationTests.swift:14:13: error: cannot find 'TaskInboxPresentation' in scope
+12 |     func testChineseActivityTitleUsesLocalFallbackForBlankTitle() {
+13 |         XCTAssertEqual(
+14 |             TaskInboxPresentation.taskTitle("   ", language: .chinese),
+   |             `- error: cannot find 'TaskInboxPresentation' in scope
+15 |             "运行时任务"
+16 |         )
+
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/TaskInboxPresentationTests.swift:14:63: error: cannot infer contextual base in reference to member 'chinese'
+12 |     func testChineseActivityTitleUsesLocalFallbackForBlankTitle() {
+13 |         XCTAssertEqual(
+14 |             TaskInboxPresentation.taskTitle("   ", language: .chinese),
+   |                                                               `- error: cannot infer contextual base in reference to member 'chinese'
+15 |             "运行时任务"
+16 |         )
+
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/TaskInboxPresentationTests.swift:21:13: error: cannot find 'TaskInboxPresentation' in scope
+19 |     func testActivityTitleKeepsRuntimeProvidedSpecificTitle() {
+20 |         XCTAssertEqual(
+21 |             TaskInboxPresentation.taskTitle("小红书封面构图已完成", language: .chinese),
+   |             `- error: cannot find 'TaskInboxPresentation' in scope
+22 |             "小红书封面构图已完成"
+23 |         )
+
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/TaskInboxPresentationTests.swift:21:90: error: cannot infer contextual base in reference to member 'chinese'
+19 |     func testActivityTitleKeepsRuntimeProvidedSpecificTitle() {
+20 |         XCTAssertEqual(
+21 |             TaskInboxPresentation.taskTitle("小红书封面构图已完成", language: .chinese),
+   |                                                                      `- error: cannot infer contextual base in reference to member 'chinese'
+22 |             "小红书封面构图已完成"
+23 |         )
+[5/7] Compiling AgentPocketUITests DarkControlContrastTests.swift
+/Users/kartz/Development/Kaka/Tests/AgentPocketUITests/DarkControlContrastTests.swift:6:65: error: type 'AgentPocketDarkControlContrast' has no member 'disabledPrimaryNeutralFillOpacity'
+ 4 | final class DarkControlContrastTests: XCTestCase {
+ 5 |     func testDisabledPrimaryControlsReadAsInactiveOnDarkSheets() {
+ 6 |         XCTAssertLessThanOrEqual(AgentPocketDarkControlContrast.disabledPrimaryNeutralFillOpacity, 0.16)
+   |                                                                 `- error: type 'AgentPocketDarkControlContrast' has no member 'disabledPrimaryNeutralFillOpacity'
+ 7 |         XCTAssertGreaterThanOrEqual(AgentPocketDarkControlContrast.disabledPrimaryLabelOpacity, 0.48)
+ 8 |         XCTAssertLessThanOrEqual(AgentPocketDarkControlContrast.disabledPrimaryLabelOpacity, 0.68)
+error: fatalError
