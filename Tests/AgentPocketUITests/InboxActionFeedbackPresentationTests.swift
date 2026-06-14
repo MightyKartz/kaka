@@ -16,6 +16,22 @@ final class InboxActionFeedbackPresentationTests: XCTestCase {
         XCTAssertTrue(presentation?.canDismiss == true)
     }
 
+    func testBlankFailureMessageFallsBackToLocalizedReviewCopy() {
+        let english = InboxActionFeedbackPresentation(
+            state: .failed(" \n "),
+            progressText: nil,
+            language: .english
+        )
+        let chinese = InboxActionFeedbackPresentation(
+            state: .failed(""),
+            progressText: nil,
+            language: .chinese
+        )
+
+        XCTAssertEqual(english?.message, "Pocket Agent could not finish that Inbox action. Review the item and try again.")
+        XCTAssertEqual(chinese?.message, "Pocket Agent 未能完成这次收件箱操作。请查看项目后重试。")
+    }
+
     func testEnglishSubmittingShowsProgressBanner() {
         let presentation = InboxActionFeedbackPresentation(
             state: .submitting,
