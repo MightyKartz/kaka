@@ -55,14 +55,39 @@ final class InboxResultPresentationTests: XCTestCase {
         XCTAssertEqual(omitted.contextText, "本次任务未选择 Context Snapshot。")
     }
 
+    func testSourceAppProvenanceShowsWhenItAddsContext() throws {
+        let status = try completedIntakeStatus()
+
+        let pasted = InboxResultPresentation(
+            status: status,
+            context: context(sourceApp: "Safari", sourceSurface: "paste", kind: .url),
+            language: .english
+        )
+        let fileImport = InboxResultPresentation(
+            status: status,
+            context: context(sourceApp: "Files", sourceSurface: "file_picker", kind: .pdf),
+            language: .english
+        )
+        let sharedChinese = InboxResultPresentation(
+            status: status,
+            context: context(sourceApp: "Photos", sourceSurface: "share_extension", kind: .image),
+            language: .chinese
+        )
+
+        XCTAssertEqual(pasted.sourceText, "Source: Paste from Safari")
+        XCTAssertEqual(fileImport.sourceText, "Source: Files")
+        XCTAssertEqual(sharedChinese.sourceText, "来源：系统分享来自 Photos")
+    }
+
     private func context(
+        sourceApp: String? = nil,
         sourceSurface: String?,
         kind: UniversalIntakeKind,
         contextSelected: Bool = true
     ) -> InboxSubmissionContext {
         InboxSubmissionContext(
             sourceInboxItemID: UUID(uuidString: "A6830000-0000-4000-9000-000000000001")!,
-            sourceApp: nil,
+            sourceApp: sourceApp,
             sourceSurface: sourceSurface,
             kind: kind,
             contextSelected: contextSelected
